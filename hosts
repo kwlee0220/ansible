@@ -1,0 +1,19 @@
+[hosts]
+kafka01 ip=192.168.56.111
+kafka02 ip=192.168.56.112
+kafka03 ip=192.168.56.113
+
+[java_nodes]
+kafka01
+kafka02
+kafka03
+
+[kafka_brokers]
+kafka01 broker_id=1
+kafka02 broker_id=2
+kafka03 broker_id=3
+
+[zookeepers]
+kafka01 myid=1
+kafka02 myid=2
+kafka03 myid=3
