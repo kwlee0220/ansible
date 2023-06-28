@@ -1,6 +1,6 @@
 confluent_installation_dir: /opt
 confluent_home_dir: "{{confluent_installation_dir}}/confluent"
-confluent_tarball: "confluent-community-7.2.5.tar"
+confluent_tarball: "https://packages.confluent.io/archive/7.2/confluent-community-7.2.5.tar.gz"
 confluent_user: confluent
 confluent_group: confluent
 

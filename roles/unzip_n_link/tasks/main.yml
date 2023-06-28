@@ -6,6 +6,7 @@
     dest: "{{ unarchive_parent_dir }}/"
     owner: "{{ user_id }}"
     group: "{{ group_id }}"
+    remote_src: yes
     list_files: yes
     mode: 0755
   register: uncompressed
