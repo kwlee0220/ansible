@@ -1,0 +1,13 @@
+- name: create a group
+  become: yes
+  group:
+    name: "{{ group_id }}"
+    state: present
+
+- name: create an user
+  become: yes
+  user:
+    name: "{{ user_id }}"
+    shell: /bin/bash
+    state: present
+    group: "{{ group_id }}"

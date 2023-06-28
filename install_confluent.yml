@@ -1,0 +1,6 @@
+---
+
+- name: install confluent services.
+  hosts: hosts
+  roles:
+    - confluent

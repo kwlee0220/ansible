@@ -1,0 +1,8 @@
+---
+
+- name: stop confluent zookeeper services.
+  hosts: zookeepers
+  tasks:
+    - import_role:
+        name: confluent
+        tasks_from: stop

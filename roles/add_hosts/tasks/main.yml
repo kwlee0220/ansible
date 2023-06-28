@@ -1,0 +1,6 @@
+- name: add hosts into '/etc/hosts' file.
+  become: true
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ hostvars[item]['ip'] }} {{ hostvars[item]['inventory_hostname'] }}"
+  loop: "{{ ansible_play_hosts }}"

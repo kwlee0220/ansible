@@ -1,0 +1,6 @@
+---
+
+- name: install default-jre.
+  hosts: java_nodes
+  roles:
+    - jre_default
