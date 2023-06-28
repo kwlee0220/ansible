@@ -1,0 +1,21 @@
+
+- name: unzip the tarball.
+  become: yes
+  unarchive:
+    src: "{{ tarball_path }}"
+    dest: "{{ unarchive_parent_dir }}/"
+    owner: "{{ user_id }}"
+    group: "{{ group_id }}"
+    list_files: yes
+    mode: 0755
+  register: uncompressed
+
+- name: create a symbolic link to the uncompressed directory
+  become: yes
+  file:
+    src: "{{ uncompressed.files[0] }}"
+    dest: "{{ sym_link_path }}"
+    state: link
+    owner: "{{ user_id }}"
+    group: "{{ group_id }}"
+    follow: no

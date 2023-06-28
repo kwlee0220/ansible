@@ -1,0 +1,7 @@
+- name: Install default-jre
+  become: yes
+  apt:
+    name:
+      - default-jre
+    state: present
+    update_cache: yes
