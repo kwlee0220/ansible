@@ -1,0 +1,24 @@
+- name: provide 'zookeeper.properties'
+  become: yes
+  become_user: "{{ confluent_user }}"
+  template:
+    src: zookeeper.properties.j2
+    dest: "{{ confluent_home_dir }}/etc/kafka/zookeeper.properties"
+    force: true
+  tags: zookeeper
+
+- name: prepare zookeeper's data directory
+  become: yes
+  file:
+    path: "{{ zookeeper_data_dir }}"
+    state: directory
+    owner: "{{ confluent_user }}"
+    group: "{{ confluent_group }}"
+    mode: 0755
+  tags: zookeeper
+
+- name: create 'myid' file in the zookeeper's data directory
+  become: yes
+  become_user: "{{ confluent_user }}"
+  shell: "echo {{myid}} > {{ zookeeper_data_dir }}/myid"
+  tags: zookeeper

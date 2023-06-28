@@ -1,0 +1,9 @@
+confluent_installation_dir: /opt
+confluent_home_dir: "{{confluent_installation_dir}}/confluent"
+confluent_tarball: "confluent-community-7.2.5.tar"
+confluent_user: confluent
+confluent_group: confluent
+
+confluent_data_dir: /var/confluent
+zookeeper_data_dir: "{{confluent_data_dir}}/zookeeper"
+kafka_log_dir: "{{confluent_data_dir}}/kafka/kafka-logs"

@@ -1,0 +1,12 @@
+
+- name: start zookeeper
+  become: yes
+  become_user: "{{ confluent_user }}"
+  command: "{{ confluent_home_dir }}/bin/zookeeper-server-start -daemon {{ confluent_home_dir }}/etc/kafka/zookeeper.properties"
+  tags: zookeeper
+
+- name: start kafka broker
+  become: yes
+  become_user: "{{ confluent_user }}"
+  command: "{{ confluent_home_dir }}/bin/kafka-server-start -daemon {{ confluent_home_dir }}/etc/kafka/server.properties"
+  tags: kafka

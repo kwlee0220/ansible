@@ -1,0 +1,29 @@
+
+- name: add a user account for confluent package.
+  include_role:
+    name: add_user
+  vars:
+    group_id: "{{ confluent_group }}"
+    user_id: "{{ confluent_user }}"
+
+- name: upload/unzip confluent-tarball and create a symbolic link to the uncompressed directory.
+  include_role:
+    name: unzip_n_link
+  vars:
+    tarball_path: "{{ confluent_tarball }}"
+    unarchive_parent_dir: "{{ confluent_installation_dir }}"
+    sym_link_path: "{{ confluent_home_dir }}"
+    group_id: "{{ confluent_group }}"
+    user_id: "{{ confluent_user }}"
+
+- name: configure zookeeper settings.
+  include_tasks: configure_zookeeper.yml
+
+- name: configure kafka broker settings.
+  include_tasks: configure_kafka.yml
+
+- name: add bin path to PATH environment variable.
+  become: yes
+  copy:
+    dest: /etc/profile.d/confluent-path.sh
+    content: 'PATH=$PATH:{{ confluent_home_dir }}/bin'

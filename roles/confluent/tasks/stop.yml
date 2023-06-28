@@ -1,0 +1,12 @@
+
+- name: stop zookeeper
+  become: yes
+  become_user: "{{ confluent_user }}"
+  command: "{{ confluent_home_dir }}/bin/zookeeper-server-stop"
+  tags: zookeeper
+
+- name: stop kafka
+  become: yes
+  become_user: "{{ confluent_user }}"
+  command: "{{ confluent_home_dir }}/bin/kafka-server-stop"
+  tags: kafka

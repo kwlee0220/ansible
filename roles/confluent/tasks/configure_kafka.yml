@@ -1,0 +1,25 @@
+
+- set_fact:
+    zookeeper_hosts_csv: "{{zookeeper_hosts_csv|default([]) + [item ~ ':2181']}}"
+  with_items: "{{ ansible_play_hosts }}"
+- set_fact:
+    zookeeper_hosts_csv: "{{ zookeeper_hosts_csv | join(',')}}"
+
+- name: provide 'server.properties'
+  become: yes
+  become_user: "{{ confluent_user }}"
+  template:
+    src: server.properties.j2
+    dest: "{{ confluent_home_dir }}/etc/kafka/server.properties"
+    force: true
+  tags: kafka
+
+- name: prepare kafka's log directory
+  become: yes
+  file:
+    path: "{{ kafka_log_dir }}"
+    state: directory
+    owner: "{{ confluent_user }}"
+    group: "{{ confluent_group }}"
+    mode: 0755
+  tags: kafka
