@@ -1,0 +1,6 @@
+---
+
+- name: update and upgrade apt packages.
+  hosts: all
+  roles:
+    - update_apt_package

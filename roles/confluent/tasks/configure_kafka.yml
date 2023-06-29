@@ -1,10 +1,4 @@
 
-- set_fact:
-    zookeeper_hosts_csv: "{{zookeeper_hosts_csv|default([]) + [item ~ ':2181']}}"
-  with_items: "{{ ansible_play_hosts }}"
-- set_fact:
-    zookeeper_hosts_csv: "{{ zookeeper_hosts_csv | join(',')}}"
-
 - name: provide 'server.properties'
   become: yes
   become_user: "{{ confluent_user }}"
@@ -12,6 +6,8 @@
     src: server.properties.j2
     dest: "{{ confluent_home_dir }}/etc/kafka/server.properties"
     force: true
+  vars:
+    zookeeper_connect: "{{ ansible_play_hosts | map('regex_replace', '$', ':2181') | join(',') }}"
   tags: kafka
 
 - name: prepare kafka's log directory

@@ -5,6 +5,9 @@
     src: zookeeper.properties.j2
     dest: "{{ confluent_home_dir }}/etc/kafka/zookeeper.properties"
     force: true
+  vars:
+    myids: '{{ ansible_play_hosts | map("extract", hostvars) | selectattr("myid", "defined") | map(attribute="myid") | list }}'
+    zookeeper_infos: "{{ dict(ansible_play_hosts  | zip(myids)) | dict2items(key_name='host', value_name='myid') }}"
   tags: zookeeper
 
 - name: prepare zookeeper's data directory

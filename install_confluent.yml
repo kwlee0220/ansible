@@ -1,6 +1,11 @@
 ---
 
+- name: install Java.
+  hosts: zookeepers:kafka_brokers
+  roles:
+    - jre_default
+
 - name: install confluent services.
-  hosts: hosts
+  hosts: zookeepers:kafka_brokers
   roles:
     - confluent

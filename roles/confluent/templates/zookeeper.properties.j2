@@ -29,7 +29,6 @@ syncLimit=2
 autopurge.snapRetainCount=3
 autopurge.purgeInterval=24
 
-{% for play_host in ansible_play_hosts %}
-{% set host = hostvars[play_host] %}
-server.{{ host['myid'] }}=kafka0{{ host['myid'] }}:2888:3888
+{% for info in zookeeper_infos %}
+server.{{ info['myid'] }}={{ info['host'] }}:2888:3888
 {% endfor %}

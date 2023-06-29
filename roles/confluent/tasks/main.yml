@@ -18,12 +18,16 @@
 
 - name: configure zookeeper settings.
   include_tasks: configure_zookeeper.yml
+  vars:
+    zookeeper_hosts: "{{zookeepers}}"
+  tags: zookeeper,configure
 
 - name: configure kafka broker settings.
   include_tasks: configure_kafka.yml
+  tags: kafka,configure
 
-- name: add bin path to PATH environment variable.
-  become: yes
-  copy:
-    dest: /etc/profile.d/confluent-path.sh
-    content: 'PATH=$PATH:{{ confluent_home_dir }}/bin'
+# - name: add bin path to PATH environment variable.
+#   become: yes
+#   copy:
+#     dest: /etc/profile.d/confluent-path.sh
+#     content: 'PATH=$PATH:{{ confluent_home_dir }}/bin'

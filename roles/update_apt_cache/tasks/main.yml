@@ -1,5 +1,0 @@
-- name: install updates (Ubuntu)
-  become: true
-  apt:
-    upgrade: dist
-    update_cache: yes

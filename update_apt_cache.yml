@@ -1,6 +1,0 @@
----
-
-- name: update apt repository cache.
-  hosts: all
-  roles:
-    - update_apt_cache

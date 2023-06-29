@@ -1,0 +1,9 @@
+---
+
+- name: update apt packages.
+  hosts: all
+
+  tasks:
+    - import_role:
+        name: update_apt_package
+        tasks_from: update
