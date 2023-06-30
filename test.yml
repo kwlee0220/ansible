@@ -9,7 +9,7 @@
         zhost_hostvars: >
           {{ hostvars
             | dict2items
-            | json_query('[?value.myid].{host:key}')
+            | json_query('[?value.myid].{host:key, myid: value.myid}')
           }}
 
 
