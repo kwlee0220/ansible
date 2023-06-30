@@ -1,0 +1,17 @@
+---
+
+- name: test.
+  hosts: all
+  tasks:
+    - debug:
+        msg: "{{ zhost_hostvars }}"
+      vars:
+        zhost_hostvars: >
+          {{ hostvars
+            | dict2items
+            | json_query('[?value.myid].{host:key}')
+          }}
+
+
+
+    # zookeeper_connect: "{{ ansible_play_hosts | map('regex_replace', '$', ':2181') | join(',') }}"

@@ -4,9 +4,9 @@
   unarchive:
     src: "{{ tarball_path }}"
     dest: "{{ unarchive_parent_dir }}/"
-    owner: "{{ user_id }}"
-    group: "{{ group_id }}"
-    remote_src: yes
+    owner: "{{ user_id | default(omit) }}"
+    group: "{{ group_id | default(omit) }}"
+    remote_src: "{{ remote_src | default(yes) }}"
     list_files: yes
     mode: 0755
   register: uncompressed
@@ -17,6 +17,7 @@
     src: "{{ uncompressed.files[0] }}"
     dest: "{{ sym_link_path }}"
     state: link
-    owner: "{{ user_id }}"
-    group: "{{ group_id }}"
+    owner: "{{ user_id | default(omit) }}"
+    group: "{{ group_id | default(omit) }}"
     follow: no
+  when: sym_link_path is defined

@@ -1,0 +1,46 @@
+
+- name: Zookeeper | Create Unit file.
+  become: yes
+  template:
+    src: zookeeper.service.j2
+    dest: /lib/systemd/system/zookeeper.service
+    mode: 0644
+  tags: zookeeper, service
+
+- name: Zookeeper | Reload systemctl if service unit is changed.
+  become: yes
+  systemd:
+    daemon_reload: true
+  tags: zookeeper, service
+
+- name: Zookeeper | Start and enable Zookeeper service.
+  become: yes
+  service:
+    name: zookeeper.service
+    state: started
+    enabled: yes
+  tags: zookeeper, service
+
+
+
+- name: Kafka | Create Unit file.
+  become: yes
+  template:
+    src: kafka.service.j2
+    dest: /lib/systemd/system/kafka.service
+    mode: 0644
+  tags: kafka, service
+
+- name: Kafka | Reload systemctl if service unit is changed.
+  become: yes
+  systemd:
+    daemon_reload: true
+  tags: kafka, service
+
+- name: Kafka | Start and enable Kafka broker service.
+  become: yes
+  service:
+    name: kafka.service
+    state: started
+    enabled: yes
+  tags: kafka, service

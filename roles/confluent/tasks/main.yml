@@ -6,7 +6,7 @@
     group_id: "{{ confluent_group }}"
     user_id: "{{ confluent_user }}"
 
-- name: upload/unzip confluent-tarball and create a symbolic link to the uncompressed directory.
+- name: upload/unzip the confluent-tarball and create a symbolic link to the uncompressed directory.
   include_role:
     name: unzip_n_link
   vars:
@@ -18,13 +18,15 @@
 
 - name: configure zookeeper settings.
   include_tasks: configure_zookeeper.yml
-  vars:
-    zookeeper_hosts: "{{zookeepers}}"
   tags: zookeeper,configure
 
 - name: configure kafka broker settings.
   include_tasks: configure_kafka.yml
   tags: kafka,configure
+
+- name: register and enable the packages as services.
+  include_tasks: service.yml
+  tags: zookeeper, kafka, service
 
 # - name: add bin path to PATH environment variable.
 #   become: yes

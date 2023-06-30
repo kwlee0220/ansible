@@ -1,0 +1,14 @@
+[Unit]
+Description=Confluent ZooKeeper
+After=network.target network-online.target remote-fs.target
+
+[Service]
+Type=simple
+User={{confluent_user}}
+Group={{ confluent_group }}
+
+ExecStart={{ confluent_home_dir }}/bin/zookeeper-server-start {{ confluent_home_dir }}/etc/kafka/zookeeper.properties
+ExecStop={{ confluent_home_dir }}/bin/zookeeper-server-stop
+
+[Install]
+WantedBy=multi-user.target

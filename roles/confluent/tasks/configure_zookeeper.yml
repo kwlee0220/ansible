@@ -1,4 +1,4 @@
-- name: provide 'zookeeper.properties'
+- name: Zookeeper | provide 'zookeeper.properties'
   become: yes
   become_user: "{{ confluent_user }}"
   template:
@@ -6,11 +6,14 @@
     dest: "{{ confluent_home_dir }}/etc/kafka/zookeeper.properties"
     force: true
   vars:
-    myids: '{{ ansible_play_hosts | map("extract", hostvars) | selectattr("myid", "defined") | map(attribute="myid") | list }}'
-    zookeeper_infos: "{{ dict(ansible_play_hosts  | zip(myids)) | dict2items(key_name='host', value_name='myid') }}"
+    zookeeper_infos: >
+      {{ hostvars
+        | dict2items
+        | json_query('[?value.myid].{host:key, myid: value.myid}')
+      }}
   tags: zookeeper
 
-- name: prepare zookeeper's data directory
+- name: Zookeeper | prepare zookeeper's data directory
   become: yes
   file:
     path: "{{ zookeeper_data_dir }}"
@@ -20,7 +23,7 @@
     mode: 0755
   tags: zookeeper
 
-- name: create 'myid' file in the zookeeper's data directory
+- name: Zookeeper | create 'myid' file in the zookeeper's data directory
   become: yes
   become_user: "{{ confluent_user }}"
   shell: "echo {{myid}} > {{ zookeeper_data_dir }}/myid"

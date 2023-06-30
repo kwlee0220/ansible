@@ -1,0 +1,18 @@
+[Unit]
+Description=Confluent Schema Registry
+After=network.target remote-fs.target kafka.service
+
+[Service]
+Type=forking
+User=kafka
+Group=kafka
+Environment="KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=10050 -Dcom.sun.management.jmxremote.local.only=true -Dcom.sun.management.jmxremote.authenticate=false"
+Environment="LOG_DIR={{kafka_log_dir}}"
+
+# Uncomment the following line to enable authentication for the schema registry
+# Environment="SCHEMA_REGISTRY_OPTS=-Djava.security.auth.login.config={{ confluent_home_dir }}/etc/schema-registry/schema_registry_jaas.conf"
+ExecStart={{ confluent_home_dir }}/bin/schema-registry-start -daemon {{ confluent_home_dir }}/etc/schema-registry/schema-registry.properties
+ExecStop={{ confluent_home_dir }}/bin/schema-registry-stop
+
+[Install]
+WantedBy=multi-user.target
