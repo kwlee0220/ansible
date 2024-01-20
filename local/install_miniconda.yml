@@ -24,15 +24,8 @@
         line: ". /home/kwlee/miniconda3/etc/profile.d/conda.sh"
         backup: yes
 
-    # - name: PATH에 추가
-    #   lineinfile:
-    #     dest: ~/.environments
-    #     regexp: 'PATH=\$HOME/local/miniconda3.*$'
-    #     line: "PATH={{ installation_dir }}/bin:$PATH"
-    #     backup: yes
-
     - name: update conda
-      command: conda update -n base -c default conda -y -q
+      command: conda update -y -q -n base -c defaults conda
 
     - name: Remove the installer
       file: state=absent path="{{ download_path }}"
