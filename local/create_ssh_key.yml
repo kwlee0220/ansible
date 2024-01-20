@@ -1,0 +1,15 @@
+---
+- name: Create SSH key and deploy
+  hosts: localhost
+  connection: local
+
+  tasks:
+  - name: create .ssh
+    become: false
+    file: path=~/.ssh state=directory
+
+  - name: create SSH key
+    openssh_keypair:
+      path: "{{private_key_file}}"
+
+  

@@ -44,7 +44,7 @@
       become: false
       lineinfile:
         dest: ~/.bash_aliases
-        regexp: 'alias fd=.*$'
+        regexp: 'alias bat=.*$'
         line: "alias bat='/usr/bin/batcat'"
         backup: yes
 

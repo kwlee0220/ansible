@@ -8,6 +8,9 @@
     - installation_dir: "$HOME/miniconda3"
 
   tasks:
+    - name: create ~/tmp
+      file: path=~/tmp state=directory
+
     - name: download Miniconda installer file
       get_url:
         url: "https://repo.continuum.io/miniconda/Miniconda3-4.5.4-Linux-x86_64.sh"
@@ -24,8 +27,8 @@
         line: ". /home/kwlee/miniconda3/etc/profile.d/conda.sh"
         backup: yes
 
-    - name: update conda
-      command: conda update -y -q -n base -c defaults conda
+    # - name: update conda
+    #   shell: . ~/.bashrc && conda activate && conda update -y -q -n base -c defaults conda
 
     - name: Remove the installer
       file: state=absent path="{{ download_path }}"

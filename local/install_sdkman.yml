@@ -11,7 +11,7 @@
 
   - name: Adding SDK Man to bash_profile
     lineinfile:
-      path: ~/.bash_profile
+      path: ~/.bashrc
       line: "{{ item }}"
       state: present
       create: yes
