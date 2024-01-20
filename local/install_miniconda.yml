@@ -1,35 +1,38 @@
 ---
-- name: Install Conda
+- name: Anaconda Installation
   hosts: localhost
   connection: local
-  become: true
+  gather_facts: no
+  vars:
+    - download_path: "$HOME/tmp/install-miniconda.sh"
+    - installation_dir: "$HOME/miniconda3"
 
   tasks:
-    - name: download Miniconda installation file.
+    - name: download Miniconda installer file
       get_url:
-        url: https://repo.continuum.io/miniconda/Miniconda3-4.5.4-Linux-x86_64.sh
-        dest: /tmp/install-miniconda.sh
-        checksum: md5:a946ea1d0c4a642ddf0c3a26a18bb16d
-        mode: 0550
-
-    - name: Create conda folder
-      file:
-        path: /opt/miniconda3
-        state: directory
-        mode: 755
-        recurse: yes
+        url: "https://repo.continuum.io/miniconda/Miniconda3-4.5.4-Linux-x86_64.sh"
+        dest: "{{ download_path }}"
+        mode: 0755
 
     - name: Run the installer
-      shell: /tmp/install-miniconda.sh -b -u -p /opt/miniconda3
+      shell: "{{ download_path }} -b -u"
+
+    - name: .bashrc에 추가
+      lineinfile:
+        dest: ~/.bashrc
+        regexp: 'etc/profile.d/conda.sh$'
+        line: ". /home/kwlee/miniconda3/etc/profile.d/conda.sh"
+        backup: yes
+
+    # - name: PATH에 추가
+    #   lineinfile:
+    #     dest: ~/.environments
+    #     regexp: 'PATH=\$HOME/local/miniconda3.*$'
+    #     line: "PATH={{ installation_dir }}/bin:$PATH"
+    #     backup: yes
+
+    - name: update conda
+      command: conda update -n base -c default conda -y -q
 
     - name: Remove the installer
-      file: state=absent path=/tmp/install-miniconda.sh
-
-    - name: Add miniconda bin to path
-      shell: echo 'export PATH=/opt/miniconda3/bin:$PATH' >> /etc/profile
-
-    - name: conda - read permission for all
-      file: path=/opt/miniconda3 mode=+r recurse=true
-
-    - name: conda - execution permission for all
-      file: path=/opt/miniconda3 mode=+x recurse=true
+      file: state=absent path="{{ download_path }}"
