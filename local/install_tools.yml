@@ -24,8 +24,7 @@
     - name: htop 설치
       apt: name=htop state=present
     - name: btop 설치
-      become: true
-      community.general.snap: name=btop
+      snap: name=btop state=present
     - name: fzf 설치
       apt: name=fzf state=present
     - name: neofetch 설치
