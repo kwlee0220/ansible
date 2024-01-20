@@ -18,11 +18,10 @@
       apt: name=ripgrep state=present
     - name: tldr 설치
       apt: name=tldr state=present
-    - name: bat 설치
-      apt: name=bat state=present
     - name: htop 설치
       apt: name=htop state=present
     - name: btop 설치
+      become: true
       community.general.snap: name=btop
     - name: fzf 설치
       apt: name=fzf state=present
@@ -37,12 +36,21 @@
     - name: trash-cli 설치
       apt: name=trash-cli state=present
 
-    - name: zoxide 설치
-      shell: "curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash"
-    - name: zoxide setup
+    - name: bat 설치
+      apt: name=bat state=present
+    - name: create alias
       lineinfile:
-        name: ~/.bashrc
-        line: 'eval "$(zoxide init bash)"'
+        dest: ~/.bash_aliases
+        regexp: 'alias fd=.*$'
+        line: "alias bat='/usr/bin/batcat'"
+        backup: yes
+
+    # - name: zoxide 설치
+    #   shell: "curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash"
+    # - name: zoxide setup
+    #   lineinfile:
+    #     name: ~/.bashrc
+    #     line: 'eval "$(zoxide init bash)"'
 
     - name: fd 설치
       apt: name=fd-find state=present
