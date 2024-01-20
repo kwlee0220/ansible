@@ -1,0 +1,35 @@
+---
+- name: Install Conda
+  hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: download Miniconda installation file.
+      get_url:
+        url: https://repo.continuum.io/miniconda/Miniconda3-4.5.4-Linux-x86_64.sh
+        dest: /tmp/install-miniconda.sh
+        checksum: md5:a946ea1d0c4a642ddf0c3a26a18bb16d
+        mode: 0550
+
+    - name: Create conda folder
+      file:
+        path: /opt/miniconda3
+        state: directory
+        mode: 755
+        recurse: yes
+
+    - name: Run the installer
+      shell: /tmp/install-miniconda.sh -b -u -p /opt/miniconda3
+
+    - name: Remove the installer
+      file: state=absent path=/tmp/install-miniconda.sh
+
+    - name: Add miniconda bin to path
+      shell: echo 'export PATH=/opt/miniconda3/bin:$PATH' >> /etc/profile
+
+    - name: conda - read permission for all
+      file: path=/opt/miniconda3 mode=+r recurse=true
+
+    - name: conda - execution permission for all
+      file: path=/opt/miniconda3 mode=+x recurse=true

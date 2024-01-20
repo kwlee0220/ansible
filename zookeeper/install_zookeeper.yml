@@ -1,0 +1,53 @@
+---
+- name: Zookeeper Installation
+  hosts: all
+  become: true
+  vars:
+    - local_jdk_path: /home/kwlee/Downloads/jdk-8u202-linux-x64.tar.gz
+    - installation_dir: /opt
+    - final_dir: "{{ installation_dir }}/zookeeper"
+
+  tasks:
+    - name: create a group for Zookeeper
+      group:
+        name: zookeeper
+        state: present
+    - name: create a user for Zookeeper
+      user:
+        name: zookeeper
+        state: present
+        group: zookeeper
+        create_home: false
+
+    - name: unarchive the zookeepr gzip file
+      become: true
+      unarchive:
+        src: https://dlcdn.apache.org/zookeeper/zookeeper-3.8.3/apache-zookeeper-3.8.3-bin.tar.gz
+        dest: "{{ installation_dir }}"
+        remote_src: true
+
+    - name: chown the installed directory
+      file:
+        path: "{{ installation_dir }}/apache-zookeeper-3.8.3-bin"
+        owner: zookeeper
+        group: zookeeper
+        recurse: true
+
+    - name: create a symbolic link to the installed directory
+      file:
+        src: "{{ installation_dir }}/apache-zookeeper-3.8.3-bin"
+        dest: "{{ final_dir }}"
+        state: link
+
+    - name: add bin directory to path
+      lineinfile: >
+        dest=/etc/environment 
+        state=present 
+        backrefs=yes
+        regexp='PATH=(["]*)((?!.*?{{ final_dir }}/bin).*?)(["]*)$'
+        line="PATH=\1\2:{{ final_dir }}/bin\3"
+
+    - name: add an environment variable, 'ZOOKEEPER_HOME'
+      lineinfile:
+        path: /etc/environment
+        line: "ZOOKEEPER_HOME={{ final_dir }}"

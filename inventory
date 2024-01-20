@@ -1,0 +1,9 @@
+[vmware]
+10.0.2.101
+10.0.2.102
+10.0.2.103
+
+[node]
+192.168.1.104 hostname=node04
+192.168.1.105 hostname=node05
+192.168.1.106 hostname=node06

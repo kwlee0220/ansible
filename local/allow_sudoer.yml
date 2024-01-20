@@ -1,0 +1,13 @@
+---
+- name: Add sudoer priviledge
+  hosts: localhost
+  connection: local
+  become: true
+  vars:
+    user: user
+
+  tasks:
+  - name: add the user to the sudoers
+    copy:
+      dest: "/etc/sudoers.d/{{user}}"
+      content: "{{user}}    ALL=(ALL)  NOPASSWD: ALL"

@@ -1,0 +1,52 @@
+---
+- name: Apache Kafka Installation
+  hosts: all
+  become: true
+  vars:
+    - home_dir: "opt/kafka"
+
+  tasks:
+    - name: create a service file for Zookeeper with copy module
+      copy:
+        dest: /etc/systemd/system/zookeeper.service
+        content: |
+          [Unit]
+          Requires=network.target remote-fs.target
+          After=network.target remote-fs.target
+          [Service]
+          Type=simple
+          User=kafka
+          ExecStart={{home_dir}}/bin/zookeeper-server-start.sh {{home_dir}}/config/zookeeper.properties
+          ExecStop={{home_dir}}/bin/zookeeper-server-stop.sh
+          Restart=on-abnormal
+          [Install]
+          WantedBy=multi-user.target
+        mode: 0755
+
+    - name: create a service file for Kafka with copy module
+      copy:
+        dest: /etc/systemd/system/kafka.service
+        content: |
+          [Unit]
+          Requires=zookeeper.service
+          After=zookeeper.service
+          [Service]
+          Type=simple
+          User=kafka
+          ExecStart=/bin/sh -c '{{home_dir}}/bin/kafka-server-start.sh {{home_dir}}/config/server.properties'
+          ExecStop={{home_dir}}/bin/kafka-server-stop.sh
+          Restart=on-abnormal
+          [Install]
+          WantedBy=multi-user.target
+        mode: 0755
+
+    - name: start services
+      tags: startservices
+      become: true
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: true
+      with_items:
+        - "kafka"
+        - "zookeeper"

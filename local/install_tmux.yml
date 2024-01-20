@@ -1,0 +1,19 @@
+---
+- name: Tmux 설치 과정
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: Tmux 설치
+      become: true
+      apt: name=tmux state=present update_cache=yes
+    - name: Tmux 설정 파일 복사
+      copy:
+        src: ~/ansible/.tmux.conf
+        dest: ~/.tmux.conf
+    - name: Tmux Plugin Manager 설치
+      git:
+        repo: https://github.com/tmux-plugins/tpm
+        dest: ~/.tmux/plugins/tpm
+        clone: yes

@@ -1,0 +1,34 @@
+---
+- name: Oracle JDK8 Installation
+  hosts: all
+  become: true
+  vars:
+    - local_jdk_path: /home/kwlee/Downloads/jdk-8u202-linux-x64.tar.gz
+    - installation_dir: /opt
+    - jdk_dir: jdk1.8.0_202
+    - final_dir: "{{ installation_dir }}/jdk1.8.0"
+
+  tasks:
+    - name: unzip jdk file.
+      unarchive:
+        src: "{{ local_jdk_path }}"
+        dest: "{{ installation_dir }}"
+
+    - name: create a symbolic link to the installed directory
+      file:
+        src: "{{ installation_dir }}/{{ jdk_dir }}"
+        dest: "{{ final_dir }}"
+        state: link
+
+    - name: add bin directory to path
+      lineinfile: >
+        dest=/etc/environment 
+        state=present 
+        backrefs=yes
+        regexp='PATH=(["]*)((?!.*?{{final_dir}}/bin).*?)(["]*)$'
+        line="PATH=\1\2:{{final_dir}}/bin\3"
+
+    - name: add an environment variable, 'JAVA_HOME'
+      lineinfile:
+        path: /etc/environment
+        line: "JAVA_HOME={{ final_dir }}"
