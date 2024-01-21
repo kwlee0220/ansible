@@ -8,34 +8,56 @@
 
   tasks:
     - name: Install required system packages
+      become: true
       apt:
         pkg:
           - apt-transport-https
           - ca-certificates
           - curl
+          - gnupg-agent
           - software-properties-common
-          - python3-pip
-          - virtualenv
-          - python3-setuptools
+          - lsb-release
+          # - python3-pip
+          # - virtualenv
+          # - python3-setuptools
         state: latest
         update_cache: true
 
     - name: add Docker GPG apt key
+      become: true
       apt_key:
         url: "{{ docker_gpg_url }}"
         state: present
 
     - name: add Docker Repository
+      become: true
       apt_repository:
-        repo: {{ docker_repo }}
+        repo: "{{ docker_repo }}"
         state: present
 
     - name: update apt and install docker-ce
+      become: true
       apt:
-        name: docker-ce
+        pkg:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
         state: latest
         update_cache: true
 
-    - name: install Docker Module for Python
-      pip:
-        name: docker
+    - name: install docker-compose
+      become: true
+      apt:
+        name: docker-compose-plugin
+        state: latest
+        update_cache: true
+
+    - name: add user to docker
+      become: true
+      become_user: "{{ansible_user_id}}"
+      user: name="{{ansible_user_id}}" groups=docker append=true
+
+
+    # - name: install Docker Module for Python
+    #   pip:
+    #     name: docker
