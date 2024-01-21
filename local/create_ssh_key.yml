@@ -6,10 +6,10 @@
   tasks:
   - name: create .ssh
     become: false
-    file: path=~/.ssh state=directory
+    file: path="~/.ssh" state=directory
 
   - name: create SSH key
     openssh_keypair:
-      path: "{{private_key_file}}"
+      path: "~/.ssh/id_rsa"
 
   
