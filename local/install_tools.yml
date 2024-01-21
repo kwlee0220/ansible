@@ -13,8 +13,8 @@
       become: false
       copy: dest=~/.bash_aliases content="" force=false
 
-    - name: aptitude 설치
-      apt: name=aptitude state=latest update_cache:true
+    - name: openssh-server 설치
+      package: name=openssh-server state=present
 
     - name: build-essential 설치
       apt: name=build-essential state=present
@@ -50,13 +50,6 @@
         regexp: 'alias bat=.*$'
         line: "alias bat='/usr/bin/batcat'"
         backup: yes
-
-    # - name: zoxide 설치
-    #   shell: "curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash"
-    # - name: zoxide setup
-    #   lineinfile:
-    #     name: ~/.bashrc
-    #     line: 'eval "$(zoxide init bash)"'
 
     - name: fd 설치
       apt: name=fd-find state=present
