@@ -13,6 +13,9 @@
       become: false
       copy: dest=~/.bash_aliases content="" force=false
 
+    - name: aptitude 설치
+      apt: name=aptitude state=latest update_cache:true
+
     - name: build-essential 설치
       apt: name=build-essential state=present
     - name: git 설치

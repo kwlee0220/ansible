@@ -4,6 +4,8 @@
   connection: local
 
   tasks:
+  - 
+
   - name: Install SDKMan
     shell: "curl -s 'https://get.sdkman.io' | bash"
     args:
