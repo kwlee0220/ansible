@@ -4,37 +4,43 @@
   connection: local
   gather_facts: no
 
+  vars_files:
+    - module_vars.yml
   vars:
-    common_dir: ~/development/common
+    base_dir: ~/development/common
     github_base: https://github.com/kwlee0220
     modules:
       - utils
       - utilsx
       - utils.geo
       - utils.grpc
-    proto_modules:
-      - utils.grpc
+    # proto_modules:
+    #   - utils.grpc
 
   pre_tasks:
   - name: create base directory
-    file: path={{ common_dir }} state=directory
+    file: path={{ base_dir }} state=directory
 
   tasks:
+  # - name: test
+  #   debug:
+  #     msg: "{{ item }}"
+  #   with_items: "{{common}}"
   - name: git clone modules
     git:
       repo: "{{ github_base }}/{{ item }}.git"
-      dest: "{{ common_dir }}/{{ item }}"
+      dest: "{{ base_dir }}/{{ item }}"
       clone: yes
-    with_items: "{{ modules }}"
+    with_items: "{{ module_commons }}"
 
-  - name: generate protos
-    command: gradle -q generateProto
-    args:
-      chdir: "{{ common_dir }}/{{ item }}"
-    with_items: "{{ proto_modules }}"
+  # - name: generate protos
+  #   command: gradle -q generateProto
+  #   args:
+  #     chdir: "{{ base_dir }}/{{ item }}"
+  #   with_items: "{{ proto_modules }}"
 
-  - name: create Eclipse project settings
-    command: gradle -q eclipse
-    args:
-      chdir: "{{ common_dir }}/{{ item }}"
-    with_items: "{{ modules }}"
+  # - name: create Eclipse project settings
+  #   command: gradle -q eclipse
+  #   args:
+  #     chdir: "{{ base_dir }}/{{ item }}"
+  #   with_items: "{{ modules }}"

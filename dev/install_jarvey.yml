@@ -1,0 +1,40 @@
+---
+- name: "jarvey: 주요 모듈 설치"
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    base_dir: ~/development/jarvey
+    github_base: https://github.com/kwlee0220
+    modules:
+      - jarvey
+      - jarvey.streams
+      - jarvey.streams.turn
+    proto_modules:
+      - jarvey.streams
+
+  pre_tasks:
+  - name: create base directory
+    file: path={{ base_dir }} state=directory
+
+  tasks:
+  - name: git clone modules
+    git:
+      repo: "{{ github_base }}/{{ item }}.git"
+      dest: "{{ base_dir }}/{{ item }}"
+      clone: yes
+    with_items: "{{ modules }}"
+
+  - name: generate protos
+    command: gradle -q generateProto
+    args:
+      chdir: "{{ base_dir }}/{{ item }}"
+    with_items: "{{ proto_modules }}"
+
+
+  - name: create Eclipse project settings
+    command: gradle -q eclipse
+    args:
+      chdir: "{{ base_dir }}/{{ item }}"
+    with_items: "{{ modules }}"

@@ -1,0 +1,11 @@
+---
+module_commons:
+  - utils
+  - utilsx
+  - utils.geo
+  - utils.grpc
+
+module_jarvey:
+  - jarvey
+  - jarvey.streams
+  - jarvey.streams.turn

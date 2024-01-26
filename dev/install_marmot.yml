@@ -1,0 +1,46 @@
+---
+- name: "marmot: 주요 모듈 설치"
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    base_dir: ~/development/marmot
+    github_base: https://github.com/kwlee0220
+    modules:
+      - marmot.common
+      - marmot.client
+      - marmot.core
+      - marmot.data
+      - marmot.hadoop
+      - marmot
+      - marmot.sample
+      - marmot.spark2
+      - marmot.spark3
+    proto_modules:
+      - marmot.common
+      - marmot.data
+
+  pre_tasks:
+  - name: create base directory
+    file: path={{ base_dir }} state=directory
+
+  tasks:
+  - name: git clone modules
+    git:
+      repo: "{{ github_base }}/{{ item }}.git"
+      dest: "{{ base_dir }}/{{ item }}"
+      clone: yes
+    with_items: "{{ modules }}"
+
+  - name: generate protos
+    command: gradle -q generateProto
+    args:
+      chdir: "{{ base_dir }}/{{ item }}"
+    with_items: "{{ proto_modules }}"
+
+  - name: create Eclipse project settings
+    command: gradle -q eclipse
+    args:
+      chdir: "{{ base_dir }}/{{ item }}"
+    with_items: "{{ modules }}"
