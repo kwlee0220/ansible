@@ -4,13 +4,14 @@ sudo apt-add-repository ppa:ansible/ansible -y
 sudo apt install ansible -y
 sudo apt install git -y
 
-ansible-pull -U https://github.com/kwlee0220/ansible_desktop.git
+ansible-pull -U https://github.com/kwlee0220/ansible.git desktop/local.yml
 source ~/.bashrc
 
 # Gradle Installation
-sdk install gradle 7.6.3
+sdk install gradle 5.6.3
 
 conda activate
 pip install --upgrade pip
 pip install gdown
-ansible-pull -U https://github.com/kwlee0220/ansible_desktop.git install_jdk8_oracle.yml
+ansible-pull -U https://github.com/kwlee0220/ansible.git desktop/install_jdk8_oracle.yml
+ansible-pull -U https://github.com/kwlee0220/ansible.git desktop/install_xrdpyml

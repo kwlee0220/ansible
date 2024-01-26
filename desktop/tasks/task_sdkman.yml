@@ -1,5 +1,19 @@
 
-- name: Install SDKMan
-  shell: 'curl -s "https://get.sdkman.io?rcupdate=false" | bash'
+- name: check whether SDKMan is installed or not
+  become: no
+  lineinfile:
+    path: ~/.bashrc
+    regexp: "^export SDKMAN_DIR="
+    state: absent
+  check_mode: yes
+  register: sdk_present
+
+- name: install SDKMan
+  become: no
+  shell: 'curl -s "https://get.sdkman.io" | bash'
   args:
     executable: /bin/bash
+    creates: ~/.sdkman
+  when: not sdk_present.found
+
+  

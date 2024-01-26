@@ -10,6 +10,7 @@
 
   pre_tasks:
   - name: update apt cache if it is old enough.
+    become: true
     apt: update_cache=yes cache_valid_time=3600
 
   tasks:
