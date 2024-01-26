@@ -1,11 +1,19 @@
 ---
-module_commons:
+github_base: https://github.com/kwlee0220
+
+modules:
+  commons:
   - utils
   - utilsx
   - utils.geo
   - utils.grpc
-
-module_jarvey:
+  jarveys:
   - jarvey
   - jarvey.streams
   - jarvey.streams.turn
+
+protos:
+  commons:
+  - utils.grpc
+  jarveys:
+  - jarvey.streams
