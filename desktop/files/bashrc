@@ -130,7 +130,3 @@ alias gdu='/usr/local/bin/gdu_linux_amd64'
 
 # Miniconda3
 . $HOME/miniconda3/etc/profile.d/conda.sh
-
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
