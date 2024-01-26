@@ -1,13 +1,14 @@
 ---
 - hosts: localhost
   connection: local
+  gather_facts:: no
+
   vars_files:
     - global_vars.yml
   vars:
     docker_gpg_url: https://download.docker.com/linux/ubuntu/gpg
     docker_repo: "deb https://download.docker.com/linux/ubuntu jammy stable"
     gradle_version: 7.6.3
-
 
   pre_tasks:
   - name: update and upgrade apt
