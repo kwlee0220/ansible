@@ -1,0 +1,54 @@
+---
+- hosts: localhost
+  connection: local
+  vars_files:
+    - global_vars.yml
+  vars:
+    docker_gpg_url: https://download.docker.com/linux/ubuntu/gpg
+    docker_repo: "deb https://download.docker.com/linux/ubuntu jammy stable"
+    gradle_version: 7.6.3
+
+
+  pre_tasks:
+  - name: update and upgrade apt
+    become: true
+    apt: upgrade=yes update_cache=yes cache_valid_time=3600
+
+  tasks:
+  - name: Desktop 사용자에게 sudo 권한 부여
+    include_tasks: tasks/task_allow_sudoer.yml
+
+  - name: Bash 설정 파일 복사
+    copy: src=files/bashrc dest=~/.bashrc
+
+  - name: install some terminal applications
+    include_tasks: tasks/task_tools.yml
+
+  - name: install D2Coding fonts
+    include_tasks: tasks/task_d2coding.yml
+
+  - name: install Vim
+    include_tasks: tasks/task_vim.yml
+
+  - name: install TMux
+    include_tasks: tasks/task_tmux.yml
+
+  - name: install VSCode
+    include_tasks: tasks/task_vscode.yml
+
+  - name: install Miniconda3
+    include_tasks: tasks/task_miniconda3.yml
+
+  - name: install SDKMan
+    include_tasks: tasks/task_sdkman.yml
+
+  - name: install Google Chrome
+    include_tasks: tasks/task_chrome.yml
+
+  - name: install Docker
+    include_tasks: tasks/task_docker.yml
+
+  - name: remove .ssh directory
+    file: path="~/.ssh" state=absent
+  - name: create SSH key
+    command: ssh-keygen -t rsa -f $HOME/.ssh/id_rsa -N '' -q

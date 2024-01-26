@@ -1,0 +1,7 @@
+
+- name: add the user to the sudoers
+  become: true
+  copy:
+    dest: "/etc/sudoers.d/{{user}}"
+    content: "{{user}} ALL=(ALL) NOPASSWD: ALL"
+    mode: 0440

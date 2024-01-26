@@ -1,0 +1,29 @@
+---
+- hosts: localhost
+  connection: local
+  vars_files:
+    - global_vars.yml
+  vars:
+    jdk8_url: "https://drive.google.com/uc?id=1OnYq01NK8_z2R69BJE2I8Q8A9NVS4s_G"
+    jdk8_installer: "jdk-8u391-linux-x64.tar.gz"
+    download_file: "{{tmp_dir}}/{{jdk8_installer}}"
+
+  pre_tasks:
+  - name: update apt cache if it is old enough.
+    apt: update_cache=yes cache_valid_time=3600
+
+  tasks:
+  - name: download JDK installer file.
+    shell: "~/miniconda3/bin/gdown -q {{ jdk8_url }} -O {{  download_file }}"
+    args:
+      creates: " {{ download_file }}"
+
+  - name: unzip the JDK installer file.
+    become: true
+    unarchive:
+      src: "{{  download_file }}"
+      dest: "/opt"
+      remote_src: true
+      
+  - name: remove the JDK installer
+    file: state=absent path="{{ download_file }}"

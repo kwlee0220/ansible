@@ -1,0 +1,21 @@
+" Syntax Highlighting
+if has("syntax")
+	syntax on
+endif
+
+set autoindent
+set nu
+
+set ts=2
+set shiftwidth=2
+set laststatus=2
+set statusline=\ %<%l:%v\ [%P]%=%a\ %h%m%r\ %F\
+set showmatch
+set smartcase
+set smarttab
+set smartindent
+set softtabstop=4
+set ruler
+set incsearch
+
+"colorscheme 'jellybeans'
