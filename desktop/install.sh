@@ -14,4 +14,4 @@ conda activate
 pip install --upgrade pip
 pip install gdown
 ansible-pull -U https://github.com/kwlee0220/ansible.git desktop/install_jdk8_oracle.yml
-ansible-pull -U https://github.com/kwlee0220/ansible.git desktop/install_xrdpyml
+ansible-pull -U https://github.com/kwlee0220/ansible.git desktop/install_xrdp.yml
