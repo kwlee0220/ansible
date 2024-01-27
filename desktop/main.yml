@@ -1,7 +1,7 @@
 ---
 - hosts: localhost
   connection: local
-  gather_facts:: no
+  gather_facts: no
 
   vars_files:
     - global_vars.yml
@@ -20,7 +20,7 @@
     include_tasks: tasks/task_allow_sudoer.yml
 
   - name: Bash 설정 파일 복사
-    copy: src=files/bashrc dest=~/.bashrc
+    include_tasks: tasks/task_bashrc.yml
 
   - name: install some terminal applications
     include_tasks: tasks/task_tools.yml
@@ -34,22 +34,44 @@
   - name: install TMux
     include_tasks: tasks/task_tmux.yml
 
+  - name: check code exists
+    stat: path=/usr/bin/code
+    register: vscode_installed
   - name: install VSCode
     include_tasks: tasks/task_vscode.yml
+    when: not vscode_installed.stat.exists
 
+  - name: check Miniconda3 exists
+    stat: path=~/miniconda3
+    register: miniconda_installed
   - name: install Miniconda3
     include_tasks: tasks/task_miniconda3.yml
+    when: not miniconda_installed.stat.exists
 
   - name: install SDKMan
-    include_tasks: tasks/task_sdkman.yml
+    become: false
+    shell: 'curl -s "https://get.sdkman.io" | bash'
+    args:
+      executable: /bin/bash
+      creates: ~/.sdkman
 
+  - name: check code exists
+    stat: path=/usr/bin/google-chrome
+    register: chrome_installed
   - name: install Google Chrome
     include_tasks: tasks/task_chrome.yml
+    when: not chrome_installed.stat.exists
 
+  - name: check docker exists
+    stat: path=/usr/bin/docker
+    register: docker_installed
   - name: install Docker
     include_tasks: tasks/task_docker.yml
+    when: not docker_installed.stat.exists
 
-  - name: remove .ssh directory
-    file: path="~/.ssh" state=absent
+  - name: ensure .ssh directory
+    file: path="~/.ssh" state=directory
   - name: create SSH key
     command: ssh-keygen -t rsa -f $HOME/.ssh/id_rsa -N '' -q
+    args:
+      creates: ~/.ssh/id_rsa

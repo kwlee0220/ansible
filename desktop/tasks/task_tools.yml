@@ -30,8 +30,11 @@
     dest: ~/.fzf
     depth: 1
     clone: yes
+    update: false
+  register: fzf_git_cloned
 - name: fzf 설치 - install
   shell: ~/.fzf/install
+  when: fzf_git_cloned.changed
 
 - name: gdu 설치
   become: true
