@@ -8,10 +8,12 @@ ansible-pull -U https://github.com/kwlee0220/ansible.git desktop/local.yml
 source ~/.bashrc
 
 # Gradle Installation
-sdk install gradle 5.6.3
+sdk install gradle 5.6.4
 
 conda activate
 pip install --upgrade pip
 pip install gdown
+conda deactivate
+
 ansible-pull -U https://github.com/kwlee0220/ansible.git desktop/install_jdk8_oracle.yml
 ansible-pull -U https://github.com/kwlee0220/ansible.git desktop/install_xrdp.yml
