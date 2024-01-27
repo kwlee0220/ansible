@@ -66,16 +66,9 @@
     include_tasks: tasks/task_chrome.yml
     when: not chrome_installed.stat.exists
 
-  - name: Docker 설치 여부 확인
-    stat: path=/usr/bin/docker
-    register: docker_installed
-  - name: install Docker
-    include_tasks: tasks/task_docker.yml
-    when: not docker_installed.stat.exists
-
-  - name: ensure .ssh directory
-    file: path="~/.ssh" state=directory
-  - name: create SSH key
-    command: ssh-keygen -t rsa -f $HOME/.ssh/id_rsa -N '' -q
-    args:
-      creates: ~/.ssh/id_rsa
+  # - name: Docker 설치 여부 확인
+  #   stat: path=/usr/bin/docker
+  #   register: docker_installed
+  # - name: install Docker
+  #   include_tasks: tasks/task_docker.yml
+  #   when: not docker_installed.stat.exists

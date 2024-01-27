@@ -56,8 +56,3 @@
       become: true
       become_user: "{{ansible_user_id}}"
       user: name="{{ansible_user_id}}" groups=docker append=true
-
-
-    # - name: install Docker Module for Python
-    #   pip:
-    #     name: docker

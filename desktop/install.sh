@@ -16,4 +16,5 @@ pip install gdown
 conda deactivate
 
 ansible-pull -U https://github.com/kwlee0220/ansible.git base/install_jdk8_oracle.yml -c local --limit 127.0.0.1
+ansible-pull -U https://github.com/kwlee0220/ansible.git base/install_docker.yml -c local --limit 127.0.0.1
 ansible-pull -U https://github.com/kwlee0220/ansible.git desktop/install_xrdp.yml
