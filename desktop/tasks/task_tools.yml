@@ -3,6 +3,8 @@
   become: true
   package:
     name:
+      - zip
+      - unzip
       - openssh-server
       - build-essential
       - ripgrep
