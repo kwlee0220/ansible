@@ -8,7 +8,9 @@
       - ripgrep
       - tldr
       - htop
+      - btop
       - neofetch
+      - cpufetch
       - net-tools
       - autojump
       - ffmpeg
@@ -17,12 +19,10 @@
       - fd-find
     state: latest
 
-- name: snap을 통한 설치
-  become: true
-  snap:
-    name:
-      - btop
-      - cpufetch
+# - name: snap을 통한 설치
+#   become: true
+#   snap:
+#     name:
 
 - name: fzf 설치 - git clone
   git:
