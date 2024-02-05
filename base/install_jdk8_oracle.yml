@@ -3,48 +3,5 @@
   hosts: all
   gather_facts: no
 
-  vars:
-    tmp_dir: /tmp
-    jdk8_url: "https://drive.google.com/uc?id=1OnYq01NK8_z2R69BJE2I8Q8A9NVS4s_G"
-    jdk8_installer_path: "{{ tmp_dir }}/jdk-8u391-linux-x64.tar.gz"
-    jdk8_home_dir: "/opt/jdk1.8.0_391"
-
-  tasks:
-    - name: check that JDK has been installed already
-      stat: path="{{ jdk8_home_dir }}"
-      register: jdk_installed
-
-    - name: download JDK installer file from Google Cloud.
-      shell: "~/miniconda3/bin/gdown -q {{ jdk8_url }} -O {{  jdk8_installer_path }}"
-      args:
-        creates: "{{ jdk8_installer_path }}"
-      when: not jdk_installed.stat.exists
-
-    - name: unzip the JDK installer file.
-      become: true
-      unarchive:
-        src: "{{  jdk8_installer_path }}"
-        dest: /opt
-        creates: "{{ jdk8_home_dir }}"
-      when: not jdk_installed.stat.exists
-
-    - name: add bin directory to path
-      become: true
-      lineinfile: >
-        dest=/etc/environment 
-        state=present 
-        backrefs=yes
-        regexp='PATH=(["]*)((?!.*?{{jdk8_home_dir}}/bin).*?)(["]*)$'
-        line="PATH=\1\2:{{jdk8_home_dir}}/bin\3"
-      when: not jdk_installed.stat.exists
-
-    - name: "add an environment variable, 'JAVA_HOME' into '/etc/environment'"
-      become: true
-      lineinfile:
-        path: /etc/environment
-        line: "JAVA_HOME={{ jdk8_home_dir }}"
-      when: not jdk_installed.stat.exists
-      
-    - name: remove the JDK installer
-      file: state=absent path="{{ jdk8_installer_path }}"
-      when: not jdk_installed.stat.exists
+  roles:
+    - role: jdk8_oracle

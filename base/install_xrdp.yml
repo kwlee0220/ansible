@@ -1,0 +1,7 @@
+---
+- name: xrdp 설치 과정
+  hosts: all
+  gather_facts: no
+
+  roles:
+    - role: xrdp
