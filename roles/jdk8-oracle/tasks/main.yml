@@ -1,0 +1,35 @@
+---
+- name: download JDK installer file from Google Cloud.
+  shell: "~/miniconda3/bin/gdown -q {{ jdk8_url }} -O {{ jdk8_installer_path }}"
+  args:
+    creates: "{{ jdk8_installer_path }}"
+  when: not jdk_installed.stat.exists
+
+- name: unzip the JDK installer file.
+  become: true
+  unarchive:
+    src: "{{ jdk8_installer_path }}"
+    dest: /opt
+    creates: "{{ jdk8_home_dir }}"
+  when: not jdk_installed.stat.exists
+
+- name: add bin directory to path
+  become: true
+  lineinfile: >
+    dest=/etc/environment 
+    state=present 
+    backrefs=yes
+    regexp='PATH=(["]*)((?!.*?{{ jdk8_home_dir }}/bin).*?)(["]*)$'
+    line="PATH=\1\2:{{ jdk8_home_dir }}/bin\3"
+  when: not jdk_installed.stat.exists
+
+- name: "add an environment variable, 'JAVA_HOME' into '/etc/environment'"
+  become: true
+  lineinfile:
+    path: /etc/environment
+    line: "JAVA_HOME={{ jdk8_home_dir }}"
+  when: not jdk_installed.stat.exists
+  
+- name: remove the JDK installer
+  file: state=absent path="{{ jdk8_installer_path }}"
+  when: not jdk_installed.stat.exists

@@ -1,0 +1,15 @@
+Vagrant.configure("2") do |config|
+  (1..3).each do |i|
+    config.vm.define "kafka-node0#{i}" do |cfg|
+      cfg.vm.box = "generic/ubuntu2204"
+      cfg.vm.provider "virtualbox" do |vb|
+        vb.name = "kafka-node0#{i}"
+        vb.cpus = 1
+        vb.memory = 8192
+      end
+      cfg.vm.host_name = "kafka-node0#{i}"
+      cfg.vm.network "public_network", ip: "192.168.1.5#{i}", bridge: "enp3s0"
+    end
+  end
+end
+
