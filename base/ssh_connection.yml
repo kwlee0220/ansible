@@ -1,0 +1,49 @@
+---
+- name: Collect the public keys from ansible nodes
+  hosts: all
+  connection: local
+  serial: 1
+
+  vars_prompt:
+    - name: ansible_password
+      prompt: "SSH password"
+
+  pre_tasks:
+    - name: ensure .ssh directory
+      connection: local
+      file: path="~/.ssh" state=directory
+      
+    - name: create SSH key
+      connection: local
+      command: ssh-keygen -t rsa -f $HOME/.ssh/id_rsa -N '' -q
+      args:
+        creates: ~/.ssh/id_rsa
+
+  tasks:
+    - name: 접속 대상 노드들의 public key를 수집한다.
+      connection: local
+      command: /usr/bin/ssh-keyscan -t rsa {{ ansible_host }}
+      register: keyscan
+
+    - name: 수집된 public key를 know_hosts 파일에 추가한다.
+      connection: local
+      lineinfile:
+        name: ~/.ssh/known_hosts
+        create: yes
+        line: "{{ item }}"
+      with_items:
+        - "{{ keyscan.stdout_lines }}"
+
+    - name: sshpass 설치
+      become: true
+      connection: ssh
+      package: name=sshpass
+
+    - name: 생성된 public key를 ansible node들에게 배포한다.
+      connection: ssh
+      authorized_key:
+        user: "{{ ansible_user_id }}"
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+        state: present
+
+  

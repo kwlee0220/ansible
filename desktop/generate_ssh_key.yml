@@ -1,0 +1,15 @@
+---
+- name: Generate SSH key
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: ensure .ssh directory
+      file: path="~/.ssh" state=directory
+
+    - name: create SSH key
+      command: ssh-keygen -t rsa -f $HOME/.ssh/id_rsa -N '' -q
+      args:
+        creates: ~/.ssh/id_rsa
+
+  

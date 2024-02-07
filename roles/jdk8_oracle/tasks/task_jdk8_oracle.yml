@@ -17,6 +17,7 @@
   unarchive:
     src: "{{ jdk8_installer_path }}"
     dest: /opt
+    remote_src: true
     creates: "{{ jdk8_home_dir }}"
 
 - name: add bin directory to path
@@ -36,3 +37,10 @@
   
 - name: remove the JDK installer
   file: state=absent path="{{ jdk8_installer_path }}"
+
+- name: alternative 등록
+  become: true
+  community.general.alternatives:
+    name: java 
+    path: "{{ jdk8_home_dir }}/bin/java"
+    link: /usr/bin/java
