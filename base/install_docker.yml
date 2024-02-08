@@ -2,11 +2,18 @@
 - name: Docker Installation
   hosts: all
   vars:
-    - ubuntu_version: focal
-    - docker_gpg_url: https://download.docker.com/linux/ubuntu/gpg
-    - docker_repo: "deb https://download.docker.com/linux/ubuntu {{ ubuntu_version }} stable"
+    docker_gpg_url: https://download.docker.com/linux/ubuntu/gpg
+    deb_architecture: {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+    }
+    arch: "{{ [ansible_architecture] | map('extract', deb_architecture) | first }}"
+    docker_repo: "deb [arch={{ arch }}] https://download.docker.com/{{ ansible_system | lower }}/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+    user_id: "{{ ansible_user_id }}"
 
   tasks:
+    - debug: var=user_id
+
     - name: Install required system packages
       become: true
       apt:
@@ -14,7 +21,7 @@
           - apt-transport-https
           - ca-certificates
           - curl
-          - gnupg-agent
+          - gnupg
           - software-properties-common
           - lsb-release
           # - python3-pip
@@ -54,5 +61,4 @@
 
     - name: add user to docker
       become: true
-      become_user: "{{ansible_user_id}}"
-      user: name="{{ansible_user_id}}" groups=docker append=true
+      user: name="{{ user_id }}" groups=docker append=true
