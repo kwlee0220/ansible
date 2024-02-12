@@ -1,0 +1,8 @@
+---
+vscode_gpg_url: https://packages.microsoft.com/keys/microsoft.asc
+deb_architecture: {
+  "aarch64": "arm64",
+  "x86_64": "amd64"
+}
+arch: "{{ [ansible_architecture] | map('extract', deb_architecture) | first }}"
+vscode_repo: "deb [arch={{ arch }}] https://packages.microsoft.com/repos/vscode stable main"

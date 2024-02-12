@@ -1,7 +1,6 @@
 ---
 - hosts: 127.0.0.1
   connection: local
-  gather_facts: no
 
   vars_files:
     - global_vars.yml
@@ -12,9 +11,10 @@
       apt: upgrade=yes update_cache=yes cache_valid_time=3600
     
   roles:
-    - role: darkwizard242.googlechrome
-    - role: gantsign.visual-studio-code
-    - role: robinandeer.miniconda
+    - role: vscode
+    # - role: darkwizard242.googlechrome
+    # - role: gantsign.visual-studio-code
+    # - role: robinandeer.miniconda
 
   tasks:
     - name: Desktop 사용자에게 sudo 권한 부여
@@ -36,8 +36,8 @@
     - name: install Vim
       include_tasks: tasks/task_vim.yml
 
-    - name: install TMux
-      include_tasks: tasks/task_tmux.yml
+    # - name: install TMux
+    #   include_tasks: tasks/task_tmux.yml
 
     # - name: VSCode 설치 여부 확인
     #   stat: path=/usr/bin/code

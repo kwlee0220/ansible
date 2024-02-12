@@ -1,20 +1,8 @@
 ---
-- name: Visual Studio Code 설치 과정
-  hosts: all
-
-  vars:
-    vscode_gpg_url: https://packages.microsoft.com/keys/microsoft.asc
-    deb_architecture: {
-      "aarch64": "arm64",
-      "x86_64": "amd64"
-    }
-    arch: "{{ [ansible_architecture] | map('extract', deb_architecture) | first }}"
-    vscode_repo: "deb [arch={{ arch }}] https://packages.microsoft.com/repos/vscode stable main"
-
 - name: install dependents tools
   become: true
-  apt: 
-    pkg:
+  package: 
+    name:
       - software-properties-common
       - apt-transport-https
       - wget
