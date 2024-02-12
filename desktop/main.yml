@@ -12,8 +12,8 @@
     
   roles:
     - role: vscode
+    - role: docker
     # - role: darkwizard242.googlechrome
-    # - role: gantsign.visual-studio-code
     # - role: robinandeer.miniconda
 
   tasks:
@@ -36,15 +36,8 @@
     - name: install Vim
       include_tasks: tasks/task_vim.yml
 
-    # - name: install TMux
-    #   include_tasks: tasks/task_tmux.yml
-
-    # - name: VSCode 설치 여부 확인
-    #   stat: path=/usr/bin/code
-    #   register: vscode_installed
-    # - name: install VSCode
-    #   include_tasks: tasks/task_vscode.yml
-    #   when: not vscode_installed.stat.exists
+    - name: install TMux
+      include_tasks: tasks/task_tmux.yml
 
     # - name: Chrome 설치 여부 확인
     #   stat: path=/usr/bin/google-chrome
