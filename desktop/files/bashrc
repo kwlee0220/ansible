@@ -119,12 +119,6 @@ fi
 
 # Copied from Ansible from here
 
-# JDK 1.8
-JAVA_HOME=/opt/jdk1.8.0_391
-PATH=$JAVA_HOME/bin:$PATH
-
-export PATH
-
 # the followings are for Ansible automation
 alias bat='/usr/bin/batcat'
 alias fd='/bin/fdfind'

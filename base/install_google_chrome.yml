@@ -1,0 +1,6 @@
+---
+- name: Google Chrome 설치 과정
+  hosts: all
+
+  roles:
+    - role: darkwizard242.googlechrome

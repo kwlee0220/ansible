@@ -7,43 +7,48 @@
     - global_vars.yml
 
   pre_tasks:
-  - name: update and upgrade apt
-    become: true
-    apt: upgrade=yes update_cache=yes cache_valid_time=3600
+    - name: update and upgrade apt
+      become: true
+      apt: upgrade=yes update_cache=yes cache_valid_time=3600
+    
+  roles:
+    - role: darkwizard242.googlechrome
+    - role: gantsign.visual-studio-code
+    - role: robinandeer.miniconda
 
   tasks:
-  - name: Desktop 사용자에게 sudo 권한 부여
-    include_tasks: tasks/task_allow_sudoer.yml
+    - name: Desktop 사용자에게 sudo 권한 부여
+      include_tasks: tasks/task_allow_sudoer.yml
 
-  - name: Bash 설정 파일 복사
-    include_tasks: tasks/task_bashrc.yml
+    - name: Bash 설정 파일 복사
+      include_tasks: tasks/task_bashrc.yml
 
-  - name: install some terminal applications
-    include_tasks: tasks/task_tools.yml
+    - name: install some terminal applications
+      include_tasks: tasks/task_tools.yml
 
-  - name: D2Coding 폰트 설치 여부 확인
-    stat: path=/usr/share/fonts/d2coding
-    register: d2coding_installed
-  - name: D2Coding 폰트 설치
-    include_tasks: tasks/task_d2coding.yml
-    when: not d2coding_installed.stat.exists
+    - name: D2Coding 폰트 설치 여부 확인
+      stat: path=/usr/share/fonts/d2coding
+      register: d2coding_installed
+    - name: D2Coding 폰트 설치
+      include_tasks: tasks/task_d2coding.yml
+      when: not d2coding_installed.stat.exists
 
-  - name: install Vim
-    include_tasks: tasks/task_vim.yml
+    - name: install Vim
+      include_tasks: tasks/task_vim.yml
 
-  - name: install TMux
-    include_tasks: tasks/task_tmux.yml
+    - name: install TMux
+      include_tasks: tasks/task_tmux.yml
 
-  - name: VSCode 설치 여부 확인
-    stat: path=/usr/bin/code
-    register: vscode_installed
-  - name: install VSCode
-    include_tasks: tasks/task_vscode.yml
-    when: not vscode_installed.stat.exists
+    # - name: VSCode 설치 여부 확인
+    #   stat: path=/usr/bin/code
+    #   register: vscode_installed
+    # - name: install VSCode
+    #   include_tasks: tasks/task_vscode.yml
+    #   when: not vscode_installed.stat.exists
 
-  - name: Chrome 설치 여부 확인
-    stat: path=/usr/bin/google-chrome
-    register: chrome_installed
-  - name: install Google Chrome
-    include_tasks: tasks/task_chrome.yml
-    when: not chrome_installed.stat.exists
+    # - name: Chrome 설치 여부 확인
+    #   stat: path=/usr/bin/google-chrome
+    #   register: chrome_installed
+    # - name: install Google Chrome
+    #   include_tasks: tasks/task_chrome.yml
+    #   when: not chrome_installed.stat.exists

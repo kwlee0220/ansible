@@ -1,0 +1,10 @@
+---
+- name: SDKMan 설치 과정
+  hosts: all
+
+  roles:
+    - role: Comcast.sdkman
+      sdkman_user: "{{ ansible_user_id }}"
+      sdkman_group: "{{ ansible_user_id }}"
+      sdkman_auto_answer: true
+      sdkman_update: true
