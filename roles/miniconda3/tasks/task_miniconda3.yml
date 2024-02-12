@@ -4,7 +4,7 @@
 
 - name: download Miniconda installer file
   get_url:
-    url: "https://repo.continuum.io/miniconda/Miniconda3-4.5.4-Linux-x86_64.sh"
+    url: "{{ miniconda3_installer_url }}"
     dest: "{{ tmp_dir }}/install-miniconda.sh"
     mode: 0755
 

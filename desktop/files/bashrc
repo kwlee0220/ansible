@@ -125,4 +125,4 @@ alias fd='/bin/fdfind'
 alias gdu='/usr/local/bin/gdu_linux_amd64'
 
 # Miniconda3
-. $HOME/miniconda3/etc/profile.d/conda.sh
+#. $HOME/miniconda3/etc/profile.d/conda.sh

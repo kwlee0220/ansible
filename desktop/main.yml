@@ -14,7 +14,7 @@
     - role: google-chrome
     - role: vscode
     - role: docker
-    # - role: robinandeer.miniconda
+    - role: miniconda3
 
   tasks:
     - name: Desktop 사용자에게 sudo 권한 부여
