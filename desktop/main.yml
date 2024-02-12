@@ -15,6 +15,12 @@
     - role: vscode
     - role: docker
     - role: miniconda3
+    - role: xrdp
+    - role: Comcast.sdkman
+      sdkman_user: "{{ ansible_user_id }}"
+      sdkman_group: "{{ ansible_user_id }}"
+      sdkman_auto_answer: true
+      sdkman_update: true
 
   tasks:
     - name: Desktop 사용자에게 sudo 권한 부여
