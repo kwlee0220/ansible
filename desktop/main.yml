@@ -11,9 +11,9 @@
       apt: upgrade=yes update_cache=yes cache_valid_time=3600
     
   roles:
+    - role: google-chrome
     - role: vscode
     - role: docker
-    # - role: darkwizard242.googlechrome
     # - role: robinandeer.miniconda
 
   tasks:
@@ -38,10 +38,3 @@
 
     - name: install TMux
       include_tasks: tasks/task_tmux.yml
-
-    # - name: Chrome 설치 여부 확인
-    #   stat: path=/usr/bin/google-chrome
-    #   register: chrome_installed
-    # - name: install Google Chrome
-    #   include_tasks: tasks/task_chrome.yml
-    #   when: not chrome_installed.stat.exists

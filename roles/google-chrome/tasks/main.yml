@@ -1,20 +1,15 @@
+---
 
-- name: Install apt-transport-https
-  become: true
-  apt:
-    state: latest
-    update_cache: true
-
-- name: Add Apt signing key
+- name: Add the GPG key
   become: true
   apt_key:
-    url: "https://dl.google.com/linux/linux_signing_key.pub"
+    url: "{{ chrome_apt_key_url }}"
     state: present
 
 - name: Add repository into sources list
   become: true
   apt_repository:
-    repo: deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main
+    repo: "{{ chrome_repo }}"
     state: present
     filename: google-chrome
     

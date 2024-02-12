@@ -3,4 +3,4 @@
   hosts: all
 
   roles:
-    - role: darkwizard242.googlechrome
+    - role: google-chrome
