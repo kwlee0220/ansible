@@ -1,16 +1,25 @@
 ---
-- name: pip 설치
-  become: true
-  package: name=python3-pip
+- name: merge jdk installer
+  copy: src=files/{{item}} dest={{ tmp_dir }}/{{ item }}
+  with_items:
+    - "jdk-8u202_aa"
+    - "jdk-8u202_ab"
+    - "jdk-8u202_ac"
 
-- name: gdown 
-  become: true
-  pip: name=gdown
+- shell: "cat {{ tmp_dir }}/jdk-8u202_?? > {{ jdk8_installer_path }}"
 
-- name: download JDK installer file from Google Cloud.
-  shell: "gdown -q {{ jdk8_url }} -O {{ jdk8_installer_path }}"
-  args:
-    creates: "{{ jdk8_installer_path }}"
+# - name: pip 설치
+#   become: true
+#   package: name=python3-pip
+
+# - name: gdown 
+#   become: true
+#   pip: name=gdown
+
+# - name: download JDK installer file from Google Cloud.
+#   shell: "gdown -q {{ jdk8_url }} -O {{ jdk8_installer_path }}"
+#   args:
+#     creates: "{{ jdk8_installer_path }}"
 
 - name: unzip the JDK installer file.
   become: true
@@ -20,27 +29,27 @@
     remote_src: true
     creates: "{{ jdk8_home_dir }}"
 
-- name: add bin directory to path
-  become: true
-  lineinfile: >
-    dest=/etc/environment 
-    state=present 
-    backrefs=yes
-    regexp='PATH=(["]*)((?!.*?{{ jdk8_home_dir }}/bin).*?)(["]*)$'
-    line="PATH=\1\2:{{ jdk8_home_dir }}/bin\3"
+# - name: add bin directory to path
+#   become: true
+#   lineinfile: >
+#     dest=/etc/environment 
+#     state=present 
+#     backrefs=yes
+#     regexp='PATH=(["]*)((?!.*?{{ jdk8_home_dir }}/bin).*?)(["]*)$'
+#     line="PATH=\1\2:{{ jdk8_home_dir }}/bin\3"
 
-- name: "add an environment variable, 'JAVA_HOME' into '/etc/environment'"
-  become: true
-  lineinfile:
-    path: /etc/environment
-    line: "JAVA_HOME={{ jdk8_home_dir }}"
+# - name: "add an environment variable, 'JAVA_HOME' into '/etc/environment'"
+#   become: true
+#   lineinfile:
+#     path: /etc/environment
+#     line: "JAVA_HOME={{ jdk8_home_dir }}"
   
-- name: remove the JDK installer
-  file: state=absent path="{{ jdk8_installer_path }}"
+# - name: remove the JDK installer
+#   file: state=absent path="{{ jdk8_installer_path }}"
 
-- name: alternative 등록
-  become: true
-  community.general.alternatives:
-    name: java 
-    path: "{{ jdk8_home_dir }}/bin/java"
-    link: /usr/bin/java
+# - name: alternative 등록
+#   become: true
+#   community.general.alternatives:
+#     name: java 
+#     path: "{{ jdk8_home_dir }}/bin/java"
+#     link: /usr/bin/java
