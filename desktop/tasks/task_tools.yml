@@ -19,13 +19,7 @@
       - trash-cli
       - bat
       - fd-find
-      - tilix
     state: latest
-
-# - name: snap을 통한 설치
-#   become: true
-#   snap:
-#     name:
 
 - name: fzf 설치 - git clone
   git:

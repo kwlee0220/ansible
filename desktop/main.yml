@@ -5,42 +5,10 @@
   vars_files:
     - global_vars.yml
 
-  pre_tasks:
-    - name: update and upgrade apt
-      become: true
-      apt: upgrade=yes update_cache=yes cache_valid_time=3600
-    
   roles:
-    - role: google-chrome
-    - role: vscode
-    - role: docker
-    - role: miniconda3
-    - role: xrdp
-    - role: Comcast.sdkman
-      sdkman_user: "{{ ansible_user_id }}"
-      sdkman_group: "{{ ansible_user_id }}"
-      sdkman_auto_answer: true
-      sdkman_update: true
+    - role: generate_ssh_key
 
-  tasks:
-    - name: Desktop 사용자에게 sudo 권한 부여
-      include_tasks: tasks/task_allow_sudoer.yml
-
-    - name: Bash 설정 파일 복사
-      include_tasks: tasks/task_bashrc.yml
-
-    - name: install some terminal applications
-      include_tasks: tasks/task_tools.yml
-
-    - name: D2Coding 폰트 설치 여부 확인
-      stat: path=/usr/share/fonts/d2coding
-      register: d2coding_installed
-    - name: D2Coding 폰트 설치
-      include_tasks: tasks/task_d2coding.yml
-      when: not d2coding_installed.stat.exists
-
-    - name: install Vim
-      include_tasks: tasks/task_vim.yml
-
-    - name: install TMux
-      include_tasks: tasks/task_tmux.yml
+# - import_playbook: basic.yml
+# - import_playbook: development.yml
+# - import_playbook: gui.yml
+#   when: ansible_virtualization_type != 'wsl'

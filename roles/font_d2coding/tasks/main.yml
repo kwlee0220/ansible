@@ -1,0 +1,8 @@
+---
+- name: D2Coding 폰트 설치 여부 확인
+  stat: path="{{ d2conding_dir }}"
+  register: d2coding_installed
+
+- name: D2Coding 폰트 설치
+  include_tasks: task_font_d2coding.yml
+  when: not d2coding_installed.stat.exists

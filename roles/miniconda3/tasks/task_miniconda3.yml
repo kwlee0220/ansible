@@ -16,3 +16,6 @@
 
 - name: chmod for deactivate command
   file: path=~/miniconda3/bin/deactivate mode=0755
+
+- name: copy .condarc
+  copy: src=files/_condarc dest="{{ user_home_dir }}/.condarc"

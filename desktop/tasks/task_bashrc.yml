@@ -2,7 +2,7 @@
 - name: Bash 설정 파일 복사 여부 확인
   become: false
   lineinfile:
-    path: ~/.bashrc
+    path: "{{ user_home_dir }}/.bashrc"
     regexp: "^# Copied from Ansible"
     state: absent
   check_mode: yes
@@ -10,5 +10,5 @@
   changed_when: not bash_copied.found
 
 - name: Bash 설정 파일 복사
-  copy: src=files/bashrc dest=~/.bashrc
+  copy: src=files/bashrc dest="{{ user_home_dir }}/.bashrc"
   when: not bash_copied.found

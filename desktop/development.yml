@@ -1,0 +1,21 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+
+  vars:
+    user_id: "{{ ansible_user_id }}"
+    
+  roles:
+    - role: tilix
+    - role: tmux
+
+    - role: python3
+    - role: jdk8_oracle
+    - role: vscode
+      when: ansible_virtualization_type != 'wsl'
+    - role: docker
+    - role: Comcast.sdkman
+      sdkman_user: "{{ user_id }}"
+      sdkman_group: "{{ user_id }}"
+      sdkman_auto_answer: true
+      sdkman_update: true
