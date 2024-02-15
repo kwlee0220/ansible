@@ -29,8 +29,8 @@
     - name: install some terminal applications
       include_tasks: tasks/task_tools.yml
 
-    - include_role: name=font_d2coding
-      become: true
+    - name: install D2Coding fonts 
+      include_role: name=font_d2coding
 
     - include_role: name=vim
       vars:
