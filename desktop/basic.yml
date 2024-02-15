@@ -18,6 +18,14 @@
       become: true
       package: name=unzip
 
+    - name: install python3-pip
+      become: true
+      package: name=python3-pip
+
+    - name: install ansible-toolbox
+      become: true
+      pip: name=git+https://github.com/larsks/ansible-toolbox
+
   roles:
     - role: vim
     - role: font_d2coding
