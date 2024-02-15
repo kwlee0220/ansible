@@ -3,5 +3,6 @@
   connection: local
     
   roles:
+    - role: tilix
     - role: google-chrome
     - role: xrdp

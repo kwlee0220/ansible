@@ -6,9 +6,7 @@
     user_id: "{{ ansible_user_id }}"
     
   roles:
-    - role: tilix
     - role: tmux
-
     - role: python3
     - role: jdk8_oracle
     - role: vscode
