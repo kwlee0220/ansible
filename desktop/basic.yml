@@ -7,9 +7,16 @@
     user_home_dir: "{{ ansible_env.HOME }}"
 
   pre_tasks:
+    - name: Desktop 사용자에게 sudo 권한 부여
+      include_tasks: tasks/task_allow_sudoer.yml
+
     - name: update and upgrade apt
       become: true
       apt: upgrade=yes update_cache=yes cache_valid_time=3600
+
+    - name: install unzip
+      become: true
+      package: name=unzip
 
   roles:
     - role: vim
@@ -17,9 +24,6 @@
     - role: generate_ssh_key
 
   tasks:
-    - name: Desktop 사용자에게 sudo 권한 부여
-      include_tasks: tasks/task_allow_sudoer.yml
-
     - name: Bash 설정 파일 복사
       include_tasks: tasks/task_bashrc.yml
 
