@@ -17,9 +17,7 @@
 
   tasks:
     - name: Desktop 사용자에게 sudo 권한 부여
-      include_role: name=sudo
-      vars:
-        user_id: "{{ user_id  }}"
+      include_tasks: tasks/task_allow_sudoer.yml
 
     - name: update and upgrade apt
       become: true
@@ -32,6 +30,7 @@
       include_tasks: tasks/task_tools.yml
 
     - include_role: name=font_d2coding
+      become: true
 
     - include_role: name=vim
       vars:
