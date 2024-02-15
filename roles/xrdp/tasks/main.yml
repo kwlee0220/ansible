@@ -8,6 +8,24 @@
       - xrdp
     state: latest
 
+- name: xrdp 포트 번호 설정 (WSL2인 경우)
+  become: true
+  lineinfile:
+    dest: /etc/xrdp/xrdp.ini
+    regexp: "^port=3389"
+    line: "port=3390"
+    state: present
+  when: ansible_virtualization_type == 'wsl' and xrdp_port == 3389
+
+- name: xrdp 포트 번호 설정 (3389가 아닌 경우)
+  become: true
+  lineinfile:
+    dest: /etc/xrdp/xrdp.ini
+    regexp: "^port=3389"
+    line: "port={{ xrdp_port }}"
+    state: present
+  when: xrdp_port != 3389
+
 - name: xrdp에 SSL 인증서 접근 권한 추가
   become: true
   user: name=xrdp group=ssl-cert
@@ -68,3 +86,14 @@
       ResultActive=yes
     mode: 0755
   notify: restart xrdp
+
+- name: xsessionrc 파일 생성
+  copy:
+    dest: "{{ user_home_dir }}/.xsessionrc"
+    content: |
+      export GNOME_SHELL_SESSION_MODE=ubuntu
+      export XDG_CURRENT_DESKTOP=ubuntu:GNOME
+      export XDG_DATA_DIRS=/usr/share/ubuntu:/usr/local/share:/usr/share:/var/lib/snapd/desktop
+      export WAYLAND_DISPLAY=
+      export XDG_CONFIG_DIRS=/etc/xdg/xdg-ubuntu:/etc/xdg
+    mode: 0644
