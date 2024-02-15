@@ -1,0 +1,22 @@
+---
+- name: Desktop 사용자에게 sudo 권한 부여
+  include_tasks: tasks/task_allow_sudoer.yml
+
+- name: update and upgrade apt
+  become: true
+  apt: upgrade=yes update_cache=yes cache_valid_time=3600
+
+- name: install some terminal applications
+  include_tasks: tasks/task_tools.yml
+
+- name: copy .bashrc
+  include_tasks: tasks/task_bashrc.yml
+
+- name: install D2Coding fonts
+  include_role: name=font_d2coding
+
+- name: install vim
+  include_role: name=vim
+
+- name: generate SSH key
+  include_role: name=generate_ssh_key
