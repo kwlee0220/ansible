@@ -1,7 +1,12 @@
 
+- name: check if the directory '/etc/suders.d' exists
+  stat: path=/etc/sudoers.d
+  register: sudoers_d
+
 - name: add the user to the sudoers
   become: true
   copy:
     dest: "/etc/sudoers.d/{{ user_id }}"
     content: "{{ user_id }} ALL=(ALL) NOPASSWD: ALL"
     mode: 0440
+  when: sudoers_d.stat.exists
