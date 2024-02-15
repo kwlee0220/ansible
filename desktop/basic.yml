@@ -17,7 +17,7 @@
 
   tasks:
     - name: Desktop 사용자에게 sudo 권한 부여
-      include_role: sudo
+      include_role: name=sudo
       vars:
         user_id: "{{ user_id  }}"
 
@@ -31,12 +31,12 @@
     - name: install some terminal applications
       include_tasks: tasks/task_tools.yml
 
-    - include_role: font_d2coding
+    - include_role: name=font_d2coding
 
-    - include_role: vim
+    - include_role: name=vim
       vars:
         user_id: "{{ user_home_dir  }}"
 
-    - include_role: generate_ssh_key
+    - include_role: name=generate_ssh_key
       vars:
         user_id: "{{ user_home_dir  }}"
