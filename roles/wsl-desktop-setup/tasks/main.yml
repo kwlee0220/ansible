@@ -1,0 +1,22 @@
+---
+- name: purge acpi
+  become: true
+  apt:
+    pkg:
+      - acpid
+      - acpi-support
+      - modemmanager
+    state: absent
+    purge: true
+
+- name: hold acpid
+  become: true
+  dpkg_selections: name=acpid selection=hold
+- name: hold acpi-support
+  become: true
+  dpkg_selections: name=acpi-support selection=hold
+- name: hold modemmanager
+  become: true
+  dpkg_selections: name=modemmanager selection=hold
+
+- reboot:
