@@ -14,7 +14,7 @@
       become: true
       apt: upgrade=yes update_cache=yes cache_valid_time=3600
 
-    - name: Bash 설정 파일 복사
+    - name: copy .bashrc
       include_tasks: tasks/task_bashrc.yml
 
     - name: install some terminal applications

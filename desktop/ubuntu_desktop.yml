@@ -2,6 +2,8 @@
 - hosts: 127.0.0.1
   connection: local
 
-- import_playbook: basic.yml
+  vars:
+    - basic_apps
+
 - import_playbook: development.yml
 - import_playbook: gui.yml

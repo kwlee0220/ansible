@@ -1,16 +1,21 @@
 ---
-- name: install dconf-cli
-  become: true
-  package: name=dconf-cli
+- name: print variables
+  debug:
+    var: {{ item.key }} = {{ item.value }}
+  with_items: {{ tilix_confs }}
+  
+# - name: install dconf-cli
+#   become: true
+#   package: name=dconf-cli
 
-- name: install tilix program
-  become: true
-  package: name=tilix state=latest
+# - name: install tilix program
+#   become: true
+#   package: name=tilix state=latest
 
-- name: ensure tilix configuration directory
-  file: path={{ user_home_dir }}/.config/tilix state=directory
-- name: copy tilix configuration
-  copy: src=files/tilix.dconf dest={{ user_home_dir }}/.config/tilix/tilix.dconf
+# - name: ensure tilix configuration directory
+#   file: path={{ user_home_dir }}/.config/tilix state=directory
+# - name: copy tilix configuration
+#   copy: src=files/tilix.dconf dest={{ user_home_dir }}/.config/tilix/tilix.dconf
 
-- name: load tilix configuration
-  shell: "dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf"
+# - name: load tilix configuration
+#   shell: "dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf"

@@ -1,3 +1,23 @@
 ---
 user_id: "{{ ansible_user_id }}"
 user_home_dir: "{{ ansible_env.HOME }}"
+
+profile_key: "/com/gexperts/Tilix/profiles/2b7c4080-0ddd-46c5-8f23-563fd3ba789d"
+tilix_confs:
+  - { key: "{{ profile_key }}/default-size-columns", value: "130" }
+  - key: "{{ profile_key }}/default-size-rows"
+    value: "35"
+  - key: "{{ profile_key }}/font"
+    value: "'D2Coding 12'"
+  - key: "{{ profile_key }}/login-shell"
+    value: "true"
+  - key: "{{ profile_key }}/palette"
+    value: "['#000000', '#CC0000', '#4D9A05', '#C3A000', '#3464A3', '#754F7B', '#05979A', '#D3D6CF', '#545652', '#EF2828', '#89E234', '#FBE84F', '#729ECF', '#AC7EA8', '#34E2E2', '#EDEDEB']"
+  - key: "{{ profile_key }}/foreground-color"
+    value: "'#EFEFEF'"
+  - key: "{{ profile_key }}/background-color"
+    value: "'#303030'"
+  - key: "{{ profile_key }}/use-system-font"
+    value: "false"
+  - key: "{{ profile_key }}/use-theme-colors"
+    value: "false"
