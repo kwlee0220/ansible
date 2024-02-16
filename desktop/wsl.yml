@@ -1,0 +1,8 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+
+  roles:
+    - role: basic_apps
+
+- import_playbook: development.yml
