@@ -4,6 +4,7 @@
 
   vars:
     user_id: "{{ ansible_user_id }}"
+    user_home_dir: "{{ ansible_env.HOME }}"
     
   roles:
     - role: tmux
@@ -17,3 +18,11 @@
       sdkman_group: "{{ user_id }}"
       sdkman_auto_answer: true
       sdkman_update: true
+
+  tasks:
+    - name: install python3-pip
+      become: true
+      package: name=python3-pip
+    - name: install ansible-toolbox
+      become: true
+      pip: name=git+https://github.com/larsks/ansible-toolbox

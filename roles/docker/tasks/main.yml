@@ -9,9 +9,6 @@
       - gnupg
       - software-properties-common
       - lsb-release
-      # - python3-pip
-      # - virtualenv
-      # - python3-setuptools
     state: latest
     update_cache: true
 

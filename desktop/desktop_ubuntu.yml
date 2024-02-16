@@ -3,6 +3,5 @@
   connection: local
 
 - import_playbook: basic.yml
-# - import_playbook: development.yml
-# - import_playbook: gui.yml
-#   when: ansible_virtualization_type != 'wsl'
+- import_playbook: development.yml
+- import_playbook: gui.yml
