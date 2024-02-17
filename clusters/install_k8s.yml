@@ -50,3 +50,5 @@
     #     name: [ 'open-iscsi', 'nfs-common' ]
     #     state: present
     #     update_cache: yes
+
+- import_playbook: initialize_k8s.yml

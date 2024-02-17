@@ -3,6 +3,9 @@
   hosts: k8s
 
   tasks:
+    # - name: disable cloud-init
+    #   file: path=/etc/cloud/cloud-init.disabled state=touch
+
     - name: change hostname
       block:
         - name: get the current hostname
@@ -58,13 +61,13 @@
     # #     state: present
     # # - command: sysctl -p
 
-    - name: set hostname to be preserved at boot-time
-      become: true
-      replace:
-        dest: /etc/cloud/cloud.cfg
-        regexp: '^preserve_hostname: false'
-        replace: "preserve_hostname: true"
-      notify: restart systemd-logind
+    # - name: set hostname to be preserved at boot-time
+    #   become: true
+    #   replace:
+    #     dest: /etc/cloud/cloud.cfg
+    #     regexp: '^preserve_hostname: false'
+    #     replace: "preserve_hostname: true"
+    #   notify: restart systemd-logind
 
     - name: disable ufw
       become: true

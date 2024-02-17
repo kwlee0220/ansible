@@ -10,19 +10,38 @@
     - name: create 'k8sadmin' user
       user:
         name: "{{ k8s_user }}"
+        shell: /bin/bash
         groups: sudo
         append: yes
     - name: add the k8sadmin to the sudoers
       copy:
         dest: "/etc/sudoers.d/k8sadmin"
         content: "{{ k8s_user }}    ALL=(ALL)  NOPASSWD: ALL"
+    - name: install bash-completion
+      apt: name=bash-completion
+
+    - name: copy Kubernetes Autocomplete configuration file
+      become_user: "{{ k8s_user }}"
+      copy: src=files/k8s_autocomplete_rc dest="~/.k8s_autocomplete_rc"
+    - name: source .k8s_autocomplete_rc
+      become_user: "{{ k8s_user }}"
+      lineinfile:
+        dest: "~{{ k8s_user }}/.bashrc"
+        regexp: '^\. ~/.k8s_autocomplete_rc'
+        line: ". ~/.k8s_autocomplete_rc"
+        state: present
 
   tasks:
+    - name: Check if the master node is already initialized
+      stat:
+        path: /etc/kubernetes/admin.conf
+      register: kubeadm_init
     - name: kubeadm init
       command: >
         kubeadm init --pod-network-cidr=10.244.0.0/16 
         --apiserver-advertise-address={{ ansible_host }} 
         --cri-socket=unix:///run/containerd/containerd.sock
+      when: kubeadm_init.stat.exists == false
 
     - name: Create .kube directory
       become_user: "{{ k8s_user }}"
@@ -139,11 +158,6 @@
     #   command: kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.5.3/deploy/longhorn.yaml
     #   become: yes
     #   become_user: k8sadmin
-
-#     - name: Create dummy host to store variable for node config
-#       add_host:
-#         name: "DUMMY_HOST"
-#         JOIN_COMMAND: "{{ kubernetes_join_command.stdout_lines[0] }}"
 
 - name: Kubernetes Worker Initialization
   hosts: k8s_workers
