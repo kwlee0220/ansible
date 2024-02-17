@@ -13,6 +13,12 @@
     - name: ansible_password
       prompt: "SSH password"
 
+  pre_tasks:
+    - name: sshpass 설치
+      become: true
+      connection: local
+      package: name=sshpass
+
   roles:
     - role: generate_ssh_key
 
@@ -30,11 +36,6 @@
         line: "{{ item }}"
       with_items:
         - "{{ keyscan.stdout_lines }}"
-
-    - name: sshpass 설치
-      become: true
-      connection: ssh
-      package: name=sshpass
 
     - name: 생성된 public key를 ansible node들에게 배포한다.
       connection: ssh

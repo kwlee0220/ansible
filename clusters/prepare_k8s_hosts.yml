@@ -1,0 +1,76 @@
+---
+- name: Kubernetes Hosts Preparation
+  hosts: k8s
+
+  tasks:
+    - name: change hostname
+      block:
+        - name: get the current hostname
+          command: hostname
+          register: current_hostname
+        - name: change hostname if it is not same to inventory_hostname 
+          command: "hostnamectl set-hostname {{ inventory_hostname }}"
+          become: true
+          when: current_hostname.stdout != inventory_hostname
+
+    - name: swap off
+      become: true
+      block:
+        - name: set the current swap off
+          command: swapoff -a
+        - name: disable swap file in fstable so that it is not loaded at boot-time.
+          lineinfile:
+            dest: /etc/fstab
+            regexp: '^/swap.img'
+            line: "#/swap.img"
+            state: present
+
+    - name: setup the ipv4 bridge
+      become: true
+      block:
+        - copy:
+            dest: /etc/sysctl.d/k8s.conf
+            content: |
+              net.bridge.bridge-nf-call-iptables = 1
+              net.bridge.bridge-nf-call-ip6tables = 1
+              net.ipv4.ip_forward = 1
+        - command: sysctl --system
+
+    - name: "load modules: overlay and br_netfilter"
+      become: true
+      block:
+        - shell:
+            cmd: |
+              cat <<EOF | tee /etc/modules-load.d/k8s.conf
+              overlay
+              br_netfilter
+              EOF
+        - command: modprobe overlay
+        - command: modprobe br_netfilter
+
+    # - name: set ipv4/ip_forward to 1
+    #   become: true
+    #   command: sysctl -w net.ipv4.ip_forward=1
+    # #   lineinfile:
+    # #     dest: /etc/sysctl.conf
+    # #     regexp: '^#net.ipv4\.ip_forward=1'
+    # #     line: "net.ipv4.ip_forward=1"
+    # #     state: present
+    # # - command: sysctl -p
+
+    - name: set hostname to be preserved at boot-time
+      become: true
+      replace:
+        dest: /etc/cloud/cloud.cfg
+        regexp: '^preserve_hostname: false'
+        replace: "preserve_hostname: true"
+      notify: restart systemd-logind
+
+    - name: disable ufw
+      become: true
+      ufw: state=disabled
+
+  handlers:
+    - name: restart systemd-logind
+      become: true
+      service: name=systemd-logind state=restarted

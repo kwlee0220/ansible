@@ -1,5 +1,6 @@
 ---
 - name: install sudo
+  become: true
   apt: name=sudo
   
 - name: add the user to the sudoers

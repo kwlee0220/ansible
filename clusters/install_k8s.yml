@@ -1,0 +1,52 @@
+---
+- import_playbook: prepare_k8s_hosts.yml
+- import_playbook: install_containerd.yml
+
+- name: Kubernetes Cluster Installation
+  hosts: k8s
+  become: true
+
+  tasks:
+    - name: install kubernetes packages and hold them
+      block:
+        - name: Add Kubernetes gpg key
+          apt_key:
+            url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+            state: present
+        - name: Add Kubernetes software repository
+          apt_repository:
+            repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+            state: present
+            filename: kubernetes.list
+            update_cache: yes
+        - name: Install kubernetes
+          apt:
+            name: [ 'kubelet','kubeadm','kubectl' ]
+            state: present
+            update_cache: yes
+
+        - name: Hold kubelet package at current version
+          dpkg_selections:
+            name: "{{ item }}"
+            selection: hold
+          loop:
+            - kubelet
+            - kubeadm
+            - kubectl
+
+    - name: setup flannel
+      block:
+        - file: path=/opt/bin/ state=directory
+        - get_url:
+            url: https://github.com/flannel-io/flannel/releases/download/v0.19.0/flanneld-amd64
+            dest: /opt/bin/flanneld
+            mode: 0755
+    - name: pull kubeadm images
+      command: kubeadm config images pull
+    
+    # # Setup isci for Longhorn
+    # - name: Install iscsi and nfs-common
+    #   apt:
+    #     name: [ 'open-iscsi', 'nfs-common' ]
+    #     state: present
+    #     update_cache: yes
