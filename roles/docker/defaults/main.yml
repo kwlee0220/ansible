@@ -1,9 +1,9 @@
 ---
-docker_gpg_url: https://download.docker.com/linux/ubuntu/gpg
+docker_gpg_path: /etc/apt/keyrings/docker.gpg
 deb_architecture: {
   "aarch64": "arm64",
   "x86_64": "amd64"
 }
 arch: "{{ [ansible_architecture] | map('extract', deb_architecture) | first }}"
-docker_repo: "deb [arch={{ arch }}] https://download.docker.com/{{ ansible_system | lower }}/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+docker_repo: "deb [arch={{ arch }} signed-by={{ docker_gpg_path }}] https://download.docker.com/{{ ansible_system | lower }}/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
 user_id: "{{ ansible_user_id }}"
