@@ -1,6 +1,0 @@
----
-- name: Kafka Cluster Installation
-  hosts: kafka
-
-  roles:
-    - role: kafka

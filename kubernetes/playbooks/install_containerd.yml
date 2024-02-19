@@ -4,7 +4,7 @@
   become: true
 
   roles:
-    - role: docker
+    - role: docker-engine
 
   tasks:
     - name: create containerd's default config file

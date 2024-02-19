@@ -21,4 +21,4 @@ k8s_master
 k8s_workers
 
 [docker]
-192.168.56.3
+192.168.56.199

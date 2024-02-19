@@ -51,6 +51,7 @@
         owner: "{{ k8s_user }}"
         group: "{{ k8s_user }}"
         mode: 0755
+        
     - name: Copy the kube config file
       copy:
         src: /etc/kubernetes/admin.conf

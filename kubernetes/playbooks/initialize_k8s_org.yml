@@ -1,0 +1,105 @@
+---
+- name: Initialize Kubernetes control plane
+  hosts: k8s_master
+  become: true
+
+  vars:
+    k8s_user: k8sadmin
+    k8s_passwd: k8sadmin
+    endpoint:
+      containerd: unix:///run/containerd/containerd.sock
+      CRI-O: unix:///run/containerd/containerd.sock
+      docker-engine: unix:///run/containerd/containerd.sock
+
+  tasks:
+    - name: Check if the control-plane node is already initialized
+      stat:
+        path: /etc/kubernetes/admin.conf
+      register: kubeadm_init
+
+    - name: initialize control-plane node
+      command: >
+        kubeadm init --pod-network-cidr=10.244.0.0/16 
+        --apiserver-advertise-address={{ ansible_host }} 
+        --cri-socket={{ endpoint.containerd }}
+      when: kubeadm_init.stat.exists == false
+
+    - name: create k8sadmin user and create a cluster
+      block:
+      - name: create a user
+        user:
+          name: "{{ k8s_user }}"
+          shell: /bin/bash
+          groups: sudo
+          append: yes
+          password: "{{ k8s_passwd | password_hash('sha512') }}"
+
+      - name: add the k8sadmin to the sudoers
+        copy:
+          dest: "/etc/sudoers.d/k8sadmin"
+          content: "{{ k8s_user }}    ALL=(ALL)  NOPASSWD: ALL"
+
+      - name: Create .kube directory
+        file:
+          path: ~{{ k8s_user }}/.kube
+          state: directory
+          owner: "{{ k8s_user }}"
+          group: "{{ k8s_user }}"
+          mode: 0755
+
+      - name: Copy the kube config file
+        copy:
+          src: /etc/kubernetes/admin.conf
+          dest: ~{{ k8s_user }}/.kube/config
+          owner: "{{ k8s_user }}"
+          group: "{{ k8s_user }}"
+          mode: 0644
+          remote_src: yes
+
+      - name: install bash-completion
+        apt: name=bash-completion
+
+      - name: copy Kubernetes Autocomplete configuration file
+        copy:
+          src: files/k8s_autocomplete_rc
+          dest: "~{{ k8s_user }}/.k8s_autocomplete_rc"
+          owner: "{{ k8s_user }}"
+          group: "{{ k8s_user }}"
+
+      - name: update .bashrc to call .k8s_autocomplete_rc
+        lineinfile:
+          dest: "~{{ k8s_user }}/.bashrc"
+          regexp: '^\. ~/.k8s_autocomplete_rc'
+          line: ". ~/.k8s_autocomplete_rc"
+          state: present
+      
+    - name: install the Flannel Pod network add-on
+      become_user: "{{ k8s_user }}"
+      command: kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+    
+    - name: Get the token for joining the worker nodes
+      become_user: "{{ k8s_user }}"
+      shell: kubeadm token create --print-join-command
+      register: kubernetes_join_command
+
+    - name: Display registered output
+      debug:
+        var: kubernetes_join_command.stdout_lines
+
+    - name: Create dummy host to store variable for node config
+      add_host:
+        name: "DUMMY_HOST"
+        JOIN_COMMAND: "{{ kubernetes_join_command.stdout_lines[0] }}"
+
+
+- name: Kubernetes Worker Initialization
+  hosts: k8s_workers
+  become: true
+  tasks:
+    - name: Check if the worker node is already joined
+      stat:
+        path: /etc/kubernetes/kubelet.conf
+      register: kubeadm_join
+    - name: Join the worker nodes to the cluster
+      command: "{{ hostvars['DUMMY_HOST']['JOIN_COMMAND'] }}"
+      when: kubeadm_join.stat.exists == false
