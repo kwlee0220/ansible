@@ -1,7 +1,0 @@
----
-- name: Oracle JDK8 Installation
-  hosts: all
-  gather_facts: no
-
-  roles:
-    - role: jdk8_oracle

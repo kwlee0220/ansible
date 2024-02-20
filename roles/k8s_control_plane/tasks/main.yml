@@ -1,0 +1,15 @@
+---
+
+- name: Check if the control-plane node is already initialized
+  become: true
+  stat: path=/etc/kubernetes/admin.conf
+  register: kubeadm_init
+
+- name: initialize control-plane node
+  become: true
+  command: >
+    kubeadm init
+    --pod-network-cidr=10.244.0.0/16 
+    --apiserver-advertise-address={{ apiserver_address }} 
+    --cri-socket={{ container_runtime_endpoint }}
+  when: kubeadm_init.stat.exists == false

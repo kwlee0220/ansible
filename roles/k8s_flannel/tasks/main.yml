@@ -1,0 +1,6 @@
+---
+- name: install the Flannel Pod network add-on
+  become: true
+  shell: |
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+    kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
