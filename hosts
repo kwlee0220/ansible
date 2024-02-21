@@ -10,11 +10,11 @@
 127.0.0.1
 
 [k8s_master]
-master ansible_host=192.168.56.60
+master ansible_host=192.168.0.60
 
 [k8s_workers]
-worker01 ansible_host=192.168.56.61
-worker02 ansible_host=192.168.56.62
+worker01 ansible_host=192.168.0.61
+worker02 ansible_host=192.168.0.62
 
 [k8s:children]
 k8s_master
