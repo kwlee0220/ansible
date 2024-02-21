@@ -17,7 +17,7 @@
       sdkman_user: "{{ user_id }}"
       sdkman_group: "{{ user_id }}"
       sdkman_install_packages:
-        - { candidate: java, version: 17.0.10-tem }
+        - { candidate: java, version: 21.0.2-tem }
         - { candidate: gradle, version: 7.6.4 }
       sdkman_auto_answer: true
       sdkman_update: true
