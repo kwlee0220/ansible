@@ -3,6 +3,7 @@
   connection: local
     
   roles:
+    - role: gnome-terminal
     - role: tilix
     - role: google-chrome
     - role: xrdp
