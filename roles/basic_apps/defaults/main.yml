@@ -1,3 +1,13 @@
 ---
 user_id: "{{ ansible_user_id }}"
 user_home_dir: "{{ ansible_env.HOME }}"
+tmp_dir: /tmp
+
+desktop_interface_key: "/org/gnome/desktop/interface"
+desktop_interface_confs:
+  - { key: "{{ desktop_interface_key }}/color-scheme", value: "'prefer-light'" }
+  - { key: "{{ desktop_interface_key }}/font-hinting", value: "'slight'" }
+  - { key: "{{ desktop_interface_key }}/font-name", value: "'Ubuntu 12'" }
+  - { key: "{{ desktop_interface_key }}/monospace-font-name", value: "'D2Coding 12'" }
+  - { key: "{{ desktop_interface_key }}/gtk-theme", value: "'Yaru-dark'" }
+  - { key: "{{ desktop_interface_key }}/icon-theme", value: "'Yaru-dark'" }
