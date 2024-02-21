@@ -12,7 +12,7 @@
     # - role: jdk8_oracle
     - role: vscode
       when: ansible_virtualization_type != 'wsl'
-    - role: docker
+    - role: docker-engine
     - role: Comcast.sdkman
       sdkman_user: "{{ user_id }}"
       sdkman_group: "{{ user_id }}"
