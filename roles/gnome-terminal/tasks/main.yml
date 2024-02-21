@@ -8,3 +8,4 @@
     dconf_key: "{{ item.key }}"
     dconf_value: "{{ item.value }}"
   with_items: "{{ gnome_terminal_confs }}"
+  when: apply_dconf is defined and apply_dconf
