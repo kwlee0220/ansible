@@ -20,6 +20,7 @@
       - bat
       - fd-find
       - dconf-cli
+      - dconf-editor
       - gnome-tweaks
     state: latest
 

@@ -1,0 +1,12 @@
+---
+
+terminal_key_prefix: "/org/gnome/terminal/legacy/profiles:/:b1dcc9dd-5262-4d8d-a863-c897e6d979b9"
+gnome_terminal_confs:
+  - { key: "{{ terminal_key_prefix }}/font", value: "'D2Coding 12'" }
+  - { key: "{{ terminal_key_prefix }}/use-system-font", value: "false" }
+  - { key: "{{ terminal_key_prefix }}/default-size-columns", value: 120 }
+  - { key: "{{ terminal_key_prefix }}/default-size-rows", value: 30 }
+  - { key: "{{ terminal_key_prefix }}/audible-bell", value: "false" }
+  - { key: "{{ terminal_key_prefix }}/foreground-color", value: "'rgb(208,207,204)'" }
+  - { key: "{{ terminal_key_prefix }}/background-color", value: "'rgb(23,20,33)'" }
+

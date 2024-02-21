@@ -1,0 +1,9 @@
+---
+- name: "Read dconf key: {{ item.key }}"
+  command: dconf read {{ item.key }}
+  register: r_dconf_current_value
+  changed_when: no
+
+- name: "Write dconf key: {{ item.key }}"
+  command: dconf write {{ item.key }} "{{ item.value }}"
+  when: r_dconf_current_value.stdout != item.value
