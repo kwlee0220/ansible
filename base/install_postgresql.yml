@@ -10,15 +10,6 @@
     postgres_root_password: "urc2004"
 
   tasks:
-    # - name: install dependencies for PostgreSQL
-    #   package:
-    #     name:
-    #       - openssl
-    #       - libssl-dev
-    #       - libssl-doc
-    #     update_cache: true
-    #     state: latest
-
     - name: add PostgreSQL GPG apt key
       become: true
       apt_key:
@@ -73,4 +64,4 @@
   handlers:
     - name: restart postgresql
       become: true
-      service: name=postgresql state=restarted
+      service: name=postgresql state=restarted enabled=true
