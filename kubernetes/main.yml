@@ -1,39 +1,8 @@
 ---
 - name: Install Kubernetes
   hosts: k8s
+
+- import_playbook: install_master.yml
+- import_playbook: install_workers.yml
   vars:
-    set_hostname: true
-
-  roles:
-    - role: set-hostname
-      when: set_hostname
-    - role: k8s_containerd
-    - role: k8s_node
-
-
-- name: Install Kubernetes Control Plane
-  hosts: k8s_master
-  vars:
-    container_runtime_endpoints:
-      containerd: unix:///run/containerd/containerd.sock
-      CRI-O: unix:///run/containerd/containerd.sock
-      docker-engine: unix:///run/containerd/containerd.sock
-    k8s_users:
-      - root
-      - kwlee
-      - k8sadmin
-  roles:
-    - role: k8s_control_plane
-      vars:
-        apiserver_address: "{{ ansible_host }}"
-        container_runtime_endpoint: "{{ container_runtime_endpoints['containerd'] }}"
-    - role: k8s_flannel
-
-    - role: k8s_user
-      k8s_user: root
-    - role: k8s_user
-      k8s_user: kwlee
-    - role: k8s_user
-      k8s_user: k8sadmin
-
-- import_playbook: join_workers.yml
+    workers: "{{ k8s_workers }}"

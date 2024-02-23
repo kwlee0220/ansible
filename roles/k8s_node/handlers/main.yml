@@ -1,4 +1,8 @@
 ---
+- name: restart containerd
+  become: true
+  service: name=containerd state=restarted enabled=true
+  
 - name: restart kubelet
   become: true
   systemd: name=kubelet state=restarted enabled=true

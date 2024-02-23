@@ -1,5 +1,4 @@
 ---
-
 - name: create home directory for k8s_user if not exists
   become: true
   user:

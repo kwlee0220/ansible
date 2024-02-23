@@ -15,6 +15,7 @@ master ansible_host=192.168.0.60
 [k8s_workers]
 worker01 ansible_host=192.168.0.61
 worker02 ansible_host=192.168.0.62
+worker03 ansible_host=192.168.0.63
 
 [k8s:children]
 k8s_master
