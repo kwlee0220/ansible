@@ -13,4 +13,4 @@
   copy: src=files/tilix.dconf dest={{ user_home_dir }}/.config/tilix/tilix.dconf
 
 - name: load tilix configuration
-  shell: "dbus-launch dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf"
+  shell: "dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf"
