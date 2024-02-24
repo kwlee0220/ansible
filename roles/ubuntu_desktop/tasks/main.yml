@@ -1,0 +1,21 @@
+---
+- name: install ubuntu-desktop and gnome
+  become: true
+  package:
+    name:
+      - ubuntu-desktop
+      # - gnome
+
+# - name: Set dconf values
+#   include_role:
+#     name: dconf_set_value
+#   vars:
+#     dconf_key: "{{ item.key }}"
+#     dconf_value: "{{ item.value }}"
+#   with_items: "{{ desktop_confs }}"
+
+- name: Set dconf values
+  community.general.dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  with_items: "{{ desktop_confs }}"

@@ -19,9 +19,6 @@
       - trash-cli
       - bat
       - fd-find
-      - dconf-cli
-      - dconf-editor
-      - gnome-tweaks
     state: latest
 
 - name: fzf 설치 - git clone

@@ -1,9 +1,4 @@
 ---
-- name: print variables
-  debug:
-    msg: "{{ item.key }} = {{ item.value }}"
-  with_items: "{{ tilix_confs }}"
-  
 - name: install dconf-cli
   become: true
   package: name=dconf-cli
@@ -18,4 +13,4 @@
   copy: src=files/tilix.dconf dest={{ user_home_dir }}/.config/tilix/tilix.dconf
 
 - name: load tilix configuration
-  shell: "dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf"
+  shell: "dbus-launch dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf"

@@ -1,0 +1,12 @@
+---
+- name: Install Kubernetes for the node
+  hosts: "{{ workers }}"
+  
+  vars:
+    set_hostname_required: true
+
+  roles:
+    - role: set-hostname
+      when: set_hostname_required
+
+    - role: k8s_node

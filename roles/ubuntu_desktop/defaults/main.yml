@@ -1,0 +1,13 @@
+---
+apply_dconf: true
+
+desktop_key_prefix: "/org/gnome/shell/extensions/dash-to-dock"
+desktop_confs:
+  - { key: "{{ desktop_key_prefix }}/click-action", value: "'minimize'" }
+  - { key: "{{ desktop_key_prefix }}/dash-max-icon-size", value: "42" }
+  - { key: "{{ desktop_key_prefix }}/dock-position", value: "'RIGHT'" }
+  - { key: "{{ desktop_key_prefix }}/extend-height", value: "false" }
+  - { key: "{{ desktop_key_prefix }}/show-trash", value: "false" }
+
+  - { key: "/org/gnome/shell/favorite-apps",
+      value: "['google-chrome.desktop', 'org.gnome.Nautilus.desktop', 'snap-store_ubuntu-software.desktop', 'org.gnome.Terminal.desktop', 'gnome-control-center.desktop']" }

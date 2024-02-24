@@ -11,6 +11,7 @@ gnome_terminal_confs:
 
   - { key: "{{ terminal_key_prefix }}/audible-bell", value: "false" }
   
+  - { key: "{{ terminal_key_prefix }}/use-theme-colors", value: "false" }
   - { key: "{{ terminal_key_prefix }}/foreground-color", value: "'rgb(208,207,204)'" }
   - { key: "{{ terminal_key_prefix }}/background-color", value: "'rgb(23,20,33)'" }
 

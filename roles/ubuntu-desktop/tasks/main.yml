@@ -1,7 +1,0 @@
----
-- name: install ubuntu-desktop and gnome
-  become: true
-  package:
-    name:
-      - ubuntu-desktop
-      - gnome

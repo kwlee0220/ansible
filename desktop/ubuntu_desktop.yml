@@ -1,9 +1,25 @@
 ---
-- hosts: 127.0.0.1
-  connection: local
+- name: Ubuntu Desktop Environment Installation
+  # hosts: "{{ playbook_hosts | default("127.0.0.1") }}"
+  hosts: all
+
+  vars:
+    user_id: "{{ ansible_user_id }}"
+    user_home_dir: "{{ ansible_env.HOME }}"
 
   roles:
     - role: basic_apps
 
-- import_playbook: development.yml
-- import_playbook: gui.yml
+
+- name: Install development applications
+  import_playbook: development.yml
+  vars:
+    user_id: "{{ ansible_user_id }}"
+    user_home_dir: "{{ ansible_env.HOME }}"
+
+
+- name: Install GUI applications
+  import_playbook: gui.yml
+  vars:
+    user_id: "{{ ansible_user_id }}"
+    user_home_dir: "{{ ansible_env.HOME }}"
