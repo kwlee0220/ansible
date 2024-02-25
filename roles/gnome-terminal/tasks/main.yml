@@ -3,17 +3,16 @@
   become: true
   package: name=gnome-terminal
 
-- name: Set dconf values
-  include_role:
-    name: dconf_set_value
-  vars:
-    dconf_key: "{{ item.key }}"
-    dconf_value: "{{ item.value }}"
-  with_items: "{{ gnome_terminal_confs }}"
-
-# - include_tasks: set_value.yml
+# - name: Set dconf values
+#   include_role:
+#     name: dconf_set_value
 #   vars:
 #     dconf_key: "{{ item.key }}"
 #     dconf_value: "{{ item.value }}"
 #   with_items: "{{ gnome_terminal_confs }}"
-#   when: apply_dconf is defined and apply_dconf
+
+- name: Set dconf values
+  dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  with_items: "{{ gnome_terminal_confs }}"

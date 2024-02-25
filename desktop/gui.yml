@@ -11,6 +11,9 @@
           - dconf-editor
           - gnome-tweaks
           - dbus-x11
+    - name: dconf 관련 모듈 설치
+      become: true
+      pip: name=psutil
 
 
 - name: GUI Application Installation
