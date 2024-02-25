@@ -5,6 +5,5 @@
   changed_when: no
 
 - name: "Write dconf key: {{ dconf_key }}"
-  # command: dbus-launch dconf write {{ dconf_key }} "{{ dconf_value }}"
   command: dconf write {{ dconf_key }} "{{ dconf_value }}"
   when: r_dconf_current_value.stdout != dconf_value
