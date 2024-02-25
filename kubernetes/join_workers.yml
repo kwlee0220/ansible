@@ -15,7 +15,7 @@
 
 
 - name: Join the new Kubernetes Worker
-  hosts: "{{ workers }}"
+  hosts: k8s_workers
   become: true
   tasks:
     - name: Check if the worker node is already joined

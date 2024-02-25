@@ -9,4 +9,7 @@
     dest: /etc/containerd/config.toml
     regexp: 'SystemdCgroup = false'
     replace: "SystemdCgroup = true"
-  notify: restart containerd
+    
+- name: restart containerd
+  become: true
+  service: name=containerd state=restarted enabled=true

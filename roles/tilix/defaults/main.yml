@@ -2,11 +2,16 @@
 user_id: "{{ ansible_user_id }}"
 user_home_dir: "{{ ansible_env.HOME }}"
 
-profile_key: "/com/gexperts/Tilix/profiles/2b7c4080-0ddd-46c5-8f23-563fd3ba789d"
+tilix_conf_top: "/com/gexperts/Tilix"
+profile_key: "{{ tilix_conf_top }}/profiles/2b7c4080-0ddd-46c5-8f23-563fd3ba789d"
 tilix_confs:
+  - { key: "{{ tilix_conf_top }}/terminal-title-style", value: "'none'" }
+  - { key: "{{ tilix_conf_top }}/enable-wide-handle", value: "true" }
+
+  - { key: "{{ profile_key }}/visible-name", value: "'Default'" }
+  
   - { key: "{{ profile_key }}/font", value: "'D2Coding 12'" }
   - { key: "{{ profile_key }}/use-system-font", value: "false" }
-  - { key: "{{ profile_key }}/visible-name", value: "'Default'" }
 
   - { key: "{{ profile_key }}/default-size-columns", value: "130" }
   - { key: "{{ profile_key }}/default-size-rows", value: "35" }
