@@ -15,6 +15,7 @@
 #   with_items: "{{ desktop_confs }}"
 
 - name: Set dconf values
+  become: false
   dconf:
     key: "{{ item.key }}"
     value: "{{ item.value }}"

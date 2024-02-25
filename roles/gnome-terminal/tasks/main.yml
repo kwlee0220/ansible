@@ -12,6 +12,7 @@
 #   with_items: "{{ gnome_terminal_confs }}"
 
 - name: Set dconf values
+  become: false
   dconf:
     key: "{{ item.key }}"
     value: "{{ item.value }}"
