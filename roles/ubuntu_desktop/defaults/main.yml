@@ -10,4 +10,4 @@ desktop_confs:
   - { key: "{{ desktop_key_prefix }}/show-trash", value: "false" }
 
   - { key: "/org/gnome/shell/favorite-apps",
-      value: "['google-chrome.desktop', 'org.gnome.Nautilus.desktop', 'snap-store_ubuntu-software.desktop', 'org.gnome.Terminal.desktop', 'gnome-control-center.desktop']" }
+      value: "['google-chrome.desktop', 'code.desktop', 'org.gnome.Nautilus.desktop', 'snap-store_ubuntu-software.desktop', 'org.gnome.Terminal.desktop', 'gnome-control-center.desktop']" }
