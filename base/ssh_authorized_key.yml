@@ -10,6 +10,12 @@
     - name: ansible_password
       prompt: "SSH password"
 
+  pre_tasks:
+    - name: sshpass 설치
+      connection: local
+      become: true
+      package: name=sshpass
+
   roles:
     - role: generate_ssh_key
 
