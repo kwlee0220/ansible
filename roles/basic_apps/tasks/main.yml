@@ -15,17 +15,6 @@
 - name: install D2Coding fonts
   include_role: name=font_d2coding
 
-# - name: update desktop interface
-#   block:
-#     - name: copy disktop interface configuration to local temporary directory
-#       copy: src=files/desktop_interface.dconf dest={{ tmp_dir }}/desktop_interface.dconf
-
-#     - name: load desktop interface configuration
-#       shell: "dconf load /org/gnome/desktop/interface/ < {{ tmp_dir }}/desktop_interface.dconf"
-
-#     - name: remove temporary configuration file
-#       file: path={{ tmp_dir }}/desktop_interface.dconf state=absent
-
 - name: install vim
   include_role: name=vim
 
