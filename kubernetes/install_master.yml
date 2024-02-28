@@ -12,6 +12,9 @@
       docker-engine: unix:///run/containerd/containerd.sock
     container_runtime_endpoint: "{{ container_runtime_endpoints['containerd'] }}"
 
+    install_ingress: true
+    ingress_resource: https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
+
     k8s_users:
       - root
       - kwlee
@@ -42,6 +45,11 @@
       shell: |
         export KUBECONFIG=/etc/kubernetes/admin.conf
         kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+
+    - name: Install Ingress Control
+      become: true
+      command: "kubectl apply -f {{ ingress_resource }}"
+      when: install_ingress is defined and install_ingress
 
     - name: Create Kubernetes user account
       include_role:
