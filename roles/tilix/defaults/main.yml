@@ -2,6 +2,8 @@
 user_id: "{{ ansible_user_id }}"
 user_home_dir: "{{ ansible_env.HOME }}"
 
+set_default_terminal: true
+
 tilix_conf_top: "/com/gexperts/Tilix"
 profile_key: "{{ tilix_conf_top }}/profiles/2b7c4080-0ddd-46c5-8f23-563fd3ba789d"
 tilix_confs:
