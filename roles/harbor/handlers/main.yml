@@ -1,0 +1,3 @@
+---
+- name: restart docker engine
+  systemd: name=docker state=restarted enabled=true
