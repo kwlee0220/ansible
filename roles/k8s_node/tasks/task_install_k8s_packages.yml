@@ -44,18 +44,22 @@
 - name: install kubernetes packages and hold them
   become: true
   block:
-    - name: Add Kubernetes gpg key
+    - name: Ensure '/etc/apt/keyrings' directory
+      file: path=/etc/apt/keyrings state=directory
+
+    - name: Download Kubernetes GPG key
       become: true
       apt_key:
-        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        url: https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key
+        keyring: "{{ k8s_keyring_file }}"
         state: present
         
     - name: Add Kubernetes software repository
       become: true
       apt_repository:
-        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        repo: "deb [signed-by={{ k8s_keyring_file }}] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /"
         state: present
-        filename: kubernetes.list
+        filename: kubernetes
         update_cache: yes
 
     - name: Install kubernetes
