@@ -6,3 +6,25 @@
     - role: basic_apps
 
 - import_playbook: development.yml
+
+- name: Dconf 관련 모듈 설치
+  hosts: all
+  become: true
+  tasks:
+    - name: 주요 모듈들 설치
+      become: true
+      package:
+        name:
+          - dconf-cli
+          - dconf-editor
+          - gnome-tweaks
+          # - dbus-x11
+    - name: dconf 관련 모듈 설치
+      become: true
+      pip: name=psutil
+
+- name: GUI Application Installation
+  hosts: all
+  become: true
+  roles:
+    - role: tilix
