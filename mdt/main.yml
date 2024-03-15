@@ -1,0 +1,17 @@
+---
+- name: 참여 host들의 hostname 설정.
+  hosts: mdt
+  roles:
+    - role: set-hosts
+
+- import_playbook: ../kubernetes/main.yml
+  vars:
+    set_hostname_required: false
+
+- name: Harbor 설치
+  hosts: harbor
+  roles:
+    - role: harbor
+
+- name: Harbor 설치 과정에서 생성된 CA 인증서를 Kubernetes 구성 node에 복사.
+  import_playbook: distribute_harbor_ca_to_k8s.yml

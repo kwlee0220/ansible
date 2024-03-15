@@ -1,4 +1,3 @@
 ---
 dependencies:
-  - role: set-hostname
-    target_hostname: "{{ harbor_fqdn }}"
+  - role: docker-engine

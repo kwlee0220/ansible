@@ -1,7 +1,9 @@
 ---
-- name: 인증서 생성 및 등록
+- name: HTTPS 프로토콜을 사용하려면 인증서 생성하고 등록함
   include_tasks: certificates.yml
   when: harbor_protocol == 'https'
+
+##############################
 
 - name: Harbor 설치 파일 다운로드 후 압축 해제
   unarchive:
@@ -26,14 +28,18 @@
     line: "hostname: {{ harbor_fqdn }}"
     state: present
 
-- name: Harbot 설정
+##############################
+
+- name: Harbor 설정
   include_tasks: task_setup_{{ harbor_protocol }}.yml
+
+##############################
 
 - name: 패스워드 설정
   lineinfile:
     dest: "{{ harbor_dir }}/harbor.yml"
     regexp: '^harbor_admin_password: '
-    line: "harbor_admin_password: Mdt2024^^"
+    line: "harbor_admin_password: {{ harbor_password }}"
     state: present
 
 - name: DOCKER_COMPOSE 설정

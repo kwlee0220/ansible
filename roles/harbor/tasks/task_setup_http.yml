@@ -27,9 +27,14 @@
     line: "  # private_key:"
     state: present
 
-- name: Docker에서 insecure registry 접근 허용을 위한 설정 파일 수정
-  become: true
-  copy:
-    src: files/docker_daemon_json
-    dest: /etc/docker/daemon.json
-  notify: restart docker engine
+# - name: Docker에서 insecure registry 접근 허용을 위한 설정 파일 수정
+#   template:
+#     src: files/docker_daemon_json
+#     dest: /etc/docker/daemon.json
+
+# - name: restart docker engine
+#   systemd:
+#     name: docker
+#     state: restarted
+#     enabled: true
+#     daemon_reload: true

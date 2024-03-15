@@ -1,0 +1,4 @@
+---
+dependencies:
+  - role: set-hostname
+    target_hostname: "{{ host_fqdn }}"

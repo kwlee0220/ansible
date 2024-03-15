@@ -8,7 +8,7 @@
       command: openssl genrsa -out {{ cert_dir }}/ca.key 4096
       args:
         creates: "{{ cert_dir }}/ca.key"
-    - name: CA 인증서 생성
+    - name: CA 인증서(crt) 생성
       command: >
         openssl req -x509 -new -nodes -sha512 -days 3650 
           -subj "/C=KR/ST=Daejeon/L=Yuseong-Gu/O=ETRI/OU=IMI/CN=kwlee" 
@@ -16,6 +16,7 @@
           -out {{ cert_dir }}/ca.crt
       args:
         creates: "{{ cert_dir }}/ca.crt"
+
 
 - name: 서버 인증서 생성
   block:
@@ -52,7 +53,8 @@
           DNS.2={{ harbor_fqdn }}
           DNS.3={{ harbor_hostname }}
       when: not ext_file.stat.exists
-    - name: v3.ext 파일을 사용하여 Harbor 호스트에 대한 인증서를 생성
+
+    - name: v3.ext 파일을 사용하여 Harbor 서버에 대한 인증서를 생성
       command:
         openssl x509 -req -sha512 -days 3650
           -extfile {{ cert_dir }}/v3.ext
@@ -62,44 +64,67 @@
       args:
         creates: "{{ harbor_crt_file }}"
 
-- name: Harbor 및 Docker에 인증서 제공
+
+- name: Harbor에 인증서 복사
   become: true
   block:
     - name: Harbor 인증서 폴더 생성
       file: path=/data/cert state=directory
+
     - name: 서버 인증서와 키를 Harbor 인증서 폴더에 복사
       copy:
         src: "{{ harbor_crt_file }}"
         dest: "{{ harbor_cert_dir }}"
         remote_src: true
-    - name: Docker에서 사용할 수 있도록 crt를 cert로 변환
-      become: no
-      command: openssl x509 -inform PEM -in {{ harbor_crt_file }} -out {{ harbor_cert_file }}
-      args:
-        creates: "{{ harbor_cert_file }}"
-    - name: Docker 인증서 폴더 생성
-      file: path=/etc/docker/certs.d/{{ harbor_fqdn }} state=directory
-    - name: 서버 인증서, 키 및 CA 파일을 Harbor 호스트의 Docker 인증서 폴더에 복사
-      copy:
-        src: "{{ item }}"
-        dest: "/etc/docker/certs.d/{{ harbor_fqdn }}"
-        remote_src: true
-      loop:
-        - "{{ harbor_cert_file }}"
-        - "{{ harbor_key_file }}"
-        - "{{ cert_dir }}/ca.crt"
 
-    - name: OS 인증서 폴더 생성
-      file: path=/etc/pki/ca-trust/source/anchors state=directory
-    - name: OS에서 인증서를 업데이트.
-      copy:
-        src: "{{ harbor_crt_file }}"
-        dest: /etc/pki/ca-trust/source/anchors/{{ harbor_crt }}
-        force: false
-        remote_src: true
-    - name: 인증서 업데이트
-      command: update-ca-certificates
-      changed_when: false
-      
-    - name: restart docker engine
-      systemd: name=docker state=restarted enabled=true
+- name: Docker에서 사용할 수 있도록 crt를 cert로 변환
+  become: no
+  command: openssl x509 -inform PEM -in {{ harbor_crt_file }} -out {{ harbor_cert_file }}
+  args:
+    creates: "{{ harbor_cert_file }}"
+
+# - name: Docker에 인증서 제공
+#   become: true
+#   block:
+#     - name: Docker에서 사용할 수 있도록 crt를 cert로 변환
+#       become: no
+#       command: openssl x509 -inform PEM -in {{ harbor_crt_file }} -out {{ harbor_cert_file }}
+#       args:
+#         creates: "{{ harbor_cert_file }}"
+
+#     - name: Docker에게 제공할 인증서가 저장될 폴더 생성
+#       file: path=/etc/docker/certs.d/{{ harbor_fqdn }} state=directory
+
+#     - name: 서버 인증서, 키 및 CA 파일을 Harbor 호스트의 Docker 인증서 폴더에 복사
+#       copy:
+#         src: "{{ item }}"
+#         dest: "/etc/docker/certs.d/{{ harbor_fqdn }}"
+#         remote_src: true
+#       loop:
+#         - "{{ harbor_cert_file }}"
+#         - "{{ harbor_key_file }}"
+#         - "{{ cert_dir }}/ca.crt"
+
+    # - name: OS 인증서 폴더 생성
+    #   file: path=/etc/pki/ca-trust/source/anchors state=directory
+    # - name: OS에서 인증서를 업데이트.
+    #   copy:
+    #     src: "{{ harbor_crt_file }}"
+    #     dest: /etc/pki/ca-trust/source/anchors/{{ harbor_crt }}
+    #     force: false
+    #     remote_src: true
+    # - name: 인증서 업데이트
+    #   command: update-ca-certificates
+    #   changed_when: false
+
+    # - name: docker의 insecure 옵션 설정.
+    #   template:
+    #     src: files/docker_daemon_json
+    #     dest: /etc/docker/daemon.json
+
+    # - name: restart docker engine
+    #   systemd:
+    #     name: docker
+    #     state: restarted
+    #     enabled: true
+    #     daemon_reload: true

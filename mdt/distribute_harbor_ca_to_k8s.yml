@@ -1,0 +1,25 @@
+---
+- hosts: harbor
+  tasks:
+    - name: Harbor node에서 생성한 CA 인증서를 가져옴.
+      fetch:
+        src: "{{ ansible_env.HOME }}/certs/ca.crt"
+        dest: /tmp/ca.crt
+        flat: true
+
+
+- hosts: k8s
+  tasks:
+    - name: 가져온 CA 인증서를 모든 kubernetes node에 복사한다.
+      become: true
+      copy:
+        src: /tmp/ca.crt
+        dest: /usr/local/share/ca-certificates/ca.crt
+
+
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: 가져왔던 CA 인증서를 삭제한다.
+      file: path=/tmp/ca.crt state=absent
+
