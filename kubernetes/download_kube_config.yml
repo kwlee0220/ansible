@@ -1,0 +1,20 @@
+---
+- name: Fetch Kubernetes configuration to local directory
+  hosts: k8s_master
+
+  vars:
+    dest_dir: ~/.kube
+
+  tasks:
+    - name: Ensure local configuration directory
+      connection: local
+      file:
+        path: "{{ dest_dir }}"
+        state: directory
+      delegate_to: localhost
+
+    - name: Fetch the Kubernetes configuration
+      fetch:
+        src: "{{ ansible_env.HOME }}/.kube/config"
+        dest: "{{ dest_dir }}/config"
+        flat: true

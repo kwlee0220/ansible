@@ -1,0 +1,43 @@
+---
+- hosts: harbor
+  roles:
+    - role: fetch_dir
+      src_dir: /etc/docker/certs.d/{{ ansible_fqdn }}
+      dest_parent_dir: /tmp
+
+  tasks:
+    - name: Create dummy host to store variable
+      add_host:
+        name: "DUMMY_HOST"
+        CERT_D: "{{ ansible_fqdn }}"
+
+
+- hosts: localhost
+  gather_facts: false
+  connection: local
+  become: true
+  vars:
+    cert_dir_name: "{{ hostvars['DUMMY_HOST']['CERT_D'] }}"
+
+  tasks:
+    - name: Docker에게 제공할 인증서가 저장될 폴더 생성
+      file: path=/etc/docker/certs.d state=directory
+    - name: delete the existing directory if any
+      file: path=/etc/docker/certs.d/{{ cert_dir_name }} state=absent
+    - name: Copy temporary directory to the final target
+      copy:
+        src: /tmp/{{ cert_dir_name }}
+        dest: /etc/docker/certs.d
+        owner: root
+        group: root
+        remote_src: false
+    - name: delete the temporary directory
+      file: path=/tmp/{{ cert_dir_name }} state=absent
+      
+    - name: restart docker engine
+      become: true
+      systemd:
+        name: docker
+        state: restarted
+        enabled: true
+        daemon_reload: true

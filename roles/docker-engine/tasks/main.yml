@@ -44,3 +44,15 @@
 - name: add user to docker
   become: true
   user: name="{{ user_id }}" groups=docker append=true
+
+- name: 원격 접근을 위한 포트 개발 설정
+  become: true
+  lineinfile:
+    dest: /lib/systemd/system/docker.service
+    backrefs: true
+    regexp: '^ExecStart=(.*)$'
+    line: ExecStart=\1 -H tcp://0.0.0.0:{{ remote_port }}
+  notify:
+    - reload daemon
+    - restart docker-engine
+  when: remote_api_enabled

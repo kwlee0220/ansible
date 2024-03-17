@@ -1,0 +1,9 @@
+---
+set_hostname_required: true
+
+install_ingress: false
+ingress_resource: https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
+
+local_config_dirs:
+  - "~/.kube"
+  - "/mnt/c/Users/kwlee/.kube"

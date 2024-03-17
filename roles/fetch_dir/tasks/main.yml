@@ -1,0 +1,9 @@
+---
+- shell: (cd {{ src_dir }}; find . -maxdepth 1 -type f) | cut -d'/' -f2
+  register: files_to_copy
+
+- fetch:
+    src: "{{ src_dir }}/{{ item }}"
+    dest: "{{ dest_parent_dir }}/{{ src_dir | basename }}/{{ item }}"
+    flat: true
+  with_items: "{{ files_to_copy.stdout_lines }}"

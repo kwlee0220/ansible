@@ -77,54 +77,38 @@
         dest: "{{ harbor_cert_dir }}"
         remote_src: true
 
-- name: Docker에서 사용할 수 있도록 crt를 cert로 변환
-  become: no
-  command: openssl x509 -inform PEM -in {{ harbor_crt_file }} -out {{ harbor_cert_file }}
-  args:
-    creates: "{{ harbor_cert_file }}"
+- name: Local Docker에 인증서 및 보안키 설치
+  become: true
+  block:
+    - name: Docker에서 사용할 수 있도록 crt를 cert로 변환
+      become: false
+      command: openssl x509 -inform PEM -in {{ harbor_crt_file }} -out {{ harbor_cert_file }}
+      args:
+        creates: "{{ harbor_cert_file }}"
 
-# - name: Docker에 인증서 제공
-#   become: true
-#   block:
-#     - name: Docker에서 사용할 수 있도록 crt를 cert로 변환
-#       become: no
-#       command: openssl x509 -inform PEM -in {{ harbor_crt_file }} -out {{ harbor_cert_file }}
-#       args:
-#         creates: "{{ harbor_cert_file }}"
+    - name: Docker에게 제공할 인증서가 저장될 폴더 생성
+      file: path=/etc/docker/certs.d/{{ harbor_fqdn }} state=directory
 
-#     - name: Docker에게 제공할 인증서가 저장될 폴더 생성
-#       file: path=/etc/docker/certs.d/{{ harbor_fqdn }} state=directory
+    - name: 서버 인증서, 키 및 CA 파일을 Harbor 호스트의 Docker 인증서 폴더에 복사
+      copy:
+        src: "{{ item }}"
+        dest: "/etc/docker/certs.d/{{ harbor_fqdn }}"
+        remote_src: true
+      loop:
+        - "{{ harbor_cert_file }}"
+        - "{{ harbor_key_file }}"
+        - "{{ cert_dir }}/ca.crt"
 
-#     - name: 서버 인증서, 키 및 CA 파일을 Harbor 호스트의 Docker 인증서 폴더에 복사
-#       copy:
-#         src: "{{ item }}"
-#         dest: "/etc/docker/certs.d/{{ harbor_fqdn }}"
-#         remote_src: true
-#       loop:
-#         - "{{ harbor_cert_file }}"
-#         - "{{ harbor_key_file }}"
-#         - "{{ cert_dir }}/ca.crt"
+- name: 호스트에 기관 인증서 설치
+  include_role: name=ca-certificate
+  vars:
+    ca_path: "{{ cert_dir }}/ca.crt"
+    remote_src: true
 
-    # - name: OS 인증서 폴더 생성
-    #   file: path=/etc/pki/ca-trust/source/anchors state=directory
-    # - name: OS에서 인증서를 업데이트.
-    #   copy:
-    #     src: "{{ harbor_crt_file }}"
-    #     dest: /etc/pki/ca-trust/source/anchors/{{ harbor_crt }}
-    #     force: false
-    #     remote_src: true
-    # - name: 인증서 업데이트
-    #   command: update-ca-certificates
-    #   changed_when: false
-
-    # - name: docker의 insecure 옵션 설정.
-    #   template:
-    #     src: files/docker_daemon_json
-    #     dest: /etc/docker/daemon.json
-
-    # - name: restart docker engine
-    #   systemd:
-    #     name: docker
-    #     state: restarted
-    #     enabled: true
-    #     daemon_reload: true
+- name: restart docker engine
+  become: true
+  systemd:
+    name: docker
+    state: restarted
+    enabled: true
+    daemon_reload: true

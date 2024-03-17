@@ -3,8 +3,6 @@
   hosts: k8s_master
   
   vars:
-    set_hostname_required: true
-
     apiserver_address: "{{ ansible_host }}"
     container_runtime_endpoints:
       containerd: unix:///run/containerd/containerd.sock
@@ -18,7 +16,6 @@
     k8s_users:
       - root
       - kwlee
-      - k8sadmin
 
   roles:
     - role: set-hostname
@@ -57,3 +54,10 @@
       vars:
         k8s_user: "{{ item }}"
       with_items: "{{ k8s_users }}"
+
+- import_playbook: download_kube_config.yml
+  vars:
+    dest_dir: "~/.kube"
+- import_playbook: download_kube_config.yml
+  vars:
+    dest_dir: "/mnt/c/Users/kwlee/.kube"

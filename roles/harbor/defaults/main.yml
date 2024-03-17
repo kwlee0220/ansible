@@ -15,7 +15,6 @@ harbor_cert_dir: "/data/cert"
 harbor_ip: "{{ ansible_default_ipv4.address }}"
 harbor_hostname: "{{ ansible_hostname }}"
 harbor_fqdn: "{{ ansible_fqdn }}"
-
 harbor_password: Mdt2024^^
 
 harbor_key:  "{{ harbor_fqdn }}.key"

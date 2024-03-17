@@ -1,0 +1,12 @@
+---
+- name: reload daemon
+  become: true
+  command: systemctl daemon-reload
+
+- name: restart docker-engine
+  become: true
+  systemd:
+    name: docker
+    state: restarted
+    # enabled: true
+    # daemon_reload: true

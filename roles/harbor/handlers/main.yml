@@ -1,5 +1,6 @@
 ---
 - name: restart docker engine
+  become: true
   systemd:
     name: docker
     state: restarted

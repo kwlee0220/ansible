@@ -1,0 +1,18 @@
+---
+- name: OS 인증서 폴더 생성
+  become: true
+  file: path=/usr/local/share/ca-certificates state=directory
+
+- name: Harbor 인증서 복사
+  become: true
+  copy:
+    src: "{{ ca_path }}"
+    dest: "/usr/local/share/ca-certificates/{{ ca_path | basename }}"
+    force: false
+    remote_src: "{{ remote_src }}"
+  register: ca_registered
+
+- name: Update CA trust
+  become: true
+  command: update-ca-certificates
+  when: ca_registered

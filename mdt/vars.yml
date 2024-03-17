@@ -1,0 +1,2 @@
+---
+harbor_cert_dest_dir: /etc/docker/certs.d
