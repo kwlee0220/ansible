@@ -3,8 +3,8 @@
 
 [k8s_workers]
 192.168.0.61 host_fqdn=worker01.mdt.etri.re.kr
-# 192.168.0.62 host_fqdn=worker02.mdt.etri.re.kr
-# 192.168.0.63 host_fqdn=worker03.mdt.etri.re.kr
+192.168.0.62 host_fqdn=worker02.mdt.etri.re.kr
+192.168.0.63 host_fqdn=worker03.mdt.etri.re.kr
 
 [k8s:children]
 k8s_master
