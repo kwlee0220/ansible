@@ -1,0 +1,17 @@
+---
+- name: Download Argo CLI zip file and install
+  become: true
+  unarchive:
+    src: https://github.com/argoproj/argo-workflows/releases/download/{{ version }}/argo-linux-amd64.gz
+    dest: /usr/local/bin
+    mode: 0755
+    remote_src: true
+
+- name: rename to 'argo'
+  become: true
+  command: mv /usr/local/bin/argo-linux-amd64 /usr/local/bin/argo
+
+- name: display argo version
+  command: argo version
+  register: version_printed
+- debug: var=version_printed.stdout_lines[0]
