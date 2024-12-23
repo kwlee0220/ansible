@@ -1,0 +1,12 @@
+---
+- name: install Vim
+  become: true
+  package: name=vim
+  
+- name: copy colorschema 
+  copy: src="{{ item }}" dest="{{ user_home_dir }}/.vim/colors/"
+  with_fileglob:
+    - "files/*.vim"
+
+- name: Vim 설정 파일 복사
+  copy: src=files/vimrc dest="{{ user_home_dir }}/.vimrc"

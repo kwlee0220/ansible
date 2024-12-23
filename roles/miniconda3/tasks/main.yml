@@ -1,0 +1,8 @@
+---
+- name: Miniconda3 설치 여부 확인
+  stat: path="{{ user_home_dir }}/.condarc"
+  register: miniconda_installed
+
+- name: Miniconda3 설치
+  include_tasks: task_miniconda3.yml
+  when: not miniconda_installed.stat.exists

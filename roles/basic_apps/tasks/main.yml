@@ -1,0 +1,30 @@
+---
+- name: update and upgrade apt
+  become: true
+  apt: upgrade=yes update_cache=yes cache_valid_time=3600
+
+- name: copy .bashrc
+  include_tasks: tasks/task_bashrc.yml
+
+- name: install some terminal applications
+  include_tasks: tasks/task_tools.yml
+
+- name: install D2Coding fonts
+  include_role: name=font_d2coding
+
+- name: install vim
+  include_role: name=vim
+
+- name: generate SSH key
+  include_role: name=generate_ssh_key
+
+- name: install locale
+  become: true
+  apt: name=locales state=present update_cache=yes
+- name: set UTF-8 locale
+  become: true
+  shell: |
+    locale-gen en_US en_US.UTF-8
+    update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+- name: export LANG
+  shell: export LANG=en_US.UTF-8

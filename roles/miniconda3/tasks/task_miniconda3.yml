@@ -1,0 +1,21 @@
+
+- name: create ~/tmp
+  file: path=~/tmp state=directory
+
+- name: download Miniconda installer file
+  get_url:
+    url: "{{ miniconda3_installer_url }}"
+    dest: "{{ tmp_dir }}/install-miniconda.sh"
+    mode: 0755
+
+- name: Run the installer
+  shell: "{{ tmp_dir }}/install-miniconda.sh -b -u"
+
+- name: Remove the installer
+  file: state=absent path="{{ tmp_dir }}/install-miniconda.sh"
+
+- name: chmod for deactivate command
+  file: path=~/miniconda3/bin/deactivate mode=0755
+
+- name: copy .condarc
+  copy: src=files/_condarc dest="{{ user_home_dir }}/.condarc"

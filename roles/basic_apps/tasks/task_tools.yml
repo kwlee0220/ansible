@@ -1,0 +1,43 @@
+
+- name: 주요 모듈들 설치
+  become: true
+  package:
+    name:
+      - dos2unix
+      - tree
+      - zip
+      - unzip
+      - build-essential
+      - ripgrep
+      - tldr
+      - htop
+      - btop
+      - neofetch
+      - cpufetch
+      - net-tools
+      - autojump
+      - ffmpeg
+      - trash-cli
+      - bat
+      - fd-find
+    state: latest
+
+- name: fzf 설치 - git clone
+  git:
+    repo: https://github.com/junegunn/fzf.git
+    dest: ~/.fzf
+    depth: 1
+    clone: yes
+    update: false
+  register: fzf_git_cloned
+- name: fzf 설치 - install
+  shell: ~/.fzf/install
+  when: fzf_git_cloned.changed
+
+- name: gdu 설치
+  become: true
+  unarchive:
+    src: https://github.com/dundee/gdu/releases/latest/download/gdu_linux_amd64.tgz
+    dest: /usr/local/bin
+    mode: 0755
+    remote_src: true

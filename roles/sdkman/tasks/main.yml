@@ -1,0 +1,51 @@
+- name: Ensure required dependencies are installed
+  become: true
+  apt:
+    name:
+      - curl
+      - unzip
+    state: present
+
+- name: Check if SDKMAN is already installed
+  stat:
+    path: "/home/{{ user_id }}/.sdkman/bin/sdkman-init.sh"
+  register: sdkman_installed
+
+- name: Install SDKMAN
+  shell: |
+    curl -s "https://get.sdkman.io" | bash
+  args:
+    executable: /bin/bash
+  when: not sdkman_installed.stat.exists
+
+- name: Source SDKMAN in bashrc
+  lineinfile:
+    path: /home/{{ user_id }}/.bashrc
+    line: "source /home/{{ user_id }}/.sdkman/bin/sdkman-init.sh"
+    state: present
+  when: not sdkman_installed.stat.exists
+
+- name: Refresh shell environment
+  shell: |
+    source /home/{{ user_id }}/.bashrc
+  args:
+    executable: /bin/bash
+  when: not sdkman_installed.stat.exists
+
+- name: Install Java Temurin 21.0.5 using SDKMAN
+  shell: |
+    source /home/{{ user_id }}/.sdkman/bin/sdkman-init.sh && sdk install java 21.0.5-tem
+  args:
+    executable: /bin/bash
+  environment:
+    SDKMAN_DIR: "/home/{{ user_id }}/.sdkman"
+  when: sdkman_installed.stat.exists
+
+- name: Install Gradle 8.9 using SDKMAN
+  shell: |
+    source /home/{{ user_id }}/.sdkman/bin/sdkman-init.sh && sdk install gradle 8.9
+  args:
+    executable: /bin/bash
+  environment:
+    SDKMAN_DIR: "/home/{{ user_id }}/.sdkman"
+  when: sdkman_installed.stat.exists

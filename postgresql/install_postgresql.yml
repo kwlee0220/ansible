@@ -1,0 +1,67 @@
+---
+- name: PostgreSQL Installation
+  hosts: all
+
+  vars:
+    pgdg_gpg_url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    pgdg_repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+
+    postgres_root_user: "postgres"
+    postgres_root_password: "urc2004"
+
+  tasks:
+    - name: add PostgreSQL GPG apt key
+      become: true
+      apt_key:
+        url: "{{ pgdg_gpg_url }}"
+        state: present
+
+    - name: add PostgreSQL Repository
+      become: true
+      apt_repository:
+        repo: "{{ pgdg_repo }}"
+        state: present
+
+    - name: install PostgreSQL
+      become: true
+      package:
+        name:
+          - postgresql
+          - postgresql-client
+          - postgresql-contrib
+          - libpq-dev
+          - python3-psycopg2
+        update_cache: true
+        state: present
+
+    - name: ensure PostgreSQL is listening on *
+      become: true
+      lineinfile:
+        dest: /etc/postgresql/17/main/postgresql.conf
+        regexp: '^#listen_addresses\s*='
+        line: "listen_addresses = '*'"
+        state: present
+      notify: restart postgresql
+
+    - name: add a new configuration to "pg_hba.conf"
+      become: true
+      lineinfile:
+        dest: /etc/postgresql/17/main/pg_hba.conf
+        regexp: '^host\s*all\s*all\s*127.0.0.1'
+        line: "host    all             all             0.0.0.0/0               scram-sha-256"
+      notify: restart postgresql
+
+    - name: create a superuser PostgreSQL database user
+      become: true
+      become_user: postgres
+      community.general.postgresql_user:
+        name: "{{ postgres_root_user }}"
+        password: "{{ postgres_root_password }}"
+        role_attr_flags: CREATEDB,SUPERUSER,CREATEROLE
+        encrypted: yes
+        state: present
+        
+  handlers:
+    - name: restart postgresql
+      become: true
+      service: name=postgresql state=restarted

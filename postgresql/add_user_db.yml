@@ -1,0 +1,36 @@
+---
+- name: PostgreSQL Installation
+  hosts: all
+
+  vars_prompt:
+    - name: postgres_user
+      prompt: "User id for Postgresql"
+      private: no
+    - name: postgres_password
+      prompt: "User password for Postgresql"
+      private: no
+    - name: postgres_db
+      prompt: "Database name for Postgresql"
+      private: no
+
+  tasks:
+    - name: Create PostgreSQL user
+      postgresql_user:
+        name: "{{ postgres_user }}"
+        password: "{{ postgres_password }}"
+        state: present
+
+    - name: Create PostgreSQL database
+      postgresql_db:
+        name: "{{ postgres_db }}"
+        owner: "{{ postgres_user }}"
+        state: present
+      when: postgres_db is defined
+
+    - name: Grant privileges to user on database
+      postgresql_privs:
+        db: "{{ postgres_db }}"
+        roles: "{{ postgres_user }}"
+        type: "database"
+        privs: "ALL"
+      when: postgres_db is defined

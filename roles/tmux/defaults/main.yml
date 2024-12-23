@@ -1,0 +1,4 @@
+---
+user_id: "{{ ansible_user_id }}"
+user_home_dir: "{{ ansible_env.HOME }}"
+tmux_plugin_repo: "https://github.com/tmux-plugins/tpm"

@@ -1,0 +1,25 @@
+---
+- name: install dconf-cli, dconf editor
+  become: true
+  package:
+    name:
+      - dconf-cli
+      - dconf-editor
+    update_cache: true
+    state: present
+
+- name: Install dbus-x11
+  become: true
+  package: name=dbus-x11
+
+- name: install tilix program
+  become: true
+  package: name=tilix state=latest
+
+- name: ensure tilix configuration directory
+  file: path={{ user_home_dir }}/.config/tilix state=directory
+- name: copy tilix configuration
+  copy: src=files/tilix.dconf dest={{ user_home_dir }}/.config/tilix/tilix.dconf
+
+- name: load tilix configuration
+  shell: "dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf"

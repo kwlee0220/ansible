@@ -1,0 +1,4 @@
+---
+user_id: "{{ ansible_user_id }}"
+java_version: "21.0.5-tem"
+gradle_version: "8.9"

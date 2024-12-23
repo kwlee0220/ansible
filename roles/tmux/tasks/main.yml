@@ -1,0 +1,15 @@
+---
+- name: Tmux 설치
+  become: true
+  apt: name=tmux state=present update_cache=yes
+
+- name: Tmux 설정 파일 복사
+  copy:
+    src: files/tmux.conf
+    dest: "{{ user_home_dir }}/.tmux.conf"
+    
+- name: Tmux Plugin Manager 설치
+  git:
+    repo: "{{ tmux_plugin_repo }}"
+    dest: "{{ user_home_dir }}/.tmux/plugins/tpm"
+    clone: yes

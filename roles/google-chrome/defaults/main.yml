@@ -1,0 +1,9 @@
+---
+chrome_apt_key_url: https://dl.google.com/linux/linux_signing_key.pub
+deb_architecture: {
+  "aarch64": "arm64",
+  "x86_64": "amd64"
+}
+arch: "{{ [ansible_architecture] | map('extract', deb_architecture) | first }}"
+chrome_repo: "deb [arch={{ arch }}] http://dl.google.com/linux/chrome/deb/ stable main"
+    

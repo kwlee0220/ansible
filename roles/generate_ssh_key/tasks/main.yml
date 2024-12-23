@@ -1,0 +1,9 @@
+---
+
+- name: ensure .ssh directory
+  file: path="{{ user_home_dir }}/.ssh" state=directory
+
+- name: create SSH key
+  command: "ssh-keygen -t rsa -f {{ user_home_dir }}/.ssh/id_rsa -N '' -q"
+  args:
+    creates: "{{ user_home_dir }}/.ssh/id_rsa"

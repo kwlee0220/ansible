@@ -11,4 +11,4 @@ apt install sudo
 # 사용자 계정 생성 (kwlee)
 useradd -m -s /bin/bash -G sudo kwlee
 passwd kwlee
-su - kwlee
+su kwlee
