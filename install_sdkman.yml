@@ -47,7 +47,7 @@
         executable: /bin/bash
       environment:
         SDKMAN_DIR: "/home/{{ user_id }}/.sdkman"
-      when: sdkman_installed.stat.exists
+      when: not sdkman_installed.stat.exists
 
     - name: Install Gradle 8.9 using SDKMAN
       shell: |
@@ -56,4 +56,4 @@
         executable: /bin/bash
       environment:
         SDKMAN_DIR: "/home/{{ user_id }}/.sdkman"
-      when: sdkman_installed.stat.exists
+      when: not sdkman_installed.stat.exists

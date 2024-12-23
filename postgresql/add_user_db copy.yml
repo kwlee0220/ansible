@@ -25,7 +25,6 @@
         name: "{{ postgres_db }}"
         owner: "{{ postgres_user }}"
         state: present
-      when: postgres_db is defined
 
     - name: Grant privileges to user on database
       postgresql_privs:
@@ -33,4 +32,3 @@
         roles: "{{ postgres_user }}"
         type: "database"
         privs: "ALL"
-      when: postgres_db is defined

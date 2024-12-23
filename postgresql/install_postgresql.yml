@@ -5,6 +5,7 @@
   vars:
     pgdg_gpg_url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
     pgdg_repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+    postgres_version: "17"
 
     postgres_root_user: "postgres"
     postgres_root_password: "urc2004"
@@ -37,7 +38,7 @@
     - name: ensure PostgreSQL is listening on *
       become: true
       lineinfile:
-        dest: /etc/postgresql/17/main/postgresql.conf
+        dest: /etc/postgresql/{{ postgres_version }}/main/postgresql.conf
         regexp: '^#listen_addresses\s*='
         line: "listen_addresses = '*'"
         state: present
@@ -46,7 +47,7 @@
     - name: add a new configuration to "pg_hba.conf"
       become: true
       lineinfile:
-        dest: /etc/postgresql/17/main/pg_hba.conf
+        dest: /etc/postgresql/{{ postgres_version }}/main/pg_hba.conf
         regexp: '^host\s*all\s*all\s*127.0.0.1'
         line: "host    all             all             0.0.0.0/0               scram-sha-256"
       notify: restart postgresql
