@@ -7,6 +7,7 @@
 
   tasks:
     - name: Install dependent packages
+      become: true
       apt:
         name:
           - gnupg
@@ -14,16 +15,19 @@
           - apt-transport-https
           - lsb-release
           - wget
-        update_cache: true
+        # update_cache: true
         state: present
 
     - name: Run the PostgreSQL package setup script
-      shell: sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+      become: true
+      shell: /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
 
     - name: Install
+      become: true
       package: name=postgresql-server-dev-{{postgres_version}} state=latest update_cache=true
 
     - name: Add the TimescaleDB repository
+      become: true
       apt_repository:
         repo: deb https://packagecloud.io/timescale/timescaledb/ubuntu/ {{ ansible_distribution_release }} main
         state: present
@@ -32,13 +36,16 @@
         cache_valid_time: 3600
 
     - name: Install the TimescaleDB GPG key
+      become: true
       shell: |
         wget --quiet -O - https://packagecloud.io/timescale/timescaledb/gpgkey | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/timescaledb.gpg
     
     - name: Ensure apt is up to date
+      become: true
       apt: update_cache=yes
 
     - name: Install TimescaleDB
+      become: true
       package:
         name:
           - timescaledb-2-postgresql-{{postgres_version}}
@@ -47,13 +54,16 @@
         update_cache: yes
 
     - name: Tune your PostgreSQL instance for TimescaleDB
+      become: true
       shell: sudo timescaledb-tune --quiet --yes
 
     - name: Restart PostgreSQL
+      become: true
       service:
         name: postgresql
         state: restarted
         enabled: yes
 
     - name: Login to PostgreSQL
+      become: true
       shell: sudo -u postgres psql -c "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;"
