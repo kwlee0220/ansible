@@ -19,6 +19,9 @@
 - name: install vim
   include_role: name=vim
 
+- name: install Atuin
+  include_role: name=atuin
+
 - name: generate SSH key
   include_role: name=generate_ssh_key
 

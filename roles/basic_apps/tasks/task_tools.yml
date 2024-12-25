@@ -1,6 +1,5 @@
 
 - name: 주요 모듈들 설치
-  become: true
   package:
     name:
       - dos2unix
@@ -15,12 +14,25 @@
       - neofetch
       - cpufetch
       - net-tools
-      - autojump
       - ffmpeg
       - trash-cli
       - bat
       - fd-find
     state: latest
+  become: true
+
+- name: Install autojump & configure autojump
+  block:
+    - name: Install autojump
+      package: name=autojump state=latest
+      become: true
+
+    - name: Configure autojump
+      lineinfile:
+          path: ~/.bashrc
+          regexp: 'source /usr/share/autojump/autojump.sh'
+          line: "[[ -s /usr/share/autojump/autojump.sh ]] && source /usr/share/autojump/autojump.sh"
+          state: present
 
 - name: gdu 설치 과정
   become: true

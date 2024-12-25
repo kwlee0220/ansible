@@ -1,0 +1,31 @@
+---
+- name: Install required dependencies
+  apt:
+    name:
+      - curl
+      - wget
+    state: present
+
+- name: Download Atuin installation script
+  get_url:
+    url: https://raw.githubusercontent.com/ellie/atuin/main/install.sh
+    dest: /tmp/atuin-install.sh
+    mode: '0755'
+
+- name: Run Atuin installation script
+  shell: /tmp/atuin-install.sh
+  args:
+    executable: /bin/bash
+
+- name: Initialize Atuin for bash shell
+  lineinfile:
+    path: ~/.bashrc
+    line: "eval $(atuin init bash)"
+    state: present
+  become: false
+
+- name: Reload shell configuration
+  shell: source ~/.bashrc
+  args:
+    executable: /bin/bash
+  become: false
