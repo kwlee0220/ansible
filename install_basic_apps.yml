@@ -1,8 +1,8 @@
 ---
 - name: Install basic apps
   hosts: all
-  connection: local
-  serial: 1
+  # connection: local
+  # serial: 1
 
   # vars:
   #   user_id: "{{ ansible_user_id }}"

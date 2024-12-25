@@ -1,0 +1,7 @@
+[org/gnome/desktop/interface]
+color-scheme='prefer-light'
+font-hinting='slight'
+font-name='Ubuntu 12'
+gtk-theme='Yaru-dark'
+icon-theme='Yaru-dark'
+monospace-font-name='D2Coding 12'

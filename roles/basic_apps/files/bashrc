@@ -117,15 +117,13 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# Copied from Ansible from here
-
-export LANG=en_US.UTF-8
-export DISPLAY=:0.0
+# Copied from Ansible
 
 # the followings are for Ansible automation
 alias bat='/usr/bin/batcat'
 alias fd='/bin/fdfind'
 alias gdu='/usr/local/bin/gdu_linux_amd64'
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
 # Miniconda3
 if [ -f $HOME/miniconda3/etc/profile.d/conda.sh ]; then

@@ -5,8 +5,7 @@
 
   tasks:
     - name: Ensure apt is up to date
-      apt:
-        update_cache: yes
+      apt: update_cache=yes
 
     - name: Ensure that the Ubuntu Universe repository is enabled.
       apt:
@@ -22,17 +21,17 @@
         repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} universe"
         state: present
 
-    - name: Add ROS 2 GPG key
+    - name: Add ROS2 GPG key
       get_url:
         url: 'https://raw.githubusercontent.com/ros/rosdistro/master/ros.key'
         dest: /usr/share/keyrings/ros-archive-keyring.gpg
 
-    - name: Check ROS 2 APT repository file
+    - name: Check ROS2 APT repository file
       stat:
         path: /etc/apt/sources.list.d/ros2.list
       register: ros2_apt_repository
 
-    - name: Add ROS 2 APT repository
+    - name: Add ROS2 APT repository
       shell: |
         echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
       args:
@@ -40,7 +39,7 @@
       when: ros2_apt_repository.stat.exists == False
 
     - name: Upgrade apt packages
-      apt: upgrade=yes update_cache=yes
+      apt: update_cache=yes
 
     - name: Install ROS 2 Humble packages
       apt:
@@ -49,13 +48,13 @@
           - ros-dev-tools
         state: present
 
-    - name: Source ROS 2 setup in bashrc
+    - name: Source ROS2 setup in bashrc
       lineinfile:
         path: ~/.bashrc
         line: "source /opt/ros/humble/setup.bash"
         state: present
 
-    - name: Install ROS 2 Python dependencies
+    - name: Install ROS2 Python dependencies
       apt:
         name:
           - python3-colcon-common-extensions

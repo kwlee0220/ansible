@@ -1,0 +1,20 @@
+
+- name: Ensure required packages are installed
+  become: true
+  apt:
+    name:
+      - git
+      - curl
+    state: present
+
+- name: Clone fzf repository
+  git:
+    repo: https://github.com/junegunn/fzf.git
+    dest: "{{ user_home_dir }}/.fzf"
+    depth: 1
+
+- name: Run fzf installation script
+  shell: |
+    {{ user_home_dir }}/.fzf/install --all
+  args:
+    executable: /bin/bash

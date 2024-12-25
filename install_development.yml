@@ -6,8 +6,8 @@
     user_id: "{{ ansible_user_id }}"
     
   roles:
-    - role: tmux
     - role: python3
+    - role: tmux
     - role: vscode
       when: ansible_virtualization_type != 'wsl'
     - role: docker

@@ -1,8 +1,39 @@
 ---
-- name: install gui package
+- name: Install gui package
   hosts: all
-    
-  roles:
-    - role: tilix
-    - role: google-chrome
-    - role: xrdp
+
+  tasks:
+    - name: Install dconf-cli, dconf editor
+      become: true
+      package:
+        name:
+          - gnome-tweaks
+          - dbus-x11
+          - dconf-cli
+          - dconf-editor
+        update_cache: true
+        state: present
+        
+    - name: dconf 관련 모듈 설치
+      become: true
+      pip: name=psutil
+
+    - name: Adapt Ubuntu Desktop
+      include_role:
+        name: ubuntu_desktop
+
+    - name: Install gnome-terminal
+      include_role:
+        name: gnome-terminal
+
+    - name: Install tilix
+      include_role:
+        name: tilix
+
+    - name: Install google-chrome
+      include_role:
+        name: google-chrome
+
+    - name: Install xrdp
+      include_role:
+        name: xrdp

@@ -1,0 +1,11 @@
+---
+- name: install GNOME Terminal
+  become: true
+  package: name=gnome-terminal
+
+- name: Set dconf values
+  become: false
+  dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  with_items: "{{ gnome_terminal_confs }}"

@@ -1,13 +1,17 @@
 ---
 - name: update and upgrade apt
   become: true
-  apt: upgrade=yes update_cache=yes cache_valid_time=3600
+  apt: update_cache=yes
 
 - name: copy .bashrc
   include_tasks: tasks/task_bashrc.yml
 
 - name: install some terminal applications
   include_tasks: tasks/task_tools.yml
+
+- name: Install fzf application
+  include_role:
+    name: fzf
 
 - name: install D2Coding fonts
   include_role: name=font_d2coding
@@ -26,5 +30,9 @@
   shell: |
     locale-gen en_US en_US.UTF-8
     update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-- name: export LANG
-  shell: export LANG=en_US.UTF-8
+
+- name: insert 'LANG=en_US.UTF-8' to .bashrc
+  lineinfile:
+    path: "{{ user_home_dir }}/.bashrc"
+    line: "export LANG=en_US.UTF-8"
+    insertafter: '# Copied from Ansible'

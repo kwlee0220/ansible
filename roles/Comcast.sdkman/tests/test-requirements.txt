@@ -1,5 +1,0 @@
-ansible
-ansible-lint
-flake8
-molecule[docker]
-pytest-testinfra

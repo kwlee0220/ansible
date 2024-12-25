@@ -1,0 +1,34 @@
+
+- name: Install SDKMAN
+  shell: |
+    curl -s "https://get.sdkman.io" | bash
+  args:
+    executable: /bin/bash
+
+- name: Source SDKMAN in bashrc
+  lineinfile:
+    path: "{{ user_home_dir }}/.bashrc"
+    line: "source {{ user_home_dir }}/.sdkman/bin/sdkman-init.sh"
+    state: present
+
+- name: Refresh shell environment
+  shell: |
+    source {{ user_home_dir }}/.bashrc
+  args:
+    executable: /bin/bash
+
+- name: Install Java Temurin {{ java_version }} using SDKMAN
+  shell: |
+    source {{ user_home_dir }}/.sdkman/bin/sdkman-init.sh && sdk install java {{ java_version }}
+  args:
+    executable: /bin/bash
+  environment:
+    SDKMAN_DIR: "{{ user_home_dir }}/.sdkman"
+
+- name: Install Gradle {{ gradle_version}} using SDKMAN
+  shell: |
+    source {{ user_home_dir }}/.sdkman/bin/sdkman-init.sh && sdk install gradle {{ gradle_version }}
+  args:
+    executable: /bin/bash
+  environment:
+    SDKMAN_DIR: "{{ user_home_dir }}/.sdkman"

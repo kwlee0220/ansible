@@ -1,0 +1,20 @@
+---
+- name: install ubuntu-desktop and gnome
+  become: true
+  package:
+    name:
+      - ubuntu-desktop
+
+- name: Set dconf values
+  become: false
+  dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  with_items: "{{ desktop_confs }}"
+
+- name: copy tilix configuration
+  copy: src=files/desktop_interface.dconf dest={{ user_home_dir }}/desktop_interface.dconf
+- name: Set dconf values
+  shell: "dconf load / < {{ user_home_dir }}/desktop_interface.dconf"
+- name: Delete temp file
+  file: path="{{ user_home_dir }}/desktop_interface.dconf" state=absent
