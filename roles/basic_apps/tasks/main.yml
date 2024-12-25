@@ -16,6 +16,9 @@
 - name: install D2Coding fonts
   include_role: name=font_d2coding
 
+- name: Install hangul input source
+  include_role: name=hangul
+
 - name: install vim
   include_role: name=vim
 

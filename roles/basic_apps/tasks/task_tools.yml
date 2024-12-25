@@ -47,4 +47,4 @@
         src: "/tmp/gdu_linux_amd64.tgz"
         dest: "/usr/local/bin/"
         remote_src: yes
-  ignore_errors: yes
+  ignore_errors: true
