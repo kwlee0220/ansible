@@ -1,6 +1,6 @@
 ## 새 컴퓨터에 ubuntu가 설치된 상태에서 ansible로 원격 install하는 과정
-- 새 컴퓨터에서 apt를 update하고 upgrade 시킨다. (Ansible node)
-    - ```sudo apt update && sudo apt upgrade -y```
+- 새 컴퓨터에서 apt를 update하고 upgrade 시키고 reboot 시킨다. (Ansible node)
+    - ```sudo apt update && sudo apt upgrade -y && sudo shutdown -r now```
 - 새 컴퓨터에 ssh-server를 설치해서 원격에서 ssh를 통해 접속되게 하도록 한다.
     - ```sudo apt install openssh-server -y```
 - 새 컴퓨터에서 네트워크가 가능한지 확인하고, IP 주소를 확인한다.
@@ -17,8 +17,6 @@
     - ```ansible-playbook -i hosts install_basic_apps.yml -K```
 - 설치가 완료되면 ssh로 ansible node (새 컴퓨터)에 접속하여 주요한 app들이 설치되었는지 확인한다.
     - fzf, gdu, htop, neofetch 등
-- 설치 확인 후 안전하여 reboot 시킨다.
-    - ```sudo shutdown -r now```
 - Ansible control에서 ansible-playbook을 이용하여 개발에 필요한 app들을 설치한다.
     - ```ansible-playbook -i hosts install_development.yml -K```
 - 설치가 완료되면 ssh로 ansible node (새 컴퓨터)에 접속하여 주요한 app들이 설치되었는지 확인한다.
