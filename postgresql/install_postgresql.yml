@@ -5,64 +5,82 @@
   vars:
     pgdg_gpg_url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
     pgdg_repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
-    postgres_version: "17"
 
+    postgres_version: 16
     postgres_root_user: "postgres"
-    postgres_root_password: "urc2004"
+    postgres_root_password: "postgres"
 
   tasks:
-    - name: add PostgreSQL GPG apt key
-      become: true
+    - name: Add PostgreSQL signing key
       apt_key:
         url: "{{ pgdg_gpg_url }}"
         state: present
-
-    - name: add PostgreSQL Repository
       become: true
+
+    - name: Add PostgreSQL APT repository
       apt_repository:
         repo: "{{ pgdg_repo }}"
         state: present
+        filename: "pgdg.list"
+        update_cache: yes
+      become: true
 
     - name: install PostgreSQL
-      become: true
       package:
         name:
-          - postgresql
-          - postgresql-client
-          - postgresql-contrib
+          - "postgresql-{{ postgres_version }}"
+          - "postgresql-client-{{ postgres_version }}"
+          - "postgresql-contrib-{{ postgres_version }}"
+          - "postgresql-{{ postgres_version }}-postgis-3"
+          - "postgresql-{{ postgres_version }}-postgis-3-scripts"
           - libpq-dev
           - python3-psycopg2
         update_cache: true
         state: present
+      become: true
 
     - name: ensure PostgreSQL is listening on *
-      become: true
       lineinfile:
         dest: /etc/postgresql/{{ postgres_version }}/main/postgresql.conf
         regexp: '^#listen_addresses\s*='
         line: "listen_addresses = '*'"
         state: present
-      notify: restart postgresql
+      become: true
 
     - name: add a new configuration to "pg_hba.conf"
-      become: true
       lineinfile:
         dest: /etc/postgresql/{{ postgres_version }}/main/pg_hba.conf
         regexp: '^host\s*all\s*all\s*127.0.0.1'
         line: "host    all             all             0.0.0.0/0               scram-sha-256"
-      notify: restart postgresql
+      become: true
 
     - name: create a superuser PostgreSQL database user
-      become: true
-      become_user: postgres
       community.general.postgresql_user:
         name: "{{ postgres_root_user }}"
         password: "{{ postgres_root_password }}"
         role_attr_flags: CREATEDB,SUPERUSER,CREATEROLE
         encrypted: yes
         state: present
-        
-  handlers:
-    - name: restart postgresql
       become: true
-      service: name=postgresql state=restarted
+      become_user: postgres
+
+    - name: Ensure PostgreSQL service is started
+      service:
+        name: postgresql
+        state: restarted
+        enabled: yes
+      become: true
+        
+    - name: Create a new PostgreSQL database with PostGIS extension
+      shell: |
+        psql -c "CREATE DATABASE gisdb;"
+        psql -d gisdb -c "CREATE EXTENSION postgis;"
+      args:
+        executable: /bin/bash
+      become: true
+      become_user: postgres
+
+  # handlers:
+  #   - name: restart postgresql
+  #     service: name=postgresql state=restarted
+  #     become: true
