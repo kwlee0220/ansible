@@ -119,13 +119,17 @@ fi
 
 # Copied from Ansible
 
-# the followings are for Ansible automation
+# The followings are aliases defined during Ansible automation
 alias bat='/usr/bin/batcat'
 alias fd='/bin/fdfind'
 alias gdu='/usr/local/bin/gdu_linux_amd64'
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+[[ -s /usr/share/autojump/autojump.sh ]] && source /usr/share/autojump/autojump.sh
 
 # Miniconda3
 if [ -f $HOME/miniconda3/etc/profile.d/conda.sh ]; then
   . $HOME/miniconda3/etc/profile.d/conda.sh
 fi
+
+# ROS2
+

@@ -8,10 +8,10 @@
 
 - name: Check if SDKMAN is already installed
   stat:
-    path: "/home/{{ user_id }}/.sdkman/bin/sdkman-init.sh"
+    path: "{{ user_home_dir }}/.sdkman/bin/sdkman-init.sh"
   register: sdkman_installed
 
-- name: Miniconda3 설치
+- name: Instance SDKMAN if not installed
   include_tasks: task_install_sdkman.yml
   when: not sdkman_installed.stat.exists
 

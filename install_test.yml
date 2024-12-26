@@ -1,0 +1,22 @@
+---
+- name: install ROS2 package
+  hosts: all
+
+  vars:
+    user_home_dir: "{{ ansible_env.HOME }}"
+    ROS_DOMAIN_ID: "31"
+
+  tasks:
+    - name: Source SDKMAN in bashrc
+      lineinfile:
+        path: "{{ user_home_dir }}/.bashrc"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        insertafter: "# ROS2"
+        state: present
+      with_items:
+        - regexp: "^export ROS2_DOMAIN_ID"
+          line: "export ROS2_DOMAIN_ID={{ ROS_DOMAIN_ID }}"
+        - regexp: "^source /opt/ros/humble/setup.bash"
+          line: "source /opt/ros/humble/setup.bash"
+      become: false

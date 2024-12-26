@@ -1,15 +1,2 @@
 ---
 user_home_dir: "{{ ansible_env.HOME }}"
-
-apply_dconf: true
-
-desktop_key_prefix: "/org/gnome/shell/extensions/dash-to-dock"
-desktop_confs:
-  - { key: "{{ desktop_key_prefix }}/click-action", value: "'minimize'" }
-  - { key: "{{ desktop_key_prefix }}/dash-max-icon-size", value: "48" }
-  - { key: "{{ desktop_key_prefix }}/dock-position", value: "'LEFT'" }
-  - { key: "{{ desktop_key_prefix }}/extend-height", value: "true" }
-  - { key: "{{ desktop_key_prefix }}/show-trash", value: "false" }
-
-  - { key: "/org/gnome/shell/favorite-apps",
-      value: "['google-chrome.desktop', 'code.desktop', 'com.gexperts.Tilix.desktop', 'org.gnome.Terminal.desktop', 'org.gnome.Nautilus.desktop', 'snap-store_ubuntu-software.desktop', 'gnome-control-center.desktop']" }

@@ -26,7 +26,6 @@
     - name: Install autojump
       package: name=autojump state=latest
       become: true
-
     - name: Configure autojump
       lineinfile:
           path: ~/.bashrc
@@ -35,16 +34,24 @@
           state: present
 
 - name: gdu 설치 과정
-  become: true
   block:
     - name: Download gdu binary
       get_url:
         url: "https://github.com/dundee/gdu/releases/latest/download/gdu_linux_amd64.tgz"
         dest: "/tmp/gdu_linux_amd64.tgz"
-
     - name: Extract gdu binary
       unarchive:
         src: "/tmp/gdu_linux_amd64.tgz"
         dest: "/usr/local/bin/"
         remote_src: yes
-  ignore_errors: true
+  ignore_errors: yes
+  become: true
+
+- name: Install fzf application
+  include_role: name=fzf
+
+# - name: install Atuin
+#   include_role: name=atuin
+
+- name: install vim
+  include_role: name=vim

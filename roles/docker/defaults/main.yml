@@ -6,4 +6,6 @@ deb_architecture: {
 }
 arch: "{{ [ansible_architecture] | map('extract', deb_architecture) | first }}"
 docker_repo: "deb [arch={{ arch }}] https://download.docker.com/{{ ansible_system | lower }}/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+
 user_id: "{{ ansible_user_id }}"
+user_home_dir: "{{ ansible_env.HOME }}"

@@ -9,36 +9,30 @@
 - name: install some terminal applications
   include_tasks: tasks/task_tools.yml
 
-- name: Install fzf application
-  include_role:
-    name: fzf
+- name: Install locales and configure UTF-8
+  block:
+  - name: install locale
+    become: true
+    apt: name=locales state=present
+  - name: set UTF-8 locale
+    become: true
+    shell: |
+      locale-gen en_US en_US.UTF-8
+      update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+  - name: insert 'LANG=en_US.UTF-8' to .bashrc
+    lineinfile:
+      path: "{{ user_home_dir }}/.bashrc"
+      line: "export LANG=en_US.UTF-8"
+      insertafter: '# Copied from Ansible'
 
-- name: install D2Coding fonts
-  include_role: name=font_d2coding
-
-- name: Install hangul input source
-  include_role: name=hangul
-
-- name: install vim
-  include_role: name=vim
-
-- name: install Atuin
-  include_role: name=atuin
+- name: Install Korean fonts & input method
+  block:
+    - name: install Nanum fonts
+      include_role: name=fonts-nanum
+    - name: install D2Coding fonts
+      include_role: name=fonts-d2coding
+    - name: Configure Korean input method
+      include_role: name=hangul
 
 - name: generate SSH key
   include_role: name=generate_ssh_key
-
-- name: install locale
-  become: true
-  apt: name=locales state=present update_cache=yes
-- name: set UTF-8 locale
-  become: true
-  shell: |
-    locale-gen en_US en_US.UTF-8
-    update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-
-- name: insert 'LANG=en_US.UTF-8' to .bashrc
-  lineinfile:
-    path: "{{ user_home_dir }}/.bashrc"
-    line: "export LANG=en_US.UTF-8"
-    insertafter: '# Copied from Ansible'

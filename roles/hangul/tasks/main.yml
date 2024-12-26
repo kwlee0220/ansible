@@ -1,11 +1,10 @@
 ---
 - name: Install ibus-hangul and required packages
-  apt:
+  package:
     name:
       - ibus
       - ibus-hangul
       - language-pack-ko
-      - fonts-nanum
     state: present
   become: true
 
@@ -14,6 +13,7 @@
     ibus-daemon -drx
   args:
     executable: /bin/bash
+  become: false
 
 - name: Set Korean locale
   lineinfile:
@@ -28,17 +28,11 @@
     im-config -n ibus
   args:
     executable: /bin/bash
+  become: false
 
 - name: Add Korean input source for ibus
   shell: |
     gsettings set org.gnome.desktop.input-sources sources "[('ibus', 'hangul')]"
   args:
     executable: /bin/bash
-
-- name: Set fonts to Nanum
-  shell: |
-    gsettings set org.gnome.desktop.interface font-name "Nanum Gothic 11"
-    gsettings set org.gnome.desktop.interface document-font-name "Nanum Gothic 11"
-    gsettings set org.gnome.desktop.wm.preferences titlebar-font "Nanum Gothic Bold 11"
-  args:
-    executable: /bin/bash
+  become: false

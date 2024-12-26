@@ -9,9 +9,6 @@
       - gnupg
       - software-properties-common
       - lsb-release
-      # - python3-pip
-      # - virtualenv
-      # - python3-setuptools
     state: latest
     update_cache: true
 
@@ -41,3 +38,25 @@
 - name: add user to docker
   become: true
   user: name="{{ user_id }}" groups=docker append=true
+
+- name: Install LazyDocker and set alias for it
+  block:
+    - name: Check if lazydocker is installed
+      stat:
+        path: "{{ user_home_dir }}/.local/bin/lazydocker"
+      register: lazydocker_check
+      become: false
+
+    - name: Install LazyDocker if not installed
+      shell: "curl -s https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash"
+      when: lazydocker_check.stat.exists == false
+      become: false
+
+    - name: Set alias for LazyDocker
+      lineinfile:
+        dest: ~/.bashrc
+        regexp: '^# The followings are aliases defined during Ansible automation'
+        line: "alias lzd='layzydocker'"
+        state: present
+      when: lazydocker_check.stat.exists == false
+      become: false

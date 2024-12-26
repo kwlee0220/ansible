@@ -1,20 +1,27 @@
 ---
-- name: install ubuntu-desktop and gnome
-  become: true
+- name: Install ubuntu-desktop and gnome
   package:
     name:
       - ubuntu-desktop
+  become: true
 
-- name: Set dconf values
+- name: Set desktop interface settings
+  shell: |
+    gsettings set org.gnome.desktop.interface font-name "Nanum Gothic 11"
+    gsettings set org.gnome.desktop.interface document-font-name "Nanum Gothic 11"
+    gsettings set org.gnome.desktop.interface monospace-font-name "D2Coding 12"
+    gsettings set org.gnome.desktop.interface color-scheme "prefer-light"
+    gsettings set org.gnome.desktop.interface font-hinting "slight"
+    gsettings set org.gnome.desktop.interface gtk-theme "Yaru-dark"
+    gsettings set org.gnome.desktop.interface icon-theme "Yaru-dark"
+    gsettings set org.gnome.desktop.wm.preferences titlebar-font "Nanum Gothic Bold 11"
+
+    gsettings set org.gnome.shell.extensions.dash-to-dock click-action "'minimize'"
+    gsettings set org.gnome.shell.extensions.dash-to-dock dash-max-icon-size "48"
+    gsettings set org.gnome.shell.extensions.dash-to-dock dock-position "'LEFT'"
+    gsettings set org.gnome.shell.extensions.dash-to-dock show-trash "false"
+
+    gsettings set org.gnome.shell favorite-apps "['google-chrome.desktop', 'code.desktop', 'com.gexperts.Tilix.desktop', 'org.gnome.Terminal.desktop', 'org.gnome.Nautilus.desktop', 'snap-store_ubuntu-software.desktop', 'gnome-control-center.desktop']"
+  args:
+    executable: /bin/bash
   become: false
-  dconf:
-    key: "{{ item.key }}"
-    value: "{{ item.value }}"
-  with_items: "{{ desktop_confs }}"
-
-- name: copy tilix configuration
-  copy: src=files/desktop_interface.dconf dest={{ user_home_dir }}/desktop_interface.dconf
-- name: Set dconf values
-  shell: "dconf load / < {{ user_home_dir }}/desktop_interface.dconf"
-- name: Delete temp file
-  file: path="{{ user_home_dir }}/desktop_interface.dconf" state=absent

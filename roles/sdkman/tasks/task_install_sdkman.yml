@@ -5,11 +5,17 @@
   args:
     executable: /bin/bash
 
-- name: Source SDKMAN in bashrc
+- name: Configure SDKMAN in bashrc
   lineinfile:
     path: "{{ user_home_dir }}/.bashrc"
-    line: "source {{ user_home_dir }}/.sdkman/bin/sdkman-init.sh"
+    line: "{{ item }}"
+    insertafter: "# SDKMAN"
     state: present
+  with_items:
+    - "export SDKMAN_OFFLINE_MODE=false"
+    - '[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"'
+    - "export SDKMAN_DIR=$HOME/.sdkman"
+  become: false
 
 - name: Refresh shell environment
   shell: |
