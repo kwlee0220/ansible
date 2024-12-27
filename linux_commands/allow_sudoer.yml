@@ -1,0 +1,21 @@
+---
+- name: Assign sudoer priviledge
+  hosts: all
+
+  vars_prompt:
+    - name: user_id
+      prompt: "User id for sudo"
+      private: no
+
+  tasks:
+    - name: Check sudoer file
+      stat:
+        path: "/etc/sudoers.d/{{ user_id }}"
+      register: sudoer_file
+
+    - name: add the user to the sudoers
+      become: true
+      copy:
+        dest: "/etc/sudoers.d/{{ user_id }}"
+        content: "{{ user_id }}    ALL=(ALL)  NOPASSWD: ALL\n"
+      when: not sudoer_file.stat.exists

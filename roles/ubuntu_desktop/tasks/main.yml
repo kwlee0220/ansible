@@ -25,3 +25,7 @@
   args:
     executable: /bin/bash
   become: false
+
+- name: Install Nautilus-share (Nautilus에서 Samba를 이용한 공유를 위한 플러그인)
+  package: name=nautilus-share
+  become: true

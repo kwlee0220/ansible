@@ -32,3 +32,11 @@
 ```
 setup_ansible.sh
 ```
+### 특정 role만 실행하기
+```
+ansible-role <role>
+```
+### 특정 task만 실행하기
+```
+ansible-task <task-yml-file>
+```

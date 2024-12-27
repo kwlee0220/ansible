@@ -1,0 +1,49 @@
+---
+- name: copy jdk installer splits to temporary directory
+  copy: src=files/{{item}} dest={{ tmp_dir }}/{{ item }}
+  with_items:
+    - "jdk-8u202_aa"
+    - "jdk-8u202_ab"
+    - "jdk-8u202_ac"
+
+- name: merge JDK installer splits into the JDK installer file.
+  shell: "cat {{ tmp_dir }}/jdk-8u202_?? > {{ jdk8_installer_path }}"
+  args:
+    creates: "{{ jdk8_installer_path }}"
+
+- name: unzip the JDK installer file.
+  become: true
+  unarchive:
+    src: "{{ jdk8_installer_path }}"
+    dest: /opt
+    remote_src: true
+    creates: "{{ jdk8_home_dir }}"
+
+- name: add bin directory to path
+  become: true
+  lineinfile: >
+    dest=/etc/environment 
+    state=present 
+    backrefs=yes
+    regexp='PATH=(["]*)((?!.*?{{ jdk8_home_dir }}/bin).*?)(["]*)$'
+    line="PATH=\1\2:{{ jdk8_home_dir }}/bin\3"
+
+- name: "add an environment variable, 'JAVA_HOME' into '/etc/environment'"
+  become: true
+  lineinfile:
+    path: /etc/environment
+    line: "JAVA_HOME={{ jdk8_home_dir }}"
+  
+- name: remove the JDK installer
+  file: path="{{ jdk8_installer_path }}" state=absent
+- name: remove the JDK installer splits
+  file: path="{{ item }}" state=absent
+  with_fileglob:
+    - "{{ tmp_dir }}/jdk-8u202_*"
+
+- name: alternative 등록
+  become: true
+  community.general.alternatives:
+    name: java 
+    path: "{{ jdk8_home_dir }}/bin/java"
+    link: /usr/bin/java

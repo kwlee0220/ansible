@@ -1,0 +1,58 @@
+---
+- name: update broker ID
+  become: true
+  become_user: kafka
+  replace:
+    path: "{{ kafka_home_dir }}/config/server.properties"
+    regexp: 'broker.id=0'
+    replace: 'broker.id={{ id_seq }}'
+
+- name: update listeners
+  become: true
+  become_user: kafka
+  replace:
+    path: "{{ kafka_home_dir }}/config/server.properties"
+    regexp: '#listeners=PLAINTEXT://:9092'
+    replace: 'listeners=PLAINTEXT://:9092'
+
+- name: update advertised listeners
+  become: true
+  become_user: kafka
+  replace:
+    path: "{{ kafka_home_dir }}/config/server.properties"
+    regexp: '#advertised.+'
+    replace: "advertised.listeners=PLAINTEXT://{{ ansible_default_ipv4.address }}:9092"
+
+- name: update zookeeper servers in kafka configuration
+  become: true
+  become_user: kafka
+  replace:
+    path: "{{ kafka_home_dir }}/config/server.properties"
+    regexp: 'zookeeper.connect=.+'
+    replace: "zookeeper.connect={{ zookeepers }}"
+
+- name: update zookeeper synclimit in kafka configuration
+  become: true
+  become_user: kafka
+  blockinfile:
+    path: "{{ kafka_home_dir }}/config/zookeeper.properties"
+    marker: ""
+    block: |
+      initLimit=10
+      syncLimit=5
+
+- name: update zookeeper in kafka configuration
+  become: true
+  become_user: kafka
+  blockinfile:
+    path: "{{ kafka_home_dir }}/config/zookeeper.properties"
+    marker: ""
+    block: |
+      server.{{item.0 + 1}}={{item.1}}:2888:3888
+  with_indexed_items: "{{ hosts_in_group }}"
+
+- name: create zookeeper MyId file
+  become: true
+  become_user: kafka
+  shell:
+    mkdir -p /tmp/zookeeper && echo {{ id_seq }} > /tmp/zookeeper/myid

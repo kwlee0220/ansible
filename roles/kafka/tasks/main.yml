@@ -1,0 +1,31 @@
+---
+- name: Kafka 설치 여부 확인
+  stat: path="{{ installation_dir }}/kafka"
+  register: kafka_installed
+- name: Kafka 설치
+  include_tasks: task_install_kafka.yml
+  when: not kafka_installed.stat.exists
+
+- name: Kafka 설정 완료 여부 확인
+  stat: path=/tmp/zookeeper/myid
+  register: kafka_configured
+- name: Kafka 설정
+  include_tasks: task_configure_kafka.yml
+  when: not kafka_configured.stat.exists
+
+# - name: Kafka service 등록 여부 확인
+#   stat: path=/etc/systemd/system/kafka.service
+#   register: kafka_serviced
+- name: Kafka 서비스 등록
+  include_tasks: task_register_kafka_service.yml
+  # when: not kafka_serviced.stat.exists
+
+- name: start services
+  become: true
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  with_items:
+    - "kafka"
+    - "zookeeper"

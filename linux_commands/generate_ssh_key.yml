@@ -1,0 +1,18 @@
+---
+- name: Generate SSH key
+  hosts: localhost
+  connection: local
+
+  vars:
+    ssh_dir: "{{ ansible_env.HOME }}/.ssh"
+
+  tasks:
+    - name: ensure .ssh directory
+      file: path="{{ ssh_dir }}" state=directory
+
+    - name: create SSH key
+      command: "ssh-keygen -t rsa -f {{ ssh_dir }}/id_rsa -N '' -q"
+      args:
+        creates: "{{ ssh_dir }}/id_rsa"
+
+  

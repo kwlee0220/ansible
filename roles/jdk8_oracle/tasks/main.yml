@@ -1,0 +1,8 @@
+---
+# - name: check that Oracle JDK has been installed already
+#   stat: path="{{ jdk8_home_dir }}"
+#   register: jdk_installed
+
+- name: Oracle JDK 설치
+  include_tasks: task_jdk8_oracle.yml
+  # when: not jdk_installed.stat.exists

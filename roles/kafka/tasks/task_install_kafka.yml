@@ -1,0 +1,35 @@
+---
+- name: create a group for Kafka
+  become: True
+  group: name=kafka state=present
+
+- name: create a user for Kafka
+  become: True
+  user: name=kafka state=present group=kafka create_home=false
+
+- name: download the kafka gzip file and unarchive it.
+  become: True
+  unarchive:
+    src: "{{ kafka_installer_url }}"
+    dest: "{{ installation_dir }}"
+    creates: "{{ installation_dir }}/{{ kafka_dir_name }}"
+    owner: kafka
+    group: kafka
+    mode: 0755
+    remote_src: true
+
+- name: create a symbolic link to the installed directory
+  become: True
+  file:
+    src: "{{ installation_dir }}/{{ kafka_dir_name }}"
+    dest: "{{ kafka_home_dir }}"
+    owner: kafka
+    group: kafka
+    state: link
+
+- name: update the Java heap size for Kafka
+  become_user: kafka
+  replace:
+    path: "{{ kafka_home_dir }}/bin/kafka-server-start.sh"
+    regexp: 'export KAFKA_HEAP_OPTS=(".+")'
+    replace: 'export KAFKA_HEAP_OPTS="-Xmx{{ heap_size }} -Xms{{ heap_size }}"'
