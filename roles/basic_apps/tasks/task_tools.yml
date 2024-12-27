@@ -44,7 +44,7 @@
         src: "/tmp/gdu_linux_amd64.tgz"
         dest: "/usr/local/bin/"
         remote_src: yes
-  ignore_errors: yes
+  ignore_errors: true
   become: true
 
 - name: Install fzf application
@@ -55,3 +55,14 @@
 
 - name: install vim
   include_role: name=vim
+  
+- name: Install jless
+  block:
+    - apt_repository: repo='ppa:ansible/ansible' state=present
+    - package: name=jless state=latest
+  become: true
+
+- name: Install difftastic
+  community.general.snap:
+    name: difftastic
+    state: latest
