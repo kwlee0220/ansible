@@ -28,12 +28,13 @@
       become: true
     - name: Configure autojump
       lineinfile:
-          path: ~/.bashrc
+          path: "{{ user_home_dir }}/.bashrc"
           regexp: 'source /usr/share/autojump/autojump.sh'
           line: "[[ -s /usr/share/autojump/autojump.sh ]] && source /usr/share/autojump/autojump.sh"
           state: present
+    - command: "dos2unix {{ user_home_dir }}/.bashrc"
 
-- name: gdu 설치 과정
+- name: Install gdu application
   block:
     - name: Download gdu binary
       get_url:
@@ -53,16 +54,19 @@
 # - name: install Atuin
 #   include_role: name=atuin
 
-- name: install vim
+- name: Install vim
   include_role: name=vim
-  
+
 - name: Install jless
   block:
-    - apt_repository: repo='ppa:ansible/ansible' state=present
-    - package: name=jless state=latest
+    - name: Add jless repository
+      shell: echo '\n' | add-apt-repository ppa:gslin/jless
+    - name: Install jless
+      apt: name=jless state=latest update_cache=yes
   become: true
 
 - name: Install difftastic
   community.general.snap:
     name: difftastic
-    state: latest
+    state: present
+  become: true

@@ -5,16 +5,24 @@
   args:
     executable: /bin/bash
 
-- name: Configure SDKMAN in bashrc
-  lineinfile:
-    path: "{{ user_home_dir }}/.bashrc"
-    line: "{{ item }}"
-    insertafter: "# SDKMAN"
-    state: present
-  with_items:
-    - "export SDKMAN_OFFLINE_MODE=false"
-    - '[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"'
-    - "export SDKMAN_DIR=$HOME/.sdkman"
+- name: Configure SDKMAN configuration
+  block:
+    - name: Remove the previous SDKMAN configuration
+      blockinfile:
+        path: "{{ user_home_dir }}/.bashrc"
+        append_newline: yes
+        marker: "# ANSIBLE: {mark}"
+        state: absent
+    - name: Configure SDKMAN in bashrc
+      blockinfile:
+        path: "{{ user_home_dir }}/.bashrc"
+        prepend_newline: yes
+        append_newline: yes
+        marker: "# ANSIBLE: {mark}"
+        block: |
+          export SDKMAN_OFFLINE_MODE=false
+          [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+          export SDKMAN_DIR=$HOME/.sdkman
   become: false
 
 - name: Refresh shell environment
