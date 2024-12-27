@@ -40,3 +40,22 @@ ansible-role <role>
 ```
 ansible-task <task-yml-file>
 ```
+
+## Samba를 통해 디렉토리 공유하기
+#### 1. 디렉토리를 공개할 호스트에서 samba를 설치한다.
+```
+ansible-playbook -i hosts samba/install_samba.yml -K
+```
+#### 2. 해당 호스트에 Samba client를 생성한다. (필요한 경우만)
+```
+ansible-playbook -i hosts samba/add_samba_user.yml -K
+```
+이때 samba client는 해당 linux 계정의 사용자 계정과 관계가 전혀 없고, 원격에서 samba를 통해 접속할 때만 사용하는 client이다.
+
+#### 3. 해당 호스트의 특정 디렉토리를 공유로 설정한다.
+```
+ansible-playbook -i hosts samba/add_samba_share.yml -K
+```
+- 'Share name': Publish할 디렉토리에 부여할 식별자.
+- 'Path to the share directory': 공개할 디렉토리 경로명.
+- 'Samba client user id': 공개된 디렉토리에 접속할 samba client id.

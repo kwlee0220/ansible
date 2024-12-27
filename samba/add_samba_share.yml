@@ -5,10 +5,13 @@
   vars_prompt:
     - name: share_name
       prompt: "Share name"
-    - name: client_id
-      prompt: "Samba client user id"
+      private: no
     - name: share_path
       prompt: "Path to the share directory"
+      private: no
+    - name: client_id
+      prompt: "Samba client user id"
+      private: no
 
   tasks:
     - name: create an user
@@ -16,6 +19,7 @@
         path: /etc/samba/smb.conf
         append_newline: yes
         prepend_newline: yes
+        marker: "# {mark} ANSIBLE MANAGED BLOCK {{ share_name }}"
         block: |
           [{{ share_name }}]
           path = {{ share_path }}
@@ -26,4 +30,10 @@
           browseable = yes
           create mask = 0755
           directory mask = 0755
+      become: true
+      notify: restart samba
+
+  handlers:
+    - name: restart samba
+      service: name=smbd state=restarted
       become: true

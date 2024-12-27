@@ -1,0 +1,21 @@
+---
+- name: Add a samba client
+  hosts: all
+
+  vars_prompt:
+    - name: client_id
+      prompt: "Samba client user id"
+      private: no
+    - name: client_passwd
+      prompt: "Samba client password"
+
+  tasks:
+    - name: create a samba user
+      command: "echo '{{ client_passwd }}\n{{ client_passwd }}' | smbpasswd -s -a {{ client_id }}"
+      notify: restart samba
+      become: true
+
+  handlers:
+    - name: restart samba
+      service: name=smbd state=restarted
+      become: true
