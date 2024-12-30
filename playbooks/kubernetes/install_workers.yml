@@ -1,0 +1,13 @@
+---
+- name: Install Kubernetes Worker nodes
+  hosts: k8s_workers
+  
+  vars:
+    set_hostname_required: true
+
+  roles:
+    - role: set-hostname
+      when: set_hostname_required
+    - role: k8s_node
+
+- import_playbook: join_workers.yml

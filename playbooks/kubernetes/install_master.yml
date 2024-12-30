@@ -1,0 +1,63 @@
+---
+- name: Install Kubernetes Control Plane
+  hosts: k8s_master
+  
+  vars:
+    apiserver_address: "{{ ansible_host }}"
+    container_runtime_endpoints:
+      containerd: unix:///run/containerd/containerd.sock
+      CRI-O: unix:///run/containerd/containerd.sock
+      docker-engine: unix:///run/containerd/containerd.sock
+    container_runtime_endpoint: "{{ container_runtime_endpoints['containerd'] }}"
+
+    install_ingress: false
+    ingress_resource: https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
+
+    k8s_users:
+      - root
+      - kwlee
+
+  roles:
+    - role: set-hostname
+      when: set_hostname_required
+    - role: k8s_node
+
+  tasks:
+    - name: Check if the control-plane node is already initialized
+      become: true
+      stat: path=/etc/kubernetes/admin.conf
+      register: kubeadm_init
+
+    - name: initialize control-plane node
+      become: true
+      command: >
+        kubeadm init
+        --pod-network-cidr=10.244.0.0/16 
+        --apiserver-advertise-address={{ apiserver_address }} 
+        --cri-socket={{ container_runtime_endpoint }}
+      when: kubeadm_init.stat.exists == false
+
+    - name: install the Flannel Pod network add-on
+      become: true
+      shell: |
+        export KUBECONFIG=/etc/kubernetes/admin.conf
+        kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+
+    - name: Install Ingress Control
+      become: true
+      command: "kubectl apply -f {{ ingress_resource }}"
+      when: install_ingress is defined and install_ingress
+
+    - name: Create Kubernetes user account
+      include_role:
+        name: k8s_user
+      vars:
+        k8s_user: "{{ item }}"
+      with_items: "{{ k8s_users }}"
+
+- import_playbook: download_kube_config.yml
+  vars:
+    dest_dir: "~/.kube"
+- import_playbook: download_kube_config.yml
+  vars:
+    dest_dir: "/mnt/c/Users/kwlee/.kube"

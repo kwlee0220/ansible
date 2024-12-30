@@ -9,3 +9,12 @@
     key: "{{ item.key }}"
     value: "{{ item.value }}"
   with_items: "{{ gnome_terminal_confs }}"
+
+- name: Set gnome-terminal alias for WSL2
+  lineinfile:
+    path: "{{ user_home_dir }}/.bashrc"
+    regexp: '^alias gnome-terminal='
+    line: 'alias gnome-terminal="dbus-launch /usr/bin/gnome-terminal"'
+    state: present
+  become: false
+  when: ansible_virtualization_type == 'wsl'

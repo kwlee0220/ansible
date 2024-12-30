@@ -1,0 +1,14 @@
+---
+- name: install ROS2 package
+  hosts: all
+
+  vars_prompt:
+    - name: ros2_domain_id
+      prompt: "DOMAIN ID for ROS2"
+      default: 31
+      private: no
+
+  roles:
+    - role: ros2
+      vars:
+        ros2_domain_id: "{{ ros2_domain_id }}"

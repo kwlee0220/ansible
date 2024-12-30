@@ -1,0 +1,11 @@
+---
+- name: NTP 설치
+  become: true
+  package: name=ntp
+
+- name: 설정 파일 복사
+  become: true
+  copy:
+    src: files/ntp_conf
+    dest: /etc/ntp.conf
+  notify: start ntp

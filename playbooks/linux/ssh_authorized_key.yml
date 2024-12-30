@@ -1,0 +1,29 @@
+---
+- name: Authenticate this to the target hosts
+  hosts: all
+
+  vars:
+    auth_key_file: "{{ ansible_env.HOME }}/.ssh/id_rsa.pub"
+    public_key: "{{ lookup('file', auth_key_file) }}"
+
+  vars_prompt:
+    - name: ansible_password
+      prompt: "SSH password"
+
+  pre_tasks:
+    - name: sshpass 설치
+      connection: local
+      become: true
+      package: name=sshpass
+
+  # roles:
+  #   - role: generate_ssh_key
+
+  tasks:
+    - name: 생성된 public key를 ansible node들에게 배포한다.
+      authorized_key:
+        user: "{{ ansible_user_id }}"
+        key: "{{ public_key }}"
+        state: present
+
+  

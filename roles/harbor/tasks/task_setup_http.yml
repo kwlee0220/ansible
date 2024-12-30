@@ -1,0 +1,40 @@
+---
+- name: 설정 파일 내 certificate 파일 경로 수정
+  lineinfile:
+    dest: "{{ harbor_dir }}/harbor.yml"
+    regexp: '^https:'
+    line: "# https:"
+    state: present
+
+- name: 설정 파일 내 certificate 파일 경로 수정
+  lineinfile:
+    dest: "{{ harbor_dir }}/harbor.yml"
+    regexp: '^  port: 443'
+    line: "  # port: 443"
+    state: present
+
+- name: 설정 파일 내 certificate 파일 경로 수정
+  lineinfile:
+    dest: "{{ harbor_dir }}/harbor.yml"
+    regexp: '^  certificate: '
+    line: "  # certificate:"
+    state: present
+
+- name: 설정 파일 내 key 파일 경로 수정
+  lineinfile:
+    dest: "{{ harbor_dir }}/harbor.yml"
+    regexp: '^  private_key: '
+    line: "  # private_key:"
+    state: present
+
+# - name: Docker에서 insecure registry 접근 허용을 위한 설정 파일 수정
+#   template:
+#     src: files/docker_daemon_json
+#     dest: /etc/docker/daemon.json
+
+# - name: restart docker engine
+#   systemd:
+#     name: docker
+#     state: restarted
+#     enabled: true
+#     daemon_reload: true

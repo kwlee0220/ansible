@@ -1,38 +1,36 @@
 ---
-- name: Install ibus-hangul and required packages
+
+- name: Install Korean language pack and fonts
   package:
     name:
-      - ibus
-      - ibus-hangul
       - language-pack-ko
+      - fonts-nanum
+      - fonts-noto-cjk
     state: present
   become: true
+  
+- name: Install locales and configure UTF-8
+  block:
+  - name: install locale
+    become: true
+    apt: name=locales state=present
 
-- name: Start ibus daemon
-  shell: |
-    ibus-daemon -drx
-  args:
-    executable: /bin/bash
-  become: false
+  - name: set UTF-8 locale
+    become: true
+    shell: |
+      locale-gen ko_KR ko_KR.UTF-8
+      update-locale LC_ALL=ko_KR.UTF-8 LANG=ko_KR.UTF-8
 
-- name: Set Korean locale
-  lineinfile:
-    path: /etc/default/locale
-    regexp: '^LANG='
-    line: 'LANG=ko_KR.UTF-8'
-    state: present
-  become: true
+  - name: insert 'LANG=ko_KR.UTF-8' to .bashrc
+    lineinfile:
+      path: "{{ user_home_dir }}/.bashrc"
+      line: "export LANG=ko_KR.UTF-8"
+      insertafter: '# Copied from Ansible'
+      
+- name: Install Hangul for Ubuntu
+  include_tasks: "ubuntu.yml"
+  when: ansible_virtualization_type != 'wsl'
 
-- name: Set ibus as the default input method
-  shell: |
-    im-config -n ibus
-  args:
-    executable: /bin/bash
-  become: false
-
-- name: Add Korean input source for ibus
-  shell: |
-    gsettings set org.gnome.desktop.input-sources sources "[('ibus', 'hangul')]"
-  args:
-    executable: /bin/bash
-  become: false
+- name: Install Hangul for WSL2
+  include_tasks: "wsl2.yml"
+  when: ansible_virtualization_type == 'wsl'

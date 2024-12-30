@@ -1,0 +1,17 @@
+---
+- name: install sudo
+  apt: name=sudo
+  become: true
+
+- name: Check target sudoer file exists
+  stat:
+    path: "/etc/sudoers.d/{{ user_id }}"
+  register: sudoer_file
+
+- name: add the user to the sudoers
+  copy:
+    dest: "/etc/sudoers.d/{{ user_id }}"
+    content: "{{ user_id }}    ALL=(ALL)  NOPASSWD: ALL\n"
+    mode: 0440
+  become: true
+  when: not sudoer_file.stat.exists

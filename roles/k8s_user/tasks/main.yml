@@ -1,0 +1,42 @@
+---
+- name: create home directory for k8s_user if not exists
+  become: true
+  user:
+    name: "{{ k8s_user }}"
+    shell: /bin/bash
+    create_home: true
+
+- name: Create .kube directory
+  become: true
+  file:
+    path: "~{{ k8s_user }}/.kube"
+    state: directory
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
+    mode: 0755
+
+- name: Copy the kube config file
+  become: true
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "~{{ k8s_user }}/.kube/config"
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
+    mode: 0644
+    remote_src: yes
+
+- name: copy Kubernetes Autocomplete configuration file
+  become: true
+  copy:
+    src: files/k8s_autocomplete_rc
+    dest: "~{{ k8s_user }}/.k8s_autocomplete_rc"
+    owner: "{{ k8s_user }}"
+    group: "{{ k8s_user }}"
+
+- name: update .bashrc to call .k8s_autocomplete_rc
+  become: true
+  lineinfile:
+    dest: "~{{ k8s_user }}/.bashrc"
+    regexp: '^\. ~/.k8s_autocomplete_rc'
+    line: ". ~/.k8s_autocomplete_rc"
+    state: present

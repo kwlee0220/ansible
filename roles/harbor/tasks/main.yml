@@ -1,0 +1,54 @@
+---
+- name: HTTPS 프로토콜을 사용하려면 인증서 생성하고 등록함
+  include_tasks: certificates.yml
+  when: harbor_protocol == 'https'
+
+##############################
+
+- name: Harbor 설치 파일 다운로드 후 압축 해제
+  unarchive:
+    src: "{{ harbor_installer }}"
+    dest: "{{ user_home_dir }}"
+    mode: 0755
+    remote_src: true
+  args:
+    creates: "{{ user_home_dir }}/harbor"
+
+- name: 설정 파일 복사
+  copy:
+    src: "{{ harbor_dir }}/harbor.yml.tmpl"
+    dest: "{{ harbor_dir }}/harbor.yml"
+    remote_src: true
+    force: false
+
+- name: 설정 파일 내 hostname 수정
+  lineinfile:
+    dest: "{{ harbor_dir }}/harbor.yml"
+    regexp: '^hostname: reg'
+    line: "hostname: {{ harbor_fqdn }}"
+    state: present
+
+##############################
+
+- name: Harbor 설정
+  include_tasks: task_setup_{{ harbor_protocol }}.yml
+
+##############################
+
+- name: 패스워드 설정
+  lineinfile:
+    dest: "{{ harbor_dir }}/harbor.yml"
+    regexp: '^harbor_admin_password: '
+    line: "harbor_admin_password: {{ harbor_password }}"
+    state: present
+
+- name: DOCKER_COMPOSE 설정
+  lineinfile:
+    dest: "{{ harbor_dir }}/install.sh"
+    regexp: '^DOCKER_COMPOSE=docker-compose'
+    line: "DOCKER_COMPOSE='docker compose'"
+    state: present
+
+- name: installer 실행
+  become: true
+  command: bash {{ harbor_dir }}/install.sh

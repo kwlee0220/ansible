@@ -17,5 +17,7 @@ set smartindent
 set softtabstop=4
 set ruler
 set incsearch
+set visualbell
+set t_vb=
 
 "colorscheme 'jellybeans'

@@ -1,0 +1,14 @@
+---
+- name: 설정 파일 내 certificate 파일 경로 수정
+  lineinfile:
+    dest: "{{ harbor_dir }}/harbor.yml"
+    regexp: '^  certificate: /your'
+    line: "  certificate: {{ harbor_crt_file }}"
+    state: present
+
+- name: 설정 파일 내 key 파일 경로 수정
+  lineinfile:
+    dest: "{{ harbor_dir }}/harbor.yml"
+    regexp: '^  private_key: '
+    line: "  private_key: {{ harbor_key_file }}"
+    state: present

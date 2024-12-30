@@ -1,0 +1,37 @@
+---
+- name: Install ibus-hangul and required packages
+  package:
+    name:
+      - ibus
+      - ibus-hangul
+    state: present
+  become: true
+
+- name: Start ibus daemon
+  shell: |
+    ibus-daemon -drx
+  args:
+    executable: /bin/bash
+  become: false
+
+- name: Set Korean locale
+  lineinfile:
+    path: /etc/default/locale
+    regexp: '^LANG='
+    line: 'LANG=ko_KR.UTF-8'
+    state: present
+  become: true
+
+- name: Set ibus as the default input method
+  shell: |
+    im-config -n ibus
+  args:
+    executable: /bin/bash
+  become: false
+
+- name: Add Korean input source for ibus
+  shell: |
+    gsettings set org.gnome.desktop.input-sources sources "[('ibus', 'hangul')]"
+  args:
+    executable: /bin/bash
+  become: false

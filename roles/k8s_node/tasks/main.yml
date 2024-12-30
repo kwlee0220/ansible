@@ -1,0 +1,9 @@
+---
+- name: Install Docker Engine
+  include_role: name=docker-engine
+
+- name: Install Containerd
+  include_tasks: task_install_containerd.yml
+
+- name: Install Kubernetes packages
+  include_tasks: task_install_k8s_packages.yml

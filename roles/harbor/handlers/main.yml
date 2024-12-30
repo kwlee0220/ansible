@@ -1,0 +1,8 @@
+---
+- name: restart docker engine
+  become: true
+  systemd:
+    name: docker
+    state: restarted
+    enabled: true
+    daemon_reload: true

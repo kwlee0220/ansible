@@ -5,7 +5,6 @@
     name:
       - dconf-cli
       - dconf-editor
-    update_cache: true
     state: present
 
 - name: Install dbus-x11
@@ -16,6 +15,13 @@
   become: true
   package: name=tilix state=latest
 
+- name: Source vte.sh
+  # description: "Source vte.sh to fix tilix on WSL2. 경우에 따라서는 재부팅이 필요할 수 있습니다."
+  shell: source /etc/profile.d/vte-2.91.sh
+  args:
+    executable: /bin/bash
+  when: ansible_virtualization_type == 'wsl'
+
 - name: ensure tilix configuration directory
   file: path={{ user_home_dir }}/.config/tilix state=directory
 - name: copy tilix configuration
@@ -23,3 +29,10 @@
 
 - name: load tilix configuration
   shell: "dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf"
+
+- name: Add alias for WSL2
+  lineinfile:
+    path: "{{ user_home_dir }}/.bashrc"
+    regexp: '^alias tilix='
+    line: 'alias tilix="/usr/bin/tilix &> /dev/null &"'
+  when: ansible_virtualization_type == 'wsl'

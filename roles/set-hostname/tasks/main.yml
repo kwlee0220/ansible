@@ -1,0 +1,10 @@
+---
+- name: Get the current hostname
+  command: hostname
+  register: current_hostname
+  changed_when: false
+
+- name: Change hostname if it is not same to the target hostname 
+  command: "hostnamectl set-hostname {{ target_hostname }}"
+  become: true
+  when: current_hostname.stdout != target_hostname

@@ -1,0 +1,43 @@
+---
+- name: Install Hangul input
+  package:
+    name:
+      - fcitx
+      - fcitx-hangul
+    state: present
+  become: true
+
+- name: bashrc settings
+  block:
+    - name: Remove the previous Fcitx Hangul configuration
+      blockinfile:
+        path: "{{ user_home_dir }}/.bashrc"
+        marker: "# Fcitx Hangul: {mark}"
+        state: absent
+    - name: Configure Fcitx Hangul in bashrc
+      blockinfile:
+        path: "{{ user_home_dir }}/.bashrc"
+        prepend_newline: yes
+        append_newline: yes
+        marker: "# Fcitx Hangul: {mark}"
+        block: |
+          export GTK_IM_MODULE=fcitx
+          export QT_IM_MODULE=fcitx
+          export XMODIFIERS=@im=fcitx
+          export DefaultIMModule=fcitx
+          # export LC_CTYPE=ko_KR.UTF-8
+          fcitx-autostart &>/dev/null
+
+- name: Run fcitx-autostart
+  description: Running 'fcitx-autostart' might be better but it takes too much time.
+  shell: fcitx &>/dev/null
+  args:
+    executable: /bin/bash
+
+- name: Update fcitx configuration file to change the default input method
+  lineinfile:
+    path: "{{ user_home_dir }}/.config/fcitx/config"
+    regexp: '^#TriggerKey='
+    line: 'TriggerKey=SHIFT_SPACE CTRL_SPACE'
+    state: present
+  become: false

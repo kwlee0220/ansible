@@ -1,0 +1,3 @@
+---
+set_hostname_required: true
+k8s_keyring_file: /etc/apt/keyrings/kubernetes-apt-keyring.gpg

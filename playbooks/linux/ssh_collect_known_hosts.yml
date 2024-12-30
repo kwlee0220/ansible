@@ -1,0 +1,34 @@
+---
+- name: Collect the public keys from ansible hosts
+  hosts: all
+  connection: local
+  serial: 1
+
+  vars:
+    user_home_dir: "{{ ansible_env.HOME }}"
+    ssh_dir: "{{ user_home_dir }}/.ssh"
+
+  # roles:
+  #   - name: Generate SSH key for this ansible control host.
+  #     role: generate_ssh_key
+
+  tasks:
+    - name: Collect the SSH public keys from all ansible hosts.
+      command: /usr/bin/ssh-keyscan -t rsa {{ ansible_host }}
+      register: keyscan
+
+    - name: Remove host if already exists
+      lineinfile:
+        path: "{{ ssh_dir }}/known_hosts"
+        regexp: "^{{ ansible_host }}"
+        state: absent
+
+    - name: Add all the collected keys to the 'known_hosts' in this Ansible control host.
+      known_hosts:
+        name: "{{ ansible_host }}"
+        path: "{{ ssh_dir }}/known_hosts"
+        key: "{{ item }}"
+      with_items:
+        - "{{ keyscan.stdout_lines }}"
+
+  

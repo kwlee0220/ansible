@@ -6,4 +6,9 @@ sudo apt update
 sudo apt install ansible -y
 
 sudo apt install python3-pip git -y
-sudo pip3 install git+https://github.com/larsks/ansible-toolbox
+pip3 install git+https://github.com/larsks/ansible-toolbox
+# sudo pip install --upgrade paramiko
+
+# WSL2 bell sound off
+echo "set bell-style none" > ~/.inputrc
+bind -f ~/.inputrc

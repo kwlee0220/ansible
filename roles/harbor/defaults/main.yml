@@ -1,0 +1,27 @@
+---
+harbor_user_id: "{{ ansible_user_id }}"
+user_home_dir: "{{ ansible_env.HOME }}"
+
+# harbor_protocol: http
+harbor_protocol: https
+
+harbor_dir: "{{ user_home_dir }}/harbor"
+harbor_version: "v2.9.2"
+harbor_installer: "https://github.com/goharbor/harbor/releases/download/{{ harbor_version }}/harbor-online-installer-{{ harbor_version }}.tgz"
+
+cert_dir: "{{ user_home_dir }}/certs"
+harbor_cert_dir: "/data/cert"
+
+harbor_ip: "{{ ansible_default_ipv4.address }}"
+harbor_hostname: "{{ ansible_hostname }}"
+harbor_fqdn: "{{ ansible_fqdn }}"
+harbor_password: Mdt2024^^
+
+harbor_key:  "{{ harbor_fqdn }}.key"
+harbor_csr: "{{ harbor_fqdn }}.csr"
+harbor_crt: "{{ harbor_fqdn }}.crt"
+harbor_cert: "{{ harbor_fqdn }}.cert"
+harbor_key_file: "{{ cert_dir }}/{{ harbor_key }}"
+harbor_csr_file: "{{ cert_dir }}/{{ harbor_csr }}"
+harbor_crt_file: "{{ cert_dir }}/{{ harbor_crt }}"
+harbor_cert_file: "{{ cert_dir }}/{{ harbor_cert }}"

@@ -1,0 +1,21 @@
+[localhost]
+127.0.0.1
+
+[k8s_master]
+192.168.0.60 host_fqdn=master.mdt.etri.re.kr
+
+[k8s_workers]
+192.168.0.61 host_fqdn=worker01.mdt.etri.re.kr
+192.168.0.62 host_fqdn=worker02.mdt.etri.re.kr
+192.168.0.63 host_fqdn=worker03.mdt.etri.re.kr
+
+[k8s:children]
+k8s_master
+k8s_workers
+
+[harbor]
+192.168.0.70 host_fqdn=harbor.mdt.etri.re.kr
+
+[mdt:children]
+k8s
+harbor

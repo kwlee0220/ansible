@@ -1,6 +1,7 @@
 ---
-apply_dconf: true
+user_home_dir: "{{ ansible_env.HOME }}"
 
+apply_dconf: true
 terminal_key_prefix: "/org/gnome/terminal/legacy/profiles:/:b1dcc9dd-5262-4d8d-a863-c897e6d979b9"
 gnome_terminal_confs:
   - { key: "{{ terminal_key_prefix }}/font", value: "'D2Coding 12'" }

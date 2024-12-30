@@ -1,0 +1,15 @@
+---
+- name: create containerd's default config file
+  become: true
+  shell: containerd config default > /etc/containerd/config.toml
+  
+- name: set 'SystemdCgroup' true
+  become: true
+  replace:
+    dest: /etc/containerd/config.toml
+    regexp: 'SystemdCgroup = false'
+    replace: "SystemdCgroup = true"
+    
+- name: restart containerd
+  become: true
+  service: name=containerd state=restarted enabled=true

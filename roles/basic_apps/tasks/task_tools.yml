@@ -9,15 +9,16 @@
       - build-essential
       - ripgrep
       - tldr
-      - htop
+      # - htop
       - btop
       - neofetch
       - cpufetch
       - net-tools
       - ffmpeg
-      - trash-cli
+      # - trash-cli
       - bat
       - fd-find
+      - jq
     state: latest
   become: true
 

@@ -2,20 +2,7 @@
 - name: install ROS2 package
   hosts: all
 
-  vars:
-    user_home_dir: "{{ ansible_env.HOME }}"
-
-  vars_prompt:
-    - name: ROS_DOMAIN_ID
-      prompt: "Domain ID for ROS2"
-      default: "31"
-      private: no
-
   tasks:
-    - name: Ensure apt is up to date
-      package: update_cache=yes
-      become: true
-
     - name: Ensure that the Ubuntu Universe repository is enabled.
       package:
         name:
@@ -24,6 +11,7 @@
           - gnupg2
           - lsb-release
         state: present
+        update_cache: yes
       become: true
 
     - name: Enable Universe repository
@@ -84,7 +72,7 @@
               alias cc='colcon'
               
               export RCUTILS_COLORIZED_OUTPUT=1
-              export ROS2_DOMAIN_ID={{ ROS_DOMAIN_ID }}
+              export ROS2_DOMAIN_ID={{ ros2_domain_id }}
               export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
       become: false
 
@@ -98,7 +86,7 @@
       become: true
 
     - name: Install turtlesim
-      package: name=ros-humble-turtlesim state=present update_cache=yes
+      package: name=ros-humble-turtlesim state=present
       become: true
 
     - name: Check turtlesim is installed
@@ -121,5 +109,4 @@
         rosdep update
       args:
         executable: /bin/bash
-      ignore_errors: yes
       become: true

@@ -1,0 +1,114 @@
+---
+- name: 인증서를 저장할 디렉토리 생성
+  file: path={{ cert_dir }} state=directory
+
+- name: 인증 기관 인증서 생성
+  block:
+    - name: CA 인증서 개인 키 생성
+      command: openssl genrsa -out {{ cert_dir }}/ca.key 4096
+      args:
+        creates: "{{ cert_dir }}/ca.key"
+    - name: CA 인증서(crt) 생성
+      command: >
+        openssl req -x509 -new -nodes -sha512 -days 3650 
+          -subj "/C=KR/ST=Daejeon/L=Yuseong-Gu/O=ETRI/OU=IMI/CN=kwlee" 
+          -key {{ cert_dir }}/ca.key 
+          -out {{ cert_dir }}/ca.crt
+      args:
+        creates: "{{ cert_dir }}/ca.crt"
+
+
+- name: 서버 인증서 생성
+  block:
+    - name: 서버 키 생성
+      command: openssl genrsa -out {{ harbor_key_file }} 4096
+      args:
+        creates: "{{ harbor_key_file }}"
+    - name: 인증서 서명 요청 (CSR) 생성
+      command: >
+        openssl req -sha512 -new 
+            -subj "/C=KR/ST=Daejeon/L=Yuseong-Gu/O=ETRI/OU=IMI/CN={{ harbor_key }}"
+            -key {{ harbor_key_file }}
+            -out {{ harbor_csr_file }}
+      args:
+        creates: "{{ harbor_csr_file }}"
+        
+    - name: x509 v3 확장 파일 존재 확인
+      stat: path={{ cert_dir }}/v3.ext
+      register: ext_file
+    - name: x509 v3 확장 파일 생성
+      blockinfile:
+        path: "{{ cert_dir }}/v3.ext"
+        create: true
+        marker: ""
+        block: |
+          authorityKeyIdentifier=keyid,issuer
+          basicConstraints=CA:FALSE
+          keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+          extendedKeyUsage = serverAuth
+          subjectAltName = @alt_names
+
+          [alt_names]
+          DNS.1={{ harbor_ip }}
+          DNS.2={{ harbor_fqdn }}
+          DNS.3={{ harbor_hostname }}
+      when: not ext_file.stat.exists
+
+    - name: v3.ext 파일을 사용하여 Harbor 서버에 대한 인증서를 생성
+      command:
+        openssl x509 -req -sha512 -days 3650
+          -extfile {{ cert_dir }}/v3.ext
+          -CA {{ cert_dir }}/ca.crt -CAkey {{ cert_dir }}/ca.key -CAcreateserial
+          -in {{ harbor_csr_file }}
+          -out {{ harbor_crt_file }}
+      args:
+        creates: "{{ harbor_crt_file }}"
+
+
+- name: Harbor에 인증서 복사
+  become: true
+  block:
+    - name: Harbor 인증서 폴더 생성
+      file: path=/data/cert state=directory
+
+    - name: 서버 인증서와 키를 Harbor 인증서 폴더에 복사
+      copy:
+        src: "{{ harbor_crt_file }}"
+        dest: "{{ harbor_cert_dir }}"
+        remote_src: true
+
+- name: Local Docker에 인증서 및 보안키 설치
+  become: true
+  block:
+    - name: Docker에서 사용할 수 있도록 crt를 cert로 변환
+      become: false
+      command: openssl x509 -inform PEM -in {{ harbor_crt_file }} -out {{ harbor_cert_file }}
+      args:
+        creates: "{{ harbor_cert_file }}"
+
+    - name: Docker에게 제공할 인증서가 저장될 폴더 생성
+      file: path=/etc/docker/certs.d/{{ harbor_fqdn }} state=directory
+
+    - name: 서버 인증서, 키 및 CA 파일을 Harbor 호스트의 Docker 인증서 폴더에 복사
+      copy:
+        src: "{{ item }}"
+        dest: "/etc/docker/certs.d/{{ harbor_fqdn }}"
+        remote_src: true
+      loop:
+        - "{{ harbor_cert_file }}"
+        - "{{ harbor_key_file }}"
+        - "{{ cert_dir }}/ca.crt"
+
+- name: 호스트에 기관 인증서 설치
+  include_role: name=ca-certificate
+  vars:
+    ca_path: "{{ cert_dir }}/ca.crt"
+    remote_src: true
+
+- name: restart docker engine
+  become: true
+  systemd:
+    name: docker
+    state: restarted
+    enabled: true
+    daemon_reload: true

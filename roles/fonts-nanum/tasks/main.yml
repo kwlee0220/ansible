@@ -1,4 +1,0 @@
----
-- name: Install Nanum fonts
-  package: name=fonts-nanum state=present
-  become: true

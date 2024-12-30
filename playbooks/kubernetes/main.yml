@@ -1,0 +1,5 @@
+---
+- import_playbook: install_master.yml
+- import_playbook: install_workers.yml
+  vars:
+    workers: "{{ k8s_workers }}"

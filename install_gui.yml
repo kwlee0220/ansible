@@ -4,15 +4,15 @@
 
   tasks:
     - name: Install dconf-cli, dconf editor
-      become: true
       package:
         name:
           - gnome-tweaks
-          - dbus-x11
           - dconf-cli
           - dconf-editor
+          - dbus-x11
         update_cache: true
         state: present
+      become: true
         
     - name: dconf 관련 모듈 설치
       become: true
@@ -21,18 +21,23 @@
     - name: Adapt Ubuntu Desktop
       include_role:
         name: ubuntu_desktop
+      when: ansible_virtualization_type != 'wsl'
 
     - name: Install gnome-terminal
       include_role:
         name: gnome-terminal
 
-    - name: Install tilix
+    - name: Install Tilix
       include_role:
         name: tilix
+
+    - name: Install Hangul input
+      include_role: name=hangul
 
     - name: Install google-chrome
       include_role:
         name: google-chrome
+      when: ansible_virtualization_type != 'wsl'
 
     - name: Install xrdp
       include_role:

@@ -1,0 +1,7 @@
+---
+- import_playbook: ssh_build_known_hosts.yml
+- import_playbook: ssh_authorized_key.yml
+
+- name: Enables SSH connections between control host to the participating hosts
+  hosts: all
+  roles: [allow_sudo]

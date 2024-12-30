@@ -1,0 +1,27 @@
+---
+- name: Create join command
+  hosts: k8s_master
+  become: true
+  tasks:
+    - shell: kubeadm token list | awk '{print $1}' | tail -n 1
+      register: tokens
+    - shell: "openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'"
+      register: hash_output
+    - name: Create dummy host to store variable for join command
+      add_host:
+        name: "DUMMY_HOST"
+        JOIN_COMMAND: "kubeadm join {{ansible_host}}:6443 --token {{ tokens.stdout_lines[0] }} --discovery-token-ca-cert-hash sha256:{{ hash_output.stdout_lines[0] }}"
+    - debug: var=hostvars['DUMMY_HOST']['JOIN_COMMAND']
+
+
+- name: Join the new Kubernetes Worker
+  hosts: k8s_workers
+  become: true
+  tasks:
+    - name: Check if the worker node is already joined
+      stat: path=/etc/kubernetes/kubelet.conf
+      register: kubeadm_join
+    - debug: "var=hostvars['DUMMY_HOST']['JOIN_COMMAND']"
+    - name: Join the worker nodes to the cluster
+      command: "{{ hostvars['DUMMY_HOST']['JOIN_COMMAND'] }}"
+      when: kubeadm_join.stat.exists == false
