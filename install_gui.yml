@@ -2,7 +2,7 @@
 - name: Install gui package
   hosts: all
 
-  tasks:
+  pre_tasks:
     - name: Install dconf-cli, dconf editor
       package:
         name:
@@ -13,32 +13,28 @@
         update_cache: true
         state: present
       become: true
-        
-    - name: dconf 관련 모듈 설치
+
+    - name: dconf 관련 모듈 (psutil) 설치
       become: true
       pip: name=psutil
 
+  roles:
     - name: Adapt Ubuntu Desktop
-      include_role:
-        name: ubuntu_desktop
+      role: ubuntu_desktop
       when: ansible_virtualization_type != 'wsl'
 
     - name: Install gnome-terminal
-      include_role:
-        name: gnome-terminal
+      role: gnome-terminal
 
     - name: Install Tilix
-      include_role:
-        name: tilix
+      role: tilix
 
     - name: Install Hangul input
-      include_role: name=hangul
+      role: hangul
 
     - name: Install google-chrome
-      include_role:
-        name: google-chrome
+      role: google-chrome
       when: ansible_virtualization_type != 'wsl'
 
     - name: Install xrdp
-      include_role:
-        name: xrdp
+      role: xrdp
