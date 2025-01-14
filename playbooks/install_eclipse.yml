@@ -1,0 +1,69 @@
+---
+- name: Install Eclipse IDE on Ubuntu
+  hosts: all
+
+  vars:
+    user_home_dir: "{{ ansible_env.HOME }}"
+    install_dir: "{{ user_home_dir }}/local/eclipse"
+
+    eclipse_version: "2024-12"
+    eclipse_download_site: "https://mirror.kakao.com/eclipse/technology/epp/downloads/release"
+    eclipse_arch: "linux-gtk-x86_64"
+    eclipse_tarball: "eclipse-java-{{ eclipse_version }}-R-{{ eclipse_arch }}.tar.gz"
+    eclipse_tarball_url: "{{ eclipse_download_site }}/{{ eclipse_version }}/R/{{ eclipse_tarball }}"
+    
+    desktop_entry_path: "/usr/share/applications/eclipse.desktop"
+    tmp_file: "/tmp/eclipse.tar.gz"
+    lombok_jar_url: "https://projectlombok.org/downloads/lombok.jar"
+
+  tasks:
+    - name: Create installation directory
+      file:
+        path: "{{ install_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Download Eclipse IDE for Java Developers tarball
+      get_url:
+        url: "{{ eclipse_tarball_url }}"
+        dest: "{{ tmp_file }}"
+
+    - name: Extract Eclipse tarball
+      unarchive:
+        src: "{{ tmp_file }}"
+        dest: "{{ install_dir }}"
+        remote_src: yes
+        extra_opts:
+          - "--strip-components=1"
+
+    - name: Download Lombok jar
+      get_url:
+        url: "{{ lombok_jar_url }}"
+        dest: "{{ install_dir }}/lombok.jar"
+
+    - name: Integrate Lombok with Eclipse
+      command: "java -jar {{ install_dir }}/lombok.jar install {{ install_dir }}/eclipse"
+      args:
+        creates: "{{ install_dir }}/eclipse.ini"
+
+    - name: Create Eclipse desktop entry
+      become: yes
+      copy:
+        dest: "{{ desktop_entry_path }}"
+        content: |
+          [Desktop Entry]
+          Name=Eclipse IDE for Java Developers
+          Type=Application
+          Exec={{ install_dir }}/eclipse
+          Terminal=false
+          Icon={{ install_dir }}/icon.xpm
+          Categories=Development;IDE;
+        owner: root
+        group: root
+        mode: '0644'
+        remote_src: true
+
+    - name: Clean up temporary files
+      file:
+        path: "{{ tmp_file }}"
+        state: absent
