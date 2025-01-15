@@ -3,15 +3,23 @@
   hosts: all
 
   vars_prompt:
-    - name: client_id
+    - name: samba_client
       prompt: "Samba client user id"
       private: no
-    - name: client_passwd
+    - name: samba_client_passwd
       prompt: "Samba client password"
 
   tasks:
+    - name: Install samba
+      package: name=samba state=present
+      become: true
+
     - name: create a samba user
-      command: "echo '{{ client_passwd }}\n{{ client_passwd }}' | smbpasswd -s -a {{ client_id }}"
+      command: "smbpasswd -a {{ samba_client }}"
+      args:
+        stdin: "{{ samba_client_passwd }}\n{{ samba_client_passwd }}"
+      register: smbpasswd_output
+      ignore_errors: true
       notify: restart samba
       become: true
 

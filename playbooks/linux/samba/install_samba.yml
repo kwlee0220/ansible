@@ -1,8 +1,0 @@
----
-- name: Install samba
-  hosts: all
-
-  tasks:
-    - name: Install samba
-      package: name=samba state=present
-      become: true

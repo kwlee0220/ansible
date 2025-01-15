@@ -1,21 +1,32 @@
 ---
-- name: Add a share
+- name: Install samba
   hosts: all
 
   vars_prompt:
+    - name: samba_client
+      prompt: "Samba client user id"
+      private: no
+    - name: samba_client_passwd
+      prompt: "Samba client password"
     - name: share_name
       prompt: "Share name"
       private: no
     - name: share_path
       prompt: "Path to the share directory"
       private: no
-    - name: samba_client
-      prompt: "Samba client user id"
-      private: no
 
   tasks:
     - name: Install samba
       package: name=samba state=present
+      become: true
+
+    - name: create a samba user
+      command: "smbpasswd -a {{ samba_client }}"
+      args:
+        stdin: "{{ samba_client_passwd }}\n{{ samba_client_passwd }}"
+      register: smbpasswd_output
+      ignore_errors: true
+      notify: restart samba
       become: true
 
     - name: add a share
