@@ -12,8 +12,6 @@
     gsettings set org.gnome.desktop.interface monospace-font-name "D2Coding 12"
     gsettings set org.gnome.desktop.interface color-scheme "prefer-light"
     gsettings set org.gnome.desktop.interface font-hinting "slight"
-    gsettings set org.gnome.desktop.interface gtk-theme "Yaru-dark"
-    gsettings set org.gnome.desktop.interface icon-theme "Yaru-dark"
     gsettings set org.gnome.desktop.wm.preferences titlebar-font "Nanum Gothic Bold 11"
 
     gsettings set org.gnome.shell.extensions.dash-to-dock click-action "'minimize'"
