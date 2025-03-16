@@ -1,0 +1,24 @@
+---
+- name: start Argo Workflow package
+  hosts: all
+
+  vars:
+    argo_version: "v3.6.5"
+    argo_os: "linux"
+
+  tasks:
+    # - name: Restart Argo Server deployment
+    #   command: kubectl rollout restart deployment -n argo argo-server
+
+    # Argo UI 포트 포워딩 설정
+    - name: Start port forwarding for Argo UI
+      shell: |
+        nohup kubectl -n argo port-forward deployment/argo-server 2746:2746 --address 0.0.0.0 > /dev/null 2>&1 &
+      args:
+        executable: /bin/bash
+      async: 10
+      poll: 0
+
+    - name: Display Argo UI access URL
+      debug:
+        msg: "Access Argo Workflows UI at http://localhost:2746"

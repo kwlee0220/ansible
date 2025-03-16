@@ -1,0 +1,52 @@
+---
+- name: install Minikube package
+  hosts: all
+
+  tasks:
+    - name: Update apt package index
+      apt:
+        update_cache: yes
+      become: true
+
+    - name: Install dependencies
+      apt:
+        name:
+          - curl
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+          - software-properties-common
+        state: present
+      become: true
+
+    - name: Install Minikube
+      shell: |
+        curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        install minikube-linux-amd64 /usr/local/bin/minikube
+        minikube config set driver docker
+      args:
+        creates: /usr/local/bin/minikube
+      become: true
+
+    - name: Install kubectl
+      shell: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        mv kubectl /usr/local/bin/
+      args:
+        creates: /usr/local/bin/kubectl
+      become: true
+
+    - name: Start Minikube with Docker driver
+      shell: minikube start --memory=no-limit --cpus=no-limit
+      args:
+        executable: /bin/bash
+      register: minikube_output
+      changed_when: "'Already running' not in minikube_output.stdout"
+    - debug:
+        msg: "Minikube output: {{ minikube_output.stdout }}"
+
+    - name: Display Minikube status
+      command: minikube status
+      register: minikube_status
+      changed_when: false

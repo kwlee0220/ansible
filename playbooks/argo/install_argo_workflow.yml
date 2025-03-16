@@ -1,0 +1,62 @@
+---
+- name: install Argo Workflow package
+  hosts: all
+
+  vars:
+    argo_version: "v3.6.5"
+    argo_os: "linux"
+
+  tasks:
+    # Argo CLI 설치
+    - name: Install Argo CLI
+      shell: |
+        curl -sLO https://github.com/argoproj/argo-workflows/releases/download/{{ argo_version }}/argo-{{ argo_os }}-amd64.gz
+        gunzip argo-{{ argo_os }}-amd64.gz
+        chmod +x argo-{{ argo_os }}-amd64
+        mv argo-{{ argo_os }}-amd64 /usr/local/bin/argo
+      args:
+        creates: /usr/local/bin/argo
+      become: true
+
+    - name: Verify Argo CLI installation
+      command: argo version
+      register: argo_cli_version
+      changed_when: false
+    - debug:
+        msg: "{{ argo_cli_version.stdout }}"
+
+    # Argo Workflows 설치
+    - name: Create Argo namespace
+      command: kubectl create namespace argo
+      register: argo_namespace
+      ignore_errors: yes
+      changed_when: "'already exists' not in argo_namespace.stderr"
+
+    - name: Install Argo Workflows in Kubernetes
+      shell: |
+        kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/latest/download/install.yaml
+      args:
+        executable: /bin/bash
+
+    # Argo 인증 모드 변경 (선택 사항)
+    - name: Set Argo Server authentication mode to server
+      shell: |
+        kubectl patch deployment -n argo argo-server --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/args", "value": ["server", "--auth-mode=server"]}]'
+      args:
+        executable: /bin/bash
+
+    - name: Restart Argo Server deployment
+      command: kubectl rollout restart deployment -n argo argo-server
+
+    # Argo UI 포트 포워딩 설정
+    - name: Start port forwarding for Argo UI
+      shell: |
+        nohup kubectl -n argo port-forward deployment/argo-server 2746:2746 --address 0.0.0.0 > /dev/null 2>&1 &
+      args:
+        executable: /bin/bash
+      async: 10
+      poll: 0
+
+    - name: Display Argo UI access URL
+      debug:
+        msg: "Access Argo Workflows UI at http://localhost:2746"
