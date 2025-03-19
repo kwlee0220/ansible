@@ -1,0 +1,89 @@
+---
+- name: Install Intel RealSense D435i Driver on Ubuntu
+  hosts: all
+
+  tasks:
+    - name: Update APT package index
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - git
+          - libssl-dev
+          - libusb-1.0-0-dev
+          - pkg-config
+          - libgtk-3-dev
+          - libglfw3-dev
+          - libgl1-mesa-dev
+          - libglu1-mesa-dev
+        state: present
+      become: true
+
+    - name: Clone librealsense repository
+      git:
+        repo: "https://github.com/IntelRealSense/librealsense.git"
+        dest: "/opt/librealsense"
+        version: master
+      become: true
+
+    - name: Copy UDEV rules
+      copy:
+        src: "/opt/librealsense/config/99-realsense-libusb.rules"
+        dest: "/etc/udev/rules.d/99-realsense-libusb.rules"
+        remote_src: yes
+      become: true
+
+    - name: Reload UDEV rules
+      shell: |
+        udevadm control --reload-rules && udevadm trigger
+      args:
+        executable: /bin/bash
+      become: true
+
+    - name: Create build directory
+      file:
+        path: "/opt/librealsense/build"
+        state: directory
+      become: true
+
+    - name: Run CMake
+      shell: |
+        cd /opt/librealsense/build && cmake .. -DCMAKE_BUILD_TYPE=Release
+      args:
+        executable: /bin/bash
+      become: true
+
+    - name: Compile librealsense
+      shell: |
+        cd /opt/librealsense/build && make -j$(nproc)
+      args:
+        executable: /bin/bash
+      become: true
+
+    - name: Install librealsense
+      shell: |
+        cd /opt/librealsense/build && make install
+      args:
+        executable: /bin/bash
+      become: true
+
+    - name: Set environment variables
+      lineinfile:
+        path: "/etc/profile.d/realsense.sh"
+        line: "export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH"
+        create: yes
+      become: true
+
+    - name: Set PKG_CONFIG_PATH
+      lineinfile:
+        path: "/etc/profile.d/realsense.sh"
+        line: "export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
+        create: yes
+      become: true
+
+    - name: Apply environment variables
+      shell: source /etc/profile.d/realsense.sh
+      args:
+        executable: /bin/bash
