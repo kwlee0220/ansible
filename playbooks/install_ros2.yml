@@ -58,6 +58,7 @@
         name:
           - ros-humble-desktop
           - ros-dev-tools
+          - ros-humble-rmw-cyclonedds-cpp
         state: present
       become: true
 
@@ -83,6 +84,7 @@
               export RCUTILS_COLORIZED_OUTPUT=1
               export ROS2_DOMAIN_ID={{ ros2_domain_id }}
               export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+              export LD_LIBRARY_PATH=/opt/ros/humble/lib:$LD_LIBRARY_PATH
       become: false
 
     - name: Install ROS2 Python dependencies
