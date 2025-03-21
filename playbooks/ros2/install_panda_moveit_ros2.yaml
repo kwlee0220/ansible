@@ -1,0 +1,42 @@
+---
+- name: Setup Panda Robot MoveIt Environment on ROS 2 Humble
+  hosts: all
+
+  tasks:
+    - name: Install ROS 2 Humble and MoveIt dependencies
+      apt:
+        name:
+          - ros-humble-moveit
+          - ros-humble-moveit-resources-panda-moveit-config
+          - ros-humble-moveit-resources-panda-description
+          - ros-humble-robot-state-publisher
+          - ros-humble-joint-state-publisher-gui
+          - ros-humble-rviz2
+          - ros-humble-ros2-control
+          - ros-humble-controller-manager
+          - ros-humble-ros2-controllers
+        state: present
+      become: true
+        
+    # - name: Ensure ROS environment sourced in .bashrc
+    #   lineinfile:
+    #     path: ~/.bashrc
+    #     line: 'source /opt/ros-humble/setup.bash'
+    #     state: present
+
+    # - name: Create ROS 2 workspace
+    #   shell: |
+    #     mkdir -p ~/ros2_ws/src
+    #     cd ~/ros2_ws
+    #     colcon build
+    #   args:
+    #     executable: /bin/bash
+    #     creates: ~/ros2_ws/build
+    #   become: false
+
+    # - name: Source workspace in .bashrc
+    #   lineinfile:
+    #     path: ~/.bashrc
+    #     line: 'source ~/ros2_ws/install/setup.bash'
+    #     state: present
+
