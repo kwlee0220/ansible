@@ -1,3 +1,4 @@
 [all]
-129.254.91.134 ansible_port=1322 ansible_user=kwlee
+#129.254.91.134 ansible_port=1322 ansible_user=kwlee
 #129.254.39.44 ansible_ssh_user=etri
+192.168.0.63
