@@ -19,6 +19,8 @@
           - libglfw3-dev
           - libgl1-mesa-dev
           - libglu1-mesa-dev
+
+          - ros-humble-realsense2-camera
         state: present
       become: true
 
