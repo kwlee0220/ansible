@@ -7,7 +7,8 @@
     install_dir: "{{ user_home_dir }}/local/eclipse"
 
     eclipse_version: "2024-12"
-    eclipse_download_site: "https://mirror.kakao.com/eclipse/technology/epp/downloads/release"
+    # eclipse_download_site: "https://mirror.kakao.com/eclipse/technology/epp/downloads/release"
+    eclipse_download_site: "https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release"
     eclipse_arch: "linux-gtk-x86_64"
     eclipse_tarball: "eclipse-java-{{ eclipse_version }}-R-{{ eclipse_arch }}.tar.gz"
     eclipse_tarball_url: "{{ eclipse_download_site }}/{{ eclipse_version }}/R/{{ eclipse_tarball }}"
