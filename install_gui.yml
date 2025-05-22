@@ -14,6 +14,11 @@
         state: present
       become: true
 
+    - name: python3-pip 설치
+      package:
+        name: python3-pip
+        state: present
+      become: true
     - name: dconf 관련 모듈 (psutil) 설치
       become: true
       pip: name=psutil
