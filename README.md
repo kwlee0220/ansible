@@ -11,6 +11,12 @@
     - ```ssh-copy-id <node-ip>```
 - Ansible control 컴퓨터의 hosts 파일에 설치 대상 컴퓨터의 ip 주소를 추가한다.
     - 'hosts' 파일의 위치는 ansible script 설치 최상위 디렉토리를 권장함.
+- 최신 Ansible을 설치한다.
+    - ```sudo apt update```
+    - ```sudo apt install software-properties-common```
+    - ```sudo add-apt-repository --yes --update ppa:ansible/ansible```
+    - ```sudo apt update```
+    - ```sudo apt install ansible```
 - Ansible control에서 ansible ping이 가능한지 확인한다.
     - ```ansible -i hosts all -m ping```
 - Ansible control에서 ansible-playbook을 이용하여 basic apps을 설치한다.
