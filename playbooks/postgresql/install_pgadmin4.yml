@@ -1,0 +1,6 @@
+---
+- name: Install pgAdmin4
+  hosts: all
+  become: yes
+  roles:
+    - pgadmin4 

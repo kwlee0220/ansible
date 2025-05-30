@@ -1,0 +1,6 @@
+---
+# Default variables for pgAdmin4 installation
+pgadmin4_version: latest
+pgadmin4_web_mode: true
+pgadmin4_email: "admin@example.com"
+pgadmin4_password: "admin123" 
