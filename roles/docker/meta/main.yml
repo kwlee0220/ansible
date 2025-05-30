@@ -1,2 +1,30 @@
 ---
-dependencies: []
+galaxy_info:
+  author: Ansible User
+  description: Install Docker CE and Docker Compose with modern GPG key management
+  company: 
+  license: MIT
+  min_ansible_version: "2.9"
+  
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - kinetic
+        - lunar
+        - mantic
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+
+  galaxy_tags:
+    - docker
+    - container
+    - virtualization
+    - development
+    - containerization
+    - devops
+
+dependencies: [] 

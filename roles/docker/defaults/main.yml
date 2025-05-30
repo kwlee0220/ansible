@@ -1,11 +1,14 @@
 ---
-docker_gpg_url: https://download.docker.com/linux/ubuntu/gpg
-deb_architecture: {
-  "aarch64": "arm64",
-  "x86_64": "amd64"
-}
-arch: "{{ [ansible_architecture] | map('extract', deb_architecture) | first }}"
-docker_repo: "deb [arch={{ arch }}] https://download.docker.com/{{ ansible_system | lower }}/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+# Docker user to add to docker group (optional)
+# docker_user: "{{ ansible_user }}"
 
-user_id: "{{ ansible_user_id }}"
-user_home_dir: "{{ ansible_env.HOME }}"
+# Docker Compose version for standalone installation
+docker_compose_version: "v2.24.5"
+
+# Whether to install Docker Compose standalone binary
+# (Docker Compose plugin is installed by default with Docker CE)
+docker_compose_standalone: false
+
+# Docker service configuration
+docker_service_enabled: true
+docker_service_state: started 
