@@ -1,0 +1,21 @@
+# Basic configuration
+listener {{ mosquitto_port }}
+protocol mqtt
+
+# WebSocket support
+listener {{ mosquitto_websocket_port }}
+protocol websockets
+
+# Allow anonymous connections
+allow_anonymous {{ mosquitto_allow_anonymous | lower }}
+
+# Log settings
+log_type all
+log_dest file /var/log/mosquitto/mosquitto.log
+
+# Persistence
+persistence true
+persistence_location /var/lib/mosquitto/
+
+# Security settings
+# password_file /etc/mosquitto/passwd
