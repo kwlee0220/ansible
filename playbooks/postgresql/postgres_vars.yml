@@ -1,0 +1,4 @@
+# postgres_secrets.yml
+postgres_user: mdt
+postgres_db: mdt
+postgres_password: mdt2025

@@ -2,16 +2,10 @@
 - name: PostgreSQL Installation
   hosts: all
 
-  vars_prompt:
-    - name: postgres_user
-      prompt: "User id for Postgresql"
-      private: no
-    - name: postgres_password
-      prompt: "User password for Postgresql"
-      private: no
-    - name: postgres_db
-      prompt: "Database name for Postgresql"
-      private: no
+  vars:
+    postgres_user: mdt
+    postgres_db: mdt
+    postgres_password: urc2004
 
   tasks:
     - name: Create PostgreSQL user
