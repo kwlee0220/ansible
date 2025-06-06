@@ -4,7 +4,7 @@
 
   vars:
     pgdg_gpg_url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
-    pgdg_repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+    pgdg_repo: "deb [arch=amd64] http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
     pgdg_key_path: /etc/apt/trusted.gpg.d/postgresql.asc
 
     postgres_version: 16
@@ -12,6 +12,15 @@
     postgres_root_password: "postgres"
 
   tasks:
+    - name: Remove existing PostgreSQL repository files
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - /etc/apt/sources.list.d/pgdg.list
+        - /etc/apt/sources.list.d/pgdg.list.list
+      become: true
+      
     - name: Download PostgreSQL signing key
       get_url:
         url: "{{ pgdg_gpg_url }}"
