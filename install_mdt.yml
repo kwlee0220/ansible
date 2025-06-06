@@ -1,0 +1,16 @@
+---
+- name: Install basic apps
+  hosts: all
+
+  vars:
+    user_id: "{{ ansible_user_id }}"
+
+  roles:
+    - role: basic_apps
+    - role: vscode
+      when: ansible_virtualization_type != 'wsl'
+    - role: docker
+    - role: sdkman
+
+- import_playbook: playbooks/postgresql/install_postgresql.yml
+- import_playbook: playbooks/postgresql/install_pgadmin4.yml
