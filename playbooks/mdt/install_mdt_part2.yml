@@ -2,5 +2,5 @@
 - name: Install necessary systems for MDT platform after reboot.
   hosts: all
 
-- import_playbook: playbooks/argo/install_minikube.yml
-- import_playbook: playbooks/argo/install_argo.yml
+- import_playbook: "../argo/install_minikube.yml"
+- import_playbook: "../argo/install_argo.yml"
