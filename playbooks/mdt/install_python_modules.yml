@@ -1,0 +1,15 @@
+---
+- name: Install Python modules for examples MDT instances
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install necessary Python modules
+      pip:
+        name:
+          - "numpy>=1.22.4"
+          - opencv-python
+          - matplotlib
+          - PySide6
+          - simpy
+        state: present
