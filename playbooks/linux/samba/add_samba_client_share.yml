@@ -2,18 +2,11 @@
 - name: Install samba
   hosts: all
 
-  vars_prompt:
-    - name: samba_client
-      prompt: "Samba client user id"
-      private: no
-    - name: samba_client_passwd
-      prompt: "Samba client password"
-    - name: share_name
-      prompt: "Share name"
-      private: no
-    - name: share_path
-      prompt: "Path to the share directory"
-      private: no
+  vars:
+    samba_client: "{{ ansible_user_id }}"
+    samba_client_passwd: "urc2004"
+    share_name: home
+    share_path: "/home/{{ ansible_user_id }}"
 
   tasks:
     - name: Install samba

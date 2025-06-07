@@ -2,16 +2,10 @@
 - name: Add a share
   hosts: all
 
-  vars_prompt:
-    - name: share_name
-      prompt: "Share name"
-      private: no
-    - name: share_path
-      prompt: "Path to the share directory"
-      private: no
-    - name: samba_client
-      prompt: "Samba client user id"
-      private: no
+  vars:
+    share_name: home
+    share_path: "/home/{{ ansible_user_id }}"
+    samba_client: "{{ ansible_user_id }}"
 
   tasks:
     - name: Install samba

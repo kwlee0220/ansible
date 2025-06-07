@@ -2,12 +2,9 @@
 - name: Add a samba client
   hosts: all
 
-  vars_prompt:
-    - name: samba_client
-      prompt: "Samba client user id"
-      private: no
-    - name: samba_client_passwd
-      prompt: "Samba client password"
+  vars:
+    samba_client: "{{ ansible_user_id }}"
+    samba_client_passwd: "urc2004"
 
   tasks:
     - name: Install samba
