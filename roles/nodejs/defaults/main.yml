@@ -1,0 +1,6 @@
+---
+# Node.js default variables
+
+nodejs_version: "22.x"  # Latest version
+nodejs_install_npm: true
+nodejs_install_global_packages: [] 

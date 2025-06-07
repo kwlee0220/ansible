@@ -1,0 +1,4 @@
+---
+# Node.js handlers
+
+# Node.js는 systemd 서비스로 실행되지 않으므로 handler가 필요하지 않습니다. 
