@@ -3,4 +3,4 @@
   hosts: all
 
 - import_playbook: "../argo/install_minikube.yml"
-- import_playbook: "../argo/install_argo.yml"
+- import_playbook: "../argo/install_argo_workflow.yml"
