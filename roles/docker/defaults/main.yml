@@ -1,6 +1,6 @@
 ---
 # Docker user to add to docker group (optional)
-docker_user: "{{ ansible_user }}"
+docker_user: "{{ ansible_user_id }}"
 
 # Docker Compose version for standalone installation
 docker_compose_version: "v2.24.5"
