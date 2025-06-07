@@ -17,3 +17,5 @@
 - import_playbook: "../postgresql/install_pgadmin4.yml"
 - import_playbook: "../postgresql/add_user_db.yml"
 - import_playbook: "../mosquitto/install_mosquitto.yml"
+- import_playbook: "../install_mongodb.yml"
+- import_playbook: "../install_nodejs.yml"
