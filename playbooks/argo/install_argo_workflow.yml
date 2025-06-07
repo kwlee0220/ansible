@@ -59,4 +59,4 @@
 
     - name: Display Argo UI access URL
       debug:
-        msg: "Access Argo Workflows UI at http://localhost:2746"
+        msg: "Access Argo Workflows UI at https://localhost:2746"
