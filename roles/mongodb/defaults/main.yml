@@ -1,0 +1,5 @@
+---
+# MongoDB default variables
+
+mongodb_version: "7.0"
+mongodb_port: 27017 

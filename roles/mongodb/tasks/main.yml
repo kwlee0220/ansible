@@ -1,0 +1,30 @@
+---
+# MongoDB 설치를 위한 tasks
+
+- name: Import MongoDB public GPG key
+  apt_key:
+    url: https://www.mongodb.org/static/pgp/server-{{ mongodb_version }}.asc
+    state: present
+  become: true
+
+- name: Add MongoDB repository
+  apt_repository:
+    repo: deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu {{ ansible_distribution_release }}/mongodb-org/{{ mongodb_version }} multiverse
+    state: present
+    filename: mongodb-org-{{ mongodb_version }}
+  become: true
+
+- name: Install MongoDB packages
+  apt:
+    name: mongodb-org
+    state: present
+    update_cache: yes
+  become: true
+  notify: restart mongodb
+
+- name: Ensure MongoDB service is enabled and started
+  systemd:
+    name: mongod
+    state: started
+    enabled: yes
+  become: true 
