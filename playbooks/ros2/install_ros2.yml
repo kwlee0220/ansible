@@ -5,11 +5,8 @@
   vars:
     user_home_dir: "{{ ansible_env.HOME }}"
 
-  vars_prompt:
-    - name: ros2_domain_id
-      prompt: "DOMAIN ID for ROS2"
-      default: 31
-      private: no
+  vars:
+    ros2_domain_id: 31
 
   tasks:
     - name: Ensure that the Ubuntu Universe repository is enabled.
