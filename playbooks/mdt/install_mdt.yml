@@ -1,5 +1,5 @@
 ---
-- name: Install basic apps
+- name: Install necessary systems for MDT platform
   hosts: all
 
   vars:
