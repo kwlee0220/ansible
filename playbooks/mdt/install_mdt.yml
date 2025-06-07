@@ -1,5 +1,5 @@
 ---
-- name: Install necessary systems for MDT platform
+- name: install necessary systems for MDT platform
   hosts: all
 
   vars:
@@ -7,6 +7,36 @@
     postgres_user: mdt
     postgres_db: mdt
     postgres_password: mdt2025
+
+    host: "{{ ansible_host }}"
+    mdt_home: "$HOME/mdt"
+
+  tasks:
+    - name: Configure MDT settings
+      block:
+        - name: Remove the previous MDT configuration
+          blockinfile:
+            path: "{{ user_home_dir }}/.bashrc"
+            marker: "# MDT: {mark}"
+            state: absent
+        - name: Configure MDT in bashrc
+          blockinfile:
+            path: "{{ user_home_dir }}/.bashrc"
+            prepend_newline: yes
+            append_newline: yes
+            insertbefore: "#THIS MUST BE AT THE END OF THE FILE"
+            marker: "# MDT: {mark}"
+            block: |
+              export LOCAL_HOST={{ host }}
+              export MDT_HOME={{ mdt_home }}
+              export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
+              source $MDT_CLIENT_HOME/sbin/mdt_completion
+              export MDT_GLOBAL_CONFIG_FILE=$MDT_HOME/mdt-manager/mdt_global_config.json
+              export ARGO_ENDPOINT=https://$LOCAL_HOST:2743
+              
+              PATH=$MDT_CLIENT_HOME/sbin:$PATH
+              export PATH
+      become: false 
 
   roles:
     - role: basic_apps
