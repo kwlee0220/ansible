@@ -2,9 +2,9 @@
 # MongoDB 설치를 위한 tasks
 
 - name: Import MongoDB public GPG key
-  apt_key:
-    url: https://www.mongodb.org/static/pgp/server-{{ mongodb_version }}.asc
-    state: present
+  shell: curl -fsSL https://www.mongodb.org/static/pgp/server-{{ mongodb_version }}.asc | gpg --dearmor -o /usr/share/keyrings/mongodb.gpg
+  args:
+    creates: /usr/share/keyrings/mongodb.gpg
   become: true
 
 - name: Add MongoDB repository
