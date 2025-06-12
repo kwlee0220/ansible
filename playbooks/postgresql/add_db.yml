@@ -1,22 +1,12 @@
 ---
-- name: PostgreSQL Installation
+- name: Add a database for PostgreSQL
   hosts: all
 
   vars:
     postgres_db: ""
     postgres_user: ""
-    postgres_password: ""
 
   tasks:
-    - name: Create PostgreSQL user
-      postgresql_user:
-        name: "{{ postgres_user }}"
-        password: "{{ postgres_password }}"
-        state: present
-      become: true
-      become_user: postgres
-      when: postgres_user != "" and postgres_password != ""
-
     - name: Create PostgreSQL database
       postgresql_db:
         name: "{{ postgres_db }}"
