@@ -30,12 +30,11 @@
               export LOCAL_HOST={{ host }}
               export MDT_HOME={{ mdt_home }}
               export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
-              source $MDT_CLIENT_HOME/sbin/mdt_completion
-              export MDT_GLOBAL_CONFIG_FILE=$MDT_HOME/mdt-manager/mdt_global_config.json
-              export ARGO_ENDPOINT=https://$LOCAL_HOST:2743
+              export MDT_ENDPOINT=http://$LOCAL_HOST:12985
               
               PATH=$MDT_CLIENT_HOME/sbin:$PATH
               export PATH
+              source $MDT_CLIENT_HOME/sbin/mdt_completion
       become: false 
 
   roles:
@@ -45,7 +44,21 @@
 
 - import_playbook: "../postgresql/install_postgresql.yml"
 - import_playbook: "../postgresql/install_pgadmin4.yml"
+
 - import_playbook: "../postgresql/add_user_db.yml"
+  vars:
+    postgres_db: mdt
+    postgres_user: mdt
+    postgres_password: mdt2025
+- import_playbook: "../postgresql/add_db.yml"
+  vars:
+    postgres_db: mdt-app
+    postgres_user: mdt
+- import_playbook: "../postgresql/add_db.yml"
+  vars:
+    postgres_db: ksx9101
+    postgres_user: mdt
+
 - import_playbook: "../mosquitto/install_mosquitto.yml"
 - import_playbook: "../install_mongodb.yml"
 - import_playbook: "../install_nodejs.yml"
