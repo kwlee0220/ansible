@@ -8,6 +8,7 @@
       pip:
         name:
           - "numpy>=1.22.4"
+          - pandas
           - opencv-python
           - matplotlib
           - PySide6
