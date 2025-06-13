@@ -19,8 +19,9 @@
       with_items:
         - /etc/apt/sources.list.d/pgdg.list
         - /etc/apt/sources.list.d/pgdg.list.list
+        - /etc/apt/trusted.gpg.d/postgresql.asc
       become: true
-      
+
     - name: Download PostgreSQL signing key
       get_url:
         url: "{{ pgdg_gpg_url }}"
