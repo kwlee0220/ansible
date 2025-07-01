@@ -1,0 +1,91 @@
+---
+- name: Configure MDT platform
+  hosts: all
+  become: false
+
+  vars:
+    user_home_dir: "{{ ansible_env.HOME }}"
+    development_dir: "{{ user_home_dir }}/development"
+    common_dir: "{{ development_dir }}/common"
+    mdt_dir: "{{ development_dir }}/mdt"
+    misc_dir: "{{ development_dir }}/misc"
+
+    host: "{{ ansible_host }}"
+    mdt_home: "{{ user_home_dir }}/mdt"
+    mdt_version: "1.1.2"
+
+    symlink_config:
+      - src: "{{ mdt_dir }}/mdt-client/build/libs/mdt-client-{{ mdt_version }}-all.jar"
+        dest: "{{ mdt_home }}/mdt-client/mdt-client-all.jar"
+        force: yes
+      - src: "{{ mdt_dir }}/mdt-manager/build/libs/mdt-manager-{{ mdt_version }}-all.jar"
+        dest: "{{ mdt_home }}/mdt-manager/mdt-manager-all.jar"
+        force: yes
+      - src: "{{ mdt_dir }}/mdt-operation-http/build/libs/mdt-operation-http-{{ mdt_version }}.jar"
+        dest: "{{ mdt_home }}/mdt-operation-http/mdt-operation-http.jar"
+        force: yes
+      - src: "{{ mdt_dir }}/mdt-workflow-argo/build/libs/mdt-workflow-argo-{{ mdt_version }}-all.jar"
+        dest: "{{ mdt_home }}/mdt-workflow-argo/mdt-workflow-argo.jar"
+        force: yes
+
+
+  tasks:
+    - name: Create MDT directory structure
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      with_items:
+        - "{{ mdt_home }}"
+        - "{{ mdt_home }}/models"
+        - "{{ mdt_home }}/mdt-client"
+        - "{{ mdt_home }}/mdt-manager"
+        - "{{ mdt_home }}/mdt-operation-http"
+        - "{{ mdt_home }}/mdt-workflow-argo"
+
+    - name: Extract mdt-client.zip
+      unarchive:
+        src: "files/mdt-client.zip"
+        dest: "{{ mdt_home }}/mdt-client"
+        remote_src: no
+        mode: '0755' 
+
+    - name: Create symbolic links
+      file:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        state: link
+        force: "{{ item.force | default(no) }}"
+      with_items: "{{ symlink_config }}"
+
+    - name: Configure MDT settings
+      block:
+        - name: Create mdt home directory
+          file:
+            path: "{{ mdt_home }}"
+            state: directory
+            mode: '0755'
+
+        - name: Remove the previous MDT configuration
+          blockinfile:
+            path: "{{ user_home_dir }}/.bashrc"
+            marker: "# MDT: {mark}"
+            state: absent
+
+        - name: Configure MDT in bashrc
+          blockinfile:
+            path: "{{ user_home_dir }}/.bashrc"
+            prepend_newline: yes
+            append_newline: yes
+            insertbefore: "#THIS MUST BE AT THE END OF THE FILE"
+            marker: "# MDT: {mark}"
+            block: |
+              export LOCAL_HOST={{ host }}
+              export MDT_HOME={{ mdt_home }}
+              export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
+              export MDT_ENDPOINT=http://$LOCAL_HOST:12985
+              
+              PATH=$MDT_CLIENT_HOME/sbin:$PATH
+              export PATH
+              source $MDT_CLIENT_HOME/sbin/mdt_completion
+      become: false

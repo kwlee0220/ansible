@@ -8,40 +8,12 @@
     postgres_db: mdt
     postgres_password: mdt2025
 
-    host: "{{ ansible_host }}"
-    mdt_home: "$HOME/mdt"
-
-  tasks:
-    - name: Configure MDT settings
-      block:
-        - name: Remove the previous MDT configuration
-          blockinfile:
-            path: "{{ user_home_dir }}/.bashrc"
-            marker: "# MDT: {mark}"
-            state: absent
-        - name: Configure MDT in bashrc
-          blockinfile:
-            path: "{{ user_home_dir }}/.bashrc"
-            prepend_newline: yes
-            append_newline: yes
-            insertbefore: "#THIS MUST BE AT THE END OF THE FILE"
-            marker: "# MDT: {mark}"
-            block: |
-              export LOCAL_HOST={{ host }}
-              export MDT_HOME={{ mdt_home }}
-              export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
-              export MDT_ENDPOINT=http://$LOCAL_HOST:12985
-              
-              PATH=$MDT_CLIENT_HOME/sbin:$PATH
-              export PATH
-              source $MDT_CLIENT_HOME/sbin/mdt_completion
-      become: false 
-
   roles:
     - role: basic_apps
     - role: docker
-    - role: sdkman
 
+- import_playbook: "../install_gradle.yml"
+- import_playbook: "../install_temurin_jdk.yml"
 - import_playbook: "../postgresql/install_postgresql.yml"
 - import_playbook: "../postgresql/install_pgadmin4.yml"
 
@@ -62,3 +34,8 @@
 - import_playbook: "../mosquitto/install_mosquitto.yml"
 - import_playbook: "../install_mongodb.yml"
 - import_playbook: "../install_nodejs.yml"
+- import_playbook: "../ros2/install_ros2.yml"
+- import_playbook: "../ros2/install_panda_moveit_ros2.yml"
+
+- import_playbook: "build_mdt_platform.yml"
+- import_playbook: "configure_mdt_platform.yml"

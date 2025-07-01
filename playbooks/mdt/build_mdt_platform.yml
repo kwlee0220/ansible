@@ -1,0 +1,218 @@
+---
+- name: Build MDT platform source code
+  hosts: all
+  become: false
+
+  vars:
+    user_home_dir: "{{ ansible_env.HOME }}"
+    development_dir: "{{ user_home_dir }}/development"
+    common_dir: "{{ development_dir }}/common"
+    mdt_dir: "{{ development_dir }}/mdt"
+    misc_dir: "{{ development_dir }}/misc"
+
+    utils_repo_url: "https://github.com/kwlee0220/utils.git"
+    utils_project_dir: "{{ common_dir }}/utils"
+
+    argo_java_client_repo_url: "https://github.com/kwlee0220/argo-java-client.git"
+    argo_java_client_project_dir: "{{ misc_dir }}/argo-java-client"
+
+    mdt_client_repo_url: "https://github.com/kwlee0220/mdt-client.git"
+    mdt_client_project_dir: "{{ mdt_dir }}/mdt-client"
+
+    faaast_lib_repo_url: "https://github.com/kwlee0220/faaast-lib.git"
+    faaast_lib_project_dir: "{{ mdt_dir }}/faaast/faaast-lib"
+
+    faaast_starter_repo_url: "https://github.com/kwlee0220/faaast-starter.git"
+    faaast_starter_project_dir: "{{ mdt_dir }}/faaast/faaast-starter"
+
+    mdt_instance_repo_url: "https://github.com/kwlee0220/mdt-instance.git"
+    mdt_instance_project_dir: "{{ mdt_dir }}/mdt-instance"
+
+    mdt_manager_repo_url: "https://github.com/kwlee0220/mdt-manager.git"
+    mdt_manager_project_dir: "{{ mdt_dir }}/mdt-manager"
+
+    mdt_operation_http_repo_url: "https://github.com/kwlee0220/mdt-operation-http.git"
+    mdt_operation_http_project_dir: "{{ mdt_dir }}/mdt-operation-http"
+
+    mdt_workflow_argo_repo_url: "https://github.com/kwlee0220/mdt-workflow-argo.git"
+    mdt_workflow_argo_project_dir: "{{ mdt_dir }}/mdt-workflow-argo"
+
+    mdt_apps_repo_url: "https://github.com/kwlee0220/mdt-apps.git"
+    mdt_apps_project_dir: "{{ mdt_dir }}/mdt-apps"
+
+  tasks:
+    - name: Remove existing common directory
+      file:
+        path: "{{ common_dir }}"
+        state: absent
+
+    - name: Create development directory structure
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      with_items:
+        - "{{ development_dir }}"
+        - "{{ common_dir }}"
+
+    - name: Clone utils repository
+      git:
+        repo: "{{ utils_repo_url }}"
+        dest: "{{ utils_project_dir }}"
+        version: master
+        force: no
+
+    - name: Build utils project with system Gradle
+      shell: |
+        cd {{ utils_project_dir }}
+        gradle assemble
+      args:
+        executable: /bin/bash
+
+
+    - name: Remove existing 'misc' directory
+      file:
+        path: "{{ misc_dir }}"
+        state: absent
+    - name: create 'misc' directory
+      file:
+        path: "{{ misc_dir }}"
+        state: directory
+        mode: '0755'
+    - name: Clone 'argo-java-client' repository
+      git:
+        repo: "{{ argo_java_client_repo_url }}"
+        dest: "{{ argo_java_client_project_dir }}"
+        version: master
+        force: no
+    - name: Build 'argo-java-client' project with Gradle
+      shell: |
+        cd {{ argo_java_client_project_dir }}
+        gradle assemble
+      args:
+        executable: /bin/bash
+
+
+
+    - name: Remove existing mdt directory
+      file:
+        path: "{{ mdt_dir }}"
+        state: absent
+
+    - name: create mdt directory
+      file:
+        path: "{{ mdt_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Clone 'mdt-client' repository
+      git:
+        repo: "{{ mdt_client_repo_url }}"
+        dest: "{{ mdt_client_project_dir }}"
+        version: master
+        force: no
+
+    - name: Build 'mdt-client' project with Gradle
+      shell: |
+        cd {{ mdt_client_project_dir }}
+        gradle assemble
+      args:
+        executable: /bin/bash
+
+    - name: Clone 'faaast-lib' repository
+      git:
+        repo: "{{ faaast_lib_repo_url }}"
+        dest: "{{ faaast_lib_project_dir }}"
+        version: master
+        force: no
+
+    - name: Build 'faaast-lib' project with Gradle
+      shell: |
+        cd {{ faaast_lib_project_dir }}
+        gradle assemble
+      args:
+        executable: /bin/bash
+
+    - name: Clone 'faaast-starter' repository
+      git:
+        repo: "{{ faaast_starter_repo_url }}"
+        dest: "{{ faaast_starter_project_dir }}"
+        version: master
+        force: no
+
+    - name: Build 'faaast-starter' project with Gradle
+      shell: |
+        cd {{ faaast_starter_project_dir }}
+        gradle assemble
+      args:
+        executable: /bin/bash
+
+    - name: Clone 'mdt-instance' repository
+      git:
+        repo: "{{ mdt_instance_repo_url }}"
+        dest: "{{ mdt_instance_project_dir }}"
+        version: master
+        force: no
+
+    - name: Build 'mdt-instance' project with Gradle
+      shell: |
+        cd {{ mdt_instance_project_dir }}
+        gradle assemble
+      args:
+        executable: /bin/bash
+
+    - name: Clone 'mdt-manager' repository
+      git:
+        repo: "{{ mdt_manager_repo_url }}"
+        dest: "{{ mdt_manager_project_dir }}"
+        version: master
+        force: no
+
+    - name: Build 'mdt-manager' project with Gradle
+      shell: |
+        cd {{ mdt_manager_project_dir }}
+        gradle assemble
+      args:
+        executable: /bin/bash
+
+    - name: Clone 'mdt-operation-http' repository
+      git:
+        repo: "{{ mdt_operation_http_repo_url }}"
+        dest: "{{ mdt_operation_http_project_dir }}"
+        version: master
+        force: no
+
+    - name: Build 'mdt-operation-http' project with Gradle
+      shell: |
+        cd {{ mdt_operation_http_project_dir }}
+        gradle assemble
+      args:
+        executable: /bin/bash
+
+    - name: Clone 'mdt-workflow-argo' repository
+      git:
+        repo: "{{ mdt_workflow_argo_repo_url }}"
+        dest: "{{ mdt_workflow_argo_project_dir }}"
+        version: master
+        force: no
+
+    - name: Build 'mdt-workflow-argo' project with Gradle
+      shell: |
+        cd {{ mdt_workflow_argo_project_dir }}
+        gradle assemble
+      args:
+        executable: /bin/bash
+
+    - name: Clone 'mdt-apps' repository
+      git:
+        repo: "{{ mdt_apps_repo_url }}"
+        dest: "{{ mdt_apps_project_dir }}"
+        version: master
+        force: no
+
+    - name: Build 'mdt-apps' project with Gradle
+      shell: |
+        cd {{ mdt_apps_project_dir }}
+        gradle assemble
+      args:
+        executable: /bin/bash
