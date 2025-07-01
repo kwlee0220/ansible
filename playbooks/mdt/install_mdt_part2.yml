@@ -4,5 +4,5 @@
 
 - import_playbook: "../argo/install_minikube.yml"
 - import_playbook: "../argo/install_argo_workflow.yml"
-- import_playbook: "../argo/start_argo_workflow.yml"
+# - import_playbook: "../argo/start_argo_workflow.yml"
 - import_playbook: install_python_modules.yml
