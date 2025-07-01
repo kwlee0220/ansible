@@ -1,0 +1,41 @@
+---
+- name: Add MDT built-in models
+  hosts: all
+  become: false
+
+  vars:
+    user_home_dir: "{{ ansible_env.HOME }}"
+    model_dir: "{{ user_home_dir }}/mdt/models"
+    model_items:
+      - test
+      - welder
+      - innercase
+      - panda
+
+  tasks:
+    - name: Create MDT directory models
+      file:
+        path: "{{ model_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: 각 MDT 모델을 저장할 디렉토리 생성
+      file:
+        path: "{{ model_dir }}/{{ item }}"
+        state: directory
+        mode: '0755'
+      loop: "{{ model_items }}"
+
+    - name: 각 MDT 모델 압축 해제
+      unarchive:
+        src: "files/models/{{ item }}.zip"
+        dest: "{{ model_dir }}/{{ item }}"
+        remote_src: no
+        mode: '0755'
+      loop: "{{ model_items }}"
+
+    - name: MDT 모델 등록 스크립트 복사
+      copy:
+        src: "files/models/add_models.sh"
+        dest: "{{ model_dir }}/add_models.sh"
+        mode: '0755'

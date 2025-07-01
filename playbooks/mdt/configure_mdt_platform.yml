@@ -14,6 +14,13 @@
     mdt_home: "{{ user_home_dir }}/mdt"
     mdt_version: "1.1.2"
 
+    key_compoents:
+      - mdt-client
+      - mdt-manager
+      - share
+      - mdt-operation-http
+      - mdt-workflow-argo
+
     symlink_config:
       - src: "{{ mdt_dir }}/mdt-client/build/libs/mdt-client-{{ mdt_version }}-all.jar"
         dest: "{{ mdt_home }}/mdt-client/mdt-client-all.jar"
@@ -30,25 +37,28 @@
 
 
   tasks:
-    - name: Create MDT directory structure
+    - name: Create top-level MDT directory
       file:
-        path: "{{ item }}"
+        path: "{{ mdt_home }}"
         state: directory
         mode: '0755'
-      with_items:
-        - "{{ mdt_home }}"
-        - "{{ mdt_home }}/models"
-        - "{{ mdt_home }}/mdt-client"
-        - "{{ mdt_home }}/mdt-manager"
-        - "{{ mdt_home }}/mdt-operation-http"
-        - "{{ mdt_home }}/mdt-workflow-argo"
 
-    - name: Extract mdt-client.zip
-      unarchive:
-        src: "files/mdt-client.zip"
-        dest: "{{ mdt_home }}/mdt-client"
-        remote_src: no
-        mode: '0755' 
+    - name: install MDT key components
+      block:
+        - name: Create MDT directory for key components
+          file:
+            path: "{{ item }}"
+            state: directory
+            mode: '0755'
+          loop: "{{ key_compoents }}"
+
+        - name: unzip key components
+          unarchive:
+            src: "files/{{ item }}.zip"
+            dest: "{{ mdt_home }}/{{ item }}"
+            remote_src: no
+            mode: '0755'
+          loop: "{{ key_compoents }}"
 
     - name: Create symbolic links
       file:
@@ -89,3 +99,5 @@
               export PATH
               source $MDT_CLIENT_HOME/sbin/mdt_completion
       become: false
+
+- import_playbook: "add_builtin_instances.yml"
