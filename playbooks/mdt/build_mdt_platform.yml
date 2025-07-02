@@ -13,6 +13,8 @@
 
     utils_repo_url: "https://github.com/kwlee0220/utils.git"
     utils_project_dir: "{{ common_dir }}/utils"
+    pyutils_repo_url: "https://github.com/kwlee0220/pyutils.git"
+    pyutils_project_dir: "{{ common_dir }}/pyutils"
 
     argo_java_client_repo_url: "https://github.com/kwlee0220/argo-java-client.git"
     argo_java_client_project_dir: "{{ misc_dir }}/argo-java-client"
@@ -67,17 +69,17 @@
         force: yes
 
   tasks:
-    - name: Remove existing common directory
+    - name: Remove existing development directory
       file:
         path: "{{ development_dir }}"
         state: absent
 
-    - name: Create development directory structure
+    - name: Create development and common directory
       file:
         path: "{{ item }}"
         state: directory
         mode: '0755'
-      with_items:
+      loop:
         - "{{ development_dir }}"
         - "{{ common_dir }}"
 
@@ -87,13 +89,18 @@
         dest: "{{ utils_project_dir }}"
         version: master
         force: no
-
-    - name: Build utils project with system Gradle
+    - name: Build utils project with Gradle
       shell: |
         cd {{ utils_project_dir }}
         gradle assemble
       args:
         executable: /bin/bash
+    - name: Clone 'pyutils' repository
+      git:
+        repo: "{{ pyutils_repo_url }}"
+        dest: "{{ pyutils_project_dir }}"
+        version: master
+        force: no
 
 
     - name: Remove existing 'misc' directory
@@ -123,7 +130,6 @@
       file:
         path: "{{ mdt_dir }}"
         state: absent
-
     - name: create mdt directory
       file:
         path: "{{ mdt_dir }}"
@@ -136,7 +142,6 @@
         dest: "{{ mdt_client_project_dir }}"
         version: master
         force: no
-
     - name: Build 'mdt-client' project with Gradle
       shell: |
         cd {{ mdt_client_project_dir }}
@@ -150,7 +155,6 @@
         dest: "{{ faaast_lib_project_dir }}"
         version: master
         force: no
-
     - name: Build 'faaast-lib' project with Gradle
       shell: |
         cd {{ faaast_lib_project_dir }}
@@ -164,7 +168,6 @@
         dest: "{{ faaast_starter_project_dir }}"
         version: master
         force: no
-
     - name: Build 'faaast-starter' project with Gradle
       shell: |
         cd {{ faaast_starter_project_dir }}
@@ -178,7 +181,6 @@
         dest: "{{ mdt_instance_project_dir }}"
         version: master
         force: no
-
     - name: Build 'mdt-instance' project with Gradle
       shell: |
         cd {{ mdt_instance_project_dir }}
@@ -192,7 +194,6 @@
         dest: "{{ mdt_manager_project_dir }}"
         version: master
         force: no
-
     - name: Build 'mdt-manager' project with Gradle
       shell: |
         cd {{ mdt_manager_project_dir }}
@@ -206,7 +207,6 @@
         dest: "{{ mdt_operation_http_project_dir }}"
         version: master
         force: no
-
     - name: Build 'mdt-operation-http' project with Gradle
       shell: |
         cd {{ mdt_operation_http_project_dir }}
@@ -220,7 +220,6 @@
         dest: "{{ mdt_workflow_argo_project_dir }}"
         version: master
         force: no
-
     - name: Build 'mdt-workflow-argo' project with Gradle
       shell: |
         cd {{ mdt_workflow_argo_project_dir }}
@@ -234,13 +233,13 @@
         dest: "{{ mdt_apps_project_dir }}"
         version: master
         force: no
-
     - name: Build 'mdt-apps' project with Gradle
       shell: |
         cd {{ mdt_apps_project_dir }}
         gradle assemble
       args:
         executable: /bin/bash
+
 
     - name: Create symbolic links
       file:
@@ -274,7 +273,6 @@
         dest: "{{ mdt_welder_project_dir }}"
         version: master
         force: no
-
     - name: Install mdt-welder in editable mode
       shell: |
         cd {{ mdt_welder_project_dir }} && pip3 install -e .

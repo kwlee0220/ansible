@@ -1,0 +1,48 @@
+---
+- name: install necessary systems for MDT platform
+  hosts: all
+
+  vars:
+    user_id: "{{ ansible_user_id }}"
+    postgres_user: mdt
+    postgres_db: mdt
+    postgres_password: mdt2025
+
+  roles:
+    - role: basic_apps
+    # - role: docker
+
+  # tasks:
+  #   - name: python3-pip 설치
+  #     package:
+  #       name: python3-pip
+  #       state: present
+  #     become: true
+
+- import_playbook: "../install_gradle.yml"
+- import_playbook: "../install_temurin_jdk.yml"
+- import_playbook: "../postgresql/install_postgresql.yml"
+- import_playbook: "../postgresql/install_pgadmin4.yml"
+
+- import_playbook: "../postgresql/add_user_db.yml"
+  vars:
+    postgres_db: mdt
+    postgres_user: mdt
+    postgres_password: mdt2025
+- import_playbook: "../postgresql/add_db.yml"
+  vars:
+    postgres_db: mdt-app
+    postgres_user: mdt
+- import_playbook: "../postgresql/add_db.yml"
+  vars:
+    postgres_db: ksx9101
+    postgres_user: mdt
+
+- import_playbook: "../mosquitto/install_mosquitto.yml"
+# - import_playbook: "../ros2/install_ros2.yml"
+# - import_playbook: "../ros2/install_panda_moveit_ros2.yml"
+
+- import_playbook: "deploy_mdt_platform.yml"
+- import_playbook: "build_mdt_platform.yml"
+# # - import_playbook: "../install_mongodb.yml"
+# # - import_playbook: "../install_nodejs.yml"
