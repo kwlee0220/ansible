@@ -11,8 +11,6 @@
   roles:
     - role: basic_apps
     - role: docker
-    - name: Install Tilix
-      role: tilix
 
   tasks:
     - name: python3-pip 설치

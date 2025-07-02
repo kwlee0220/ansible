@@ -75,6 +75,9 @@
               PATH=$MDT_CLIENT_HOME/sbin:$PATH
               export PATH
               source $MDT_CLIENT_HOME/sbin/mdt_completion
+
+              PYTHONPATH=$PYTHONPATH:$HOME/development/common/pyutils
+              PYTHONPATH=$PYTHONPATH:$HOME/development/mdtpy/mdtpy
       become: false
 
 - import_playbook: "add_builtin_instances.yml"
