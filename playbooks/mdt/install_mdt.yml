@@ -11,6 +11,15 @@
   roles:
     - role: basic_apps
     - role: docker
+    - name: Install Tilix
+      role: tilix
+
+  tasks:
+    - name: python3-pip 설치
+      package:
+        name: python3-pip
+        state: present
+      become: true
 
 - import_playbook: "../install_gradle.yml"
 - import_playbook: "../install_temurin_jdk.yml"
@@ -32,10 +41,10 @@
     postgres_user: mdt
 
 - import_playbook: "../mosquitto/install_mosquitto.yml"
-- import_playbook: "../install_mongodb.yml"
-- import_playbook: "../install_nodejs.yml"
 - import_playbook: "../ros2/install_ros2.yml"
 - import_playbook: "../ros2/install_panda_moveit_ros2.yml"
 
+- import_playbook: "deploy_mdt_platform.yml"
 - import_playbook: "build_mdt_platform.yml"
-- import_playbook: "configure_mdt_platform.yml"
+# # - import_playbook: "../install_mongodb.yml"
+# # - import_playbook: "../install_nodejs.yml"
