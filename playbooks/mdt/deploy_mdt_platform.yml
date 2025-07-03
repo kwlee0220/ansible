@@ -81,5 +81,3 @@
               PYTHONPATH=$PYTHONPATH:$HOME/development/mdtpy/mdtpy
               export PYTHONPATH
       become: false
-
-- import_playbook: "add_builtin_instances.yml"
