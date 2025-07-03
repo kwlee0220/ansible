@@ -1,0 +1,47 @@
+---
+- name: Add 'welder' model
+  hosts: all
+  become: false
+
+  vars:
+    user_home_dir: "{{ ansible_env.HOME }}"
+    model_dir: "{{ user_home_dir }}/mdt/models"
+
+    mdt_welder_repo_url: "https://github.com/kwlee0220/mdt-welder.git"
+    mdt_welder_project_dir: "{{ user_home_dir }}/development/mdtpy/mdt-welder"
+
+  tasks:
+    - name: Create directory for 'welder' model
+      file:
+        path: "{{ model_dir }}/welder"
+        state: directory
+        mode: '0755'
+
+    - name: Copy 'welder' model
+      unarchive:
+        src: "files/welder.zip"
+        dest: "{{ model_dir }}/welder"
+        remote_src: no
+        mode: '0755'
+
+    - name: Install necessary Python modules for 'welder' instance
+      pip:
+        name:
+          - "numpy>=1.22.4"
+          - simpy
+          - pandas
+          - scipy==1.15.3
+          - isodate
+        state: present
+
+    - name: Clone 'mdt-welder' repository
+      git:
+        repo: "{{ mdt_welder_repo_url }}"
+        dest: "{{ mdt_welder_project_dir }}"
+        version: master
+        force: no
+    - name: Install mdt-welder in editable mode
+      shell: |
+        cd {{ mdt_welder_project_dir }} && pip3 install -e .
+      args:
+        executable: /bin/bash

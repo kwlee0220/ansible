@@ -32,9 +32,6 @@
   vars:
     postgres_db: mdt_app
     postgres_user: mdt
-- import_playbook: "../postgresql/add_db.yml"
-  vars:
-    postgres_db: ksx9101
-    postgres_user: mdt
 
 - import_playbook: "../mosquitto/install_mosquitto.yml"
+- import_playbook: "../ros2/install_ros2.yml"

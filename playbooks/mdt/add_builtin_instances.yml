@@ -1,5 +1,5 @@
 ---
-- name: Add MDT built-in models
+- name: Add MDT pre-defined models
   hosts: all
   become: false
 
@@ -16,60 +16,14 @@
 
     - name: MDT 모델 등록 스크립트 복사
       copy:
-        src: "files/models/add_models.sh"
+        src: "files/add_models.sh"
         dest: "{{ model_dir }}/add_models.sh"
         mode: '0755'
 
+- name: Import test model
+  import_playbook: "models/model_test.yml"
 
-    - name: Add 'test' instance
-      block:
-        - name: Create directory for 'test' model
-          file:
-            path: "{{ model_dir }}/test"
-            state: directory
-            mode: '0755'
-
-        - name: Copy 'test' model
-          unarchive:
-            src: "files/models/test.zip"
-            dest: "{{ model_dir }}/test"
-            remote_src: no
-            mode: '0755'
-
-
-    - name: Add 'welder' instance
-      block:
-        - name: Create directory for 'welder' model
-          file:
-            path: "{{ model_dir }}/welder"
-            state: directory
-            mode: '0755'
-
-        - name: Copy 'welder' model
-          unarchive:
-            src: "files/models/welder.zip"
-            dest: "{{ model_dir }}/welder"
-            remote_src: no
-            mode: '0755'
-
-        - name: Install necessary Python modules for 'welder' instance
-          pip:
-            name:
-              - "numpy>=1.22.4"
-              - simpy
-              - pandas
-              - scipy==1.15.3
-              - isodate
-            state: present
-
-    # - name: Install necessary Python modules for 'welder' and 'inspector' instance
-    #   pip:
-    #     name:
-    #       - "numpy>=1.22.4"
-    #       - scipy
-    #       - pandas
-    #       - opencv-python
-    #       - matplotlib
-    #       - PySide6
-    #       - simpy
-    #     state: present
+- name: Import welder model
+  import_playbook: "models/model_welder.yml"
+- name: Import panda model
+  import_playbook: "models/model_panda.yml"

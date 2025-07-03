@@ -1,0 +1,22 @@
+---
+- name: Add 'test' model
+  hosts: all
+  become: false
+
+  vars:
+    user_home_dir: "{{ ansible_env.HOME }}"
+    model_dir: "{{ user_home_dir }}/mdt/models"
+
+  tasks:
+    - name: Create directory for 'test' model
+      file:
+        path: "{{ model_dir }}/test"
+        state: directory
+        mode: '0755'
+
+    - name: Copy 'test' model
+      unarchive:
+        src: "files/test.zip"
+        dest: "{{ model_dir }}/test"
+        remote_src: no
+        mode: '0755'

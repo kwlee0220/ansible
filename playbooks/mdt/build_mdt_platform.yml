@@ -46,9 +46,6 @@
     mdtpy_repo_url: "https://github.com/kwlee0220/mdtpy.git"
     mdtpy_project_dir: "{{ mdtpy_dir }}/mdtpy"
 
-    mdt_welder_repo_url: "https://github.com/kwlee0220/mdt-welder.git"
-    mdt_welder_project_dir: "{{ mdtpy_dir }}/mdt-welder"
-
     mdt_home: "{{ user_home_dir }}/mdt"
     mdt_version: "1.1.2"
     symlink_config:
@@ -272,15 +269,3 @@
         name:
           - dataclasses_json
         state: present
-
-    - name: Clone 'mdt-welder' repository
-      git:
-        repo: "{{ mdt_welder_repo_url }}"
-        dest: "{{ mdt_welder_project_dir }}"
-        version: master
-        force: no
-    - name: Install mdt-welder in editable mode
-      shell: |
-        cd {{ mdt_welder_project_dir }} && pip3 install -e .
-      args:
-        executable: /bin/bash
