@@ -267,6 +267,12 @@
         version: master
         force: no
 
+    - name: Install necessary Python modules for 'mdtpy'
+      pip:
+        name:
+          - dataclasses_json
+        state: present
+
     - name: Clone 'mdt-welder' repository
       git:
         repo: "{{ mdt_welder_repo_url }}"

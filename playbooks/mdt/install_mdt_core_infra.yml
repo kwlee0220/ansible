@@ -30,7 +30,7 @@
     postgres_password: mdt2025
 - import_playbook: "../postgresql/add_db.yml"
   vars:
-    postgres_db: mdt-app
+    postgres_db: mdt_app
     postgres_user: mdt
 - import_playbook: "../postgresql/add_db.yml"
   vars:

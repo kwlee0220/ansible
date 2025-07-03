@@ -2,8 +2,8 @@
 - name: install MDT platform
   hosts: all
 
-# - name: MDTPlatform을 위한 기반 software를 설치
-#   import_playbook: "install_mdt core_infra.yml"
+- name: MDTPlatform을 위한 기반 software를 설치
+  import_playbook: "install_mdt_core_infra.yml"
 
 - name: MDT platform 기반 구조 설치
   import_playbook: "deploy_mdt_platform.yml"

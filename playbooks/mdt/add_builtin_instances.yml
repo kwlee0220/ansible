@@ -39,3 +39,15 @@
         src: "files/models/add_models.sh"
         dest: "{{ model_dir }}/add_models.sh"
         mode: '0755'
+
+    - name: Install necessary Python modules for 'welder' and 'inspector' instance
+      pip:
+        name:
+          - "numpy>=1.22.4"
+          - scipy
+          - pandas
+          - opencv-python
+          - matplotlib
+          - PySide6
+          - simpy
+        state: present
