@@ -3,13 +3,14 @@
   hosts: all
   become: false
 
+  vars_files:
+    - mdt_vars.yml
+
   vars:
-    user_home_dir: "{{ ansible_env.HOME }}"
-    development_dir: "{{ user_home_dir }}/development"
-    common_dir: "{{ development_dir }}/common"
-    mdt_dir: "{{ development_dir }}/mdt"
-    misc_dir: "{{ development_dir }}/misc"
-    mdtpy_dir: "{{ development_dir }}/mdtpy"
+    common_dir: "{{ src_root_dir }}/common"
+    mdt_dir: "{{ src_root_dir }}/mdt"
+    misc_dir: "{{ src_root_dir }}/misc"
+    mdtpy_dir: "{{ src_root_dir }}/mdtpy"
 
     utils_repo_url: "https://github.com/kwlee0220/utils.git"
     utils_project_dir: "{{ common_dir }}/utils"
@@ -46,8 +47,6 @@
     mdtpy_repo_url: "https://github.com/kwlee0220/mdtpy.git"
     mdtpy_project_dir: "{{ mdtpy_dir }}/mdtpy"
 
-    mdt_home: "{{ user_home_dir }}/mdt"
-    mdt_version: "1.1.2"
     symlink_config:
       - src: "{{ mdt_dir }}/mdt-client/build/libs/mdt-client-{{ mdt_version }}-all.jar"
         dest: "{{ mdt_home }}/mdt-client/mdt-client-all.jar"
@@ -68,7 +67,7 @@
   tasks:
     - name: Remove existing development directory
       file:
-        path: "{{ development_dir }}"
+        path: "{{ src_root_dir }}"
         state: absent
 
     - name: Create development and common directory
@@ -77,7 +76,7 @@
         state: directory
         mode: '0755'
       loop:
-        - "{{ development_dir }}"
+        - "{{ src_root_dir }}"
         - "{{ common_dir }}"
 
     - name: Clone utils repository

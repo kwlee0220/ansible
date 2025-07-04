@@ -1,15 +1,13 @@
 ---
 - name: install necessary softwares for MDT platform
   hosts: all
-
-  vars:
-    user_id: "{{ ansible_user_id }}"
-    postgres_user: mdt
-    postgres_db: mdt
-    postgres_password: mdt2025
+  vars_files:
+    - mdt_vars.yml
 
   roles:
     - role: basic_apps
+    - role: temurin_jdk
+    - role: gradle
 
   tasks:
     - name: python3-pip 설치
@@ -18,20 +16,15 @@
         state: present
       become: true
 
-- import_playbook: "../install_gradle.yml"
-- import_playbook: "../install_temurin_jdk.yml"
-
 - import_playbook: "../postgresql/install_postgresql.yml"
 - import_playbook: "../postgresql/install_pgadmin4.yml"
-- import_playbook: "../postgresql/add_user_db.yml"
+
+- name: Create PostgreSQL user and database for MDTPlatform
+  import_playbook: "../postgresql/add_user_db.yml"
   vars:
-    postgres_db: mdt
-    postgres_user: mdt
-    postgres_password: mdt2025
-- import_playbook: "../postgresql/add_db.yml"
-  vars:
-    postgres_db: mdt_app
-    postgres_user: mdt
+    postgres_db: "{{ postgres_db | default('mdt') }}"
+    postgres_user: "{{ postgres_user | default('mdt') }}"
+    postgres_password: "{{ postgres_password | default('mdt2025') }}"
 
 - import_playbook: "../mosquitto/install_mosquitto.yml"
 - import_playbook: "../ros2/install_ros2.yml"

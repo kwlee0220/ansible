@@ -3,16 +3,14 @@
   hosts: all
   become: false
 
+  vars_files:
+    - mdt_vars.yml
+
   vars:
-    user_home_dir: "{{ ansible_env.HOME }}"
-    development_dir: "{{ user_home_dir }}/development"
+    development_dir: "{{ user_home_dir | default(ansible_env.HOME) }}/development"
     common_dir: "{{ development_dir }}/common"
     mdt_dir: "{{ development_dir }}/mdt"
     misc_dir: "{{ development_dir }}/misc"
-
-    mdt_home: "{{ user_home_dir }}/mdt"
-    mdt_version: "1.1.2"
-    mdt_localhost: "{{ ansible_host | default('localhost') }}"
 
     key_compoents:
       - mdt-client
@@ -67,7 +65,7 @@
             insertbefore: "#THIS MUST BE AT THE END OF THE FILE"
             marker: "# MDT: {mark}"
             block: |
-              export LOCAL_HOST={{ mdt_localhost }}
+              export LOCAL_HOST={{ platform_host | default('localhost') }}
               export MDT_HOME={{ mdt_home }}
               export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
               export MDT_ENDPOINT=http://$LOCAL_HOST:12985

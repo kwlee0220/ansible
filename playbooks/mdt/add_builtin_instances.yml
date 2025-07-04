@@ -3,9 +3,11 @@
   hosts: all
   become: false
 
+  vars_files:
+    - mdt_vars.yml
+
   vars:
-    user_home_dir: "{{ ansible_env.HOME }}"
-    model_dir: "{{ user_home_dir }}/mdt/models"
+    model_dir: "{{ mdt_home }}/models"
 
   tasks:
     - name: Create MDT directory models
@@ -19,6 +21,11 @@
         src: "files/add_models.sh"
         dest: "{{ model_dir }}/add_models.sh"
         mode: '0755'
+        
+- import_playbook: "../postgresql/add_db.yml"
+  vars:
+    postgres_db: mdt_app
+    postgres_user: {{ postgres_user }}
 
 - name: Import test model
   import_playbook: "models/model_test.yml"
