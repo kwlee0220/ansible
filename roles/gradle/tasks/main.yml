@@ -1,0 +1,108 @@
+---
+- name: Install required packages
+  package:
+    name: "{{ gradle_required_packages }}"
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Create Gradle directory
+  file:
+    path: "{{ gradle_home }}"
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Check if Gradle is already installed
+  stat:
+    path: "{{ gradle_dir }}"
+  register: gradle_installed
+
+- name: Download Gradle archive
+  get_url:
+    url: "{{ gradle_url }}"
+    dest: "/tmp/{{ gradle_archive }}"
+    mode: '0644'
+  when: not gradle_installed.stat.exists
+  become: true
+
+- name: Extract Gradle archive
+  unarchive:
+    src: "/tmp/{{ gradle_archive }}"
+    dest: "{{ gradle_home }}"
+    remote_src: yes
+    creates: "{{ gradle_dir }}"
+  when: not gradle_installed.stat.exists
+  become: true
+
+- name: Create symbolic link for Gradle
+  file:
+    src: "{{ gradle_dir }}"
+    dest: "{{ gradle_home }}/gradle"
+    state: link
+    force: yes
+  become: true
+
+- name: Check if PATH contains Gradle
+  shell: |
+    grep -q "GRADLE_HOME/bin" /etc/environment || echo "not_found"
+  register: gradle_in_path
+  become: true
+
+- name: Add GRADLE_HOME to /etc/environment
+  lineinfile:
+    path: /etc/environment
+    regexp: '^GRADLE_HOME='
+    line: 'GRADLE_HOME={{ gradle_home }}/gradle'
+    state: present
+  become: true
+
+- name: Add Gradle bin to PATH in /etc/environment
+  replace:
+    path: /etc/environment
+    regexp: '^PATH="([^"]*)"'
+    replace: 'PATH="\1:$GRADLE_HOME/bin"'
+  when: "'not_found' in gradle_in_path.stdout"
+  become: true
+
+- name: Add Gradle to PATH in /etc/profile.d
+  copy:
+    content: |
+      export GRADLE_HOME={{ gradle_home }}/gradle
+      export PATH=$PATH:$GRADLE_HOME/bin
+    dest: /etc/profile.d/gradle.sh
+    mode: '0644'
+  become: true
+
+- name: Set Gradle alternatives
+  alternatives:
+    name: gradle
+    path: "{{ gradle_home }}/gradle/bin/gradle"
+    link: /usr/bin/gradle
+    priority: 100
+  become: true
+
+- name: Clean up downloaded archive
+  file:
+    path: "/tmp/{{ gradle_archive }}"
+    state: absent
+  when: not gradle_installed.stat.exists
+  become: true
+
+- name: Verify Gradle installation
+  shell: |
+    source /etc/profile.d/gradle.sh
+    gradle --version | head -1
+  args:
+    executable: /bin/bash
+  register: gradle_version_output
+  ignore_errors: yes
+  become: true
+
+- name: Display installation result
+  debug:
+    msg: |
+      Gradle installation completed!
+      Installed version: {{ gradle_version_output.stdout | default('Installation completed, please restart shell or run: source /etc/profile.d/gradle.sh') }}
+      Gradle home: {{ gradle_home }}/gradle
+      Binary location: {{ gradle_home }}/gradle/bin/gradle 

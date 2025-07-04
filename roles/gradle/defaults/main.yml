@@ -1,0 +1,13 @@
+---
+# Gradle 설치 관련 변수
+gradle_version: "8.9"
+gradle_home: "/opt/gradle"
+gradle_archive: "gradle-{{ gradle_version }}-bin.zip"
+gradle_url: "https://services.gradle.org/distributions/{{ gradle_archive }}"
+gradle_dir: "{{ gradle_home }}/gradle-{{ gradle_version }}"
+
+# 필요한 패키지들
+gradle_required_packages:
+  - wget
+  - unzip
+  - curl 
