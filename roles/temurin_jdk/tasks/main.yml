@@ -1,0 +1,94 @@
+---
+- name: Install required packages
+  package:
+    name: "{{ temurin_required_packages }}"
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Create keyrings directory
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Download Eclipse Temurin GPG key
+  get_url:
+    url: "{{ temurin_gpg_url }}"
+    dest: /etc/apt/keyrings/temurin.asc
+    mode: '0644'
+  become: true
+
+- name: Add Eclipse Temurin repository
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/temurin.asc] {{ temurin_repo_url }} {{ ansible_distribution_release }} main"
+    state: present
+    filename: temurin
+    update_cache: yes
+  become: true
+
+- name: Install Eclipse Temurin JDK 21
+  package:
+    name: "temurin-{{ jdk_version }}-jdk"
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Create JDK directory structure
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  with_items:
+    - "{{ jdk_home }}"
+    - "{{ jdk_dir }}"
+  become: true
+
+- name: Create symbolic link for JDK
+  file:
+    src: "/usr/lib/jvm/temurin-{{ jdk_version }}-jdk-amd64"
+    dest: "{{ jdk_dir }}"
+    state: link
+    force: yes
+  become: true
+
+- name: Add JAVA_HOME to /etc/profile.d
+  copy:
+    content: |
+      export JAVA_HOME={{ jdk_dir }}
+      export PATH=$JAVA_HOME/bin:$PATH
+    dest: /etc/profile.d/temurin-jdk.sh
+    mode: '0644'
+  become: true
+
+- name: Add JAVA_HOME to /etc/environment
+  lineinfile:
+    path: /etc/environment
+    regexp: '^JAVA_HOME='
+    line: 'JAVA_HOME={{ jdk_dir }}'
+    state: present
+  become: true
+
+- name: Set Java alternatives
+  alternatives:
+    name: java
+    path: "{{ jdk_dir }}/bin/java"
+    link: /usr/bin/java
+    priority: 100
+  become: true
+
+- name: Set javac alternatives
+  alternatives:
+    name: javac
+    path: "{{ jdk_dir }}/bin/javac"
+    link: /usr/bin/javac
+    priority: 100
+  become: true
+
+- name: Display installation result
+  debug:
+    msg: |
+      Eclipse Temurin JDK {{ jdk_version }} installation completed!
+      JAVA_HOME: {{ jdk_dir }}
+      Java binary: {{ jdk_dir }}/bin/java 

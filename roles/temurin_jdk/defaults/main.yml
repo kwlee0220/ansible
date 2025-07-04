@@ -1,0 +1,14 @@
+---
+# Eclipse Temurin JDK 설치 관련 변수
+jdk_version: "21"
+jdk_home: "/opt/temurin"
+jdk_dir: "{{ jdk_home }}/jdk-{{ jdk_version }}"
+temurin_repo_url: "https://packages.adoptium.net/artifactory/deb"
+temurin_gpg_url: "https://packages.adoptium.net/artifactory/api/gpg/key/public"
+
+# 필요한 패키지들
+temurin_required_packages:
+  - wget
+  - curl
+  - gnupg2
+  - software-properties-common 
