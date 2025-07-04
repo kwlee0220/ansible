@@ -3,11 +3,14 @@
   hosts: all
   become: false
 
+  vars_files:
+    - vars/mdt_vars.yml
+
   vars:
-    user_home_dir: "{{ ansible_env.HOME }}"
-    model_dir: "{{ user_home_dir }}/mdt/models"
+    model_dir: "{{ mdt_home_dir }}/models/test"
 
   tasks:
+
     - name: Create directory for 'test' model
       file:
         path: "{{ model_dir }}/test"

@@ -1,0 +1,27 @@
+---
+# PostgreSQL 설치 관련 변수
+postgres_version: 16
+postgres_root_user: "postgres"
+postgres_root_password: "postgres"
+
+# PostgreSQL 저장소 설정
+pgdg_gpg_url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+pgdg_repo: "deb [arch=amd64] http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+pgdg_key_path: /etc/apt/trusted.gpg.d/postgresql.asc
+
+# PostgreSQL 패키지 목록
+postgres_packages:
+  - "postgresql-{{ postgres_version }}"
+  - "postgresql-client-{{ postgres_version }}"
+  - "postgresql-contrib-{{ postgres_version }}"
+  - "postgresql-{{ postgres_version }}-postgis-3"
+  - "postgresql-{{ postgres_version }}-postgis-3-scripts"
+  - libpq-dev
+  - python3-psycopg2
+
+# 네트워크 설정
+postgres_listen_addresses: "*"
+postgres_allow_hosts: "0.0.0.0/0"
+
+# PostGIS 데이터베이스 설정
+postgres_gis_db: "gisdb" 

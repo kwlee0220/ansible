@@ -1,0 +1,4 @@
+---
+# PostgreSQL 사용자 생성 관련 변수
+postgres_user: ""
+postgres_password: ""

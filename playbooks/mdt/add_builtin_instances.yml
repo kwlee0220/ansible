@@ -4,33 +4,30 @@
   become: false
 
   vars_files:
-    - mdt_vars.yml
+    - vars/mdt_vars.yml
 
   vars:
-    model_dir: "{{ mdt_home }}/models"
+    model_home_dir: "{{ mdt_home_dir }}/models"
 
   tasks:
     - name: Create MDT directory models
       file:
-        path: "{{ model_dir }}"
+        path: "{{ model_home_dir }}"
         state: directory
         mode: '0755'
 
     - name: MDT 모델 등록 스크립트 복사
       copy:
         src: "files/add_models.sh"
-        dest: "{{ model_dir }}/add_models.sh"
+        dest: "{{ model_home_dir }}/add_models.sh"
         mode: '0755'
-        
-- import_playbook: "../postgresql/add_db.yml"
-  vars:
-    postgres_db: mdt_app
-    postgres_user: {{ postgres_user }}
 
-- name: Import test model
-  import_playbook: "models/model_test.yml"
+  roles:
+    - role: postgresql_db
+      vars:
+        postgres_db: mdt_app
+        postgres_user: "mdt"
 
-- name: Import welder model
-  import_playbook: "models/model_welder.yml"
-- name: Import panda model
-  import_playbook: "models/model_panda.yml"
+- import_playbook: "model_test.yml"
+- import_playbook: "model_welder.yml"
+- import_playbook: "model_panda.yml"

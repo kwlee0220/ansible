@@ -1,0 +1,8 @@
+---
+- name: Create PostgreSQL user
+  postgresql_user:
+    name: "{{ postgres_user | default('') }}"
+    password: "{{ postgres_password | default('') }}"
+  become: true
+  become_user: postgres
+  when: (postgres_user | default('')) != "" and (postgres_password | default('')) != ""

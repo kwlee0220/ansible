@@ -1,0 +1,17 @@
+---
+# PostgreSQL 데이터베이스 생성 관련 변수
+postgres_db: ""
+postgres_user: ""
+
+# 데이터베이스 설정
+postgres_db_state: "present"
+postgres_db_encoding: "UTF8"
+postgres_db_template: "template0"
+postgres_db_owner: "{{ postgres_user }}"
+
+# 데이터베이스 권한 설정
+postgres_privileges: "ALL"
+postgres_privilege_type: "database"
+
+# 확장 설정
+postgres_extensions: [] 

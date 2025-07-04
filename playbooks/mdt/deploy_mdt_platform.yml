@@ -22,7 +22,7 @@
   tasks:
     - name: Create top-level MDT directory
       file:
-        path: "{{ mdt_home }}"
+        path: "{{ mdt_home_dir }}"
         state: directory
         mode: '0755'
 
@@ -30,7 +30,7 @@
       block:
         - name: Create MDT directory for key components
           file:
-            path: "{{ mdt_home }}/{{ item }}"
+            path: "{{ mdt_home_dir }}/{{ item }}"
             state: directory
             mode: '0755'
           loop: "{{ key_compoents }}"
@@ -38,7 +38,7 @@
         - name: unzip key components
           unarchive:
             src: "files/{{ item }}.zip"
-            dest: "{{ mdt_home }}/{{ item }}"
+            dest: "{{ mdt_home_dir }}/{{ item }}"
             remote_src: no
             mode: '0755'
           loop: "{{ key_compoents }}"
@@ -47,7 +47,7 @@
       block:
         - name: Create mdt home directory
           file:
-            path: "{{ mdt_home }}"
+            path: "{{ mdt_home_dir }}"
             state: directory
             mode: '0755'
 
@@ -66,7 +66,7 @@
             marker: "# MDT: {mark}"
             block: |
               export LOCAL_HOST={{ platform_host | default('localhost') }}
-              export MDT_HOME={{ mdt_home }}
+              export MDT_HOME={{ mdt_home_dir }}
               export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
               export MDT_ENDPOINT=http://$LOCAL_HOST:12985
               

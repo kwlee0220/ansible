@@ -1,0 +1,76 @@
+---
+- name: Remove existing PostgreSQL repository files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/apt/sources.list.d/pgdg.list
+    - /etc/apt/sources.list.d/pgdg.list.list
+    - /etc/apt/trusted.gpg.d/postgresql.asc
+  become: true
+
+- name: Download PostgreSQL signing key
+  get_url:
+    url: "{{ pgdg_gpg_url }}"
+    dest: "{{ pgdg_key_path }}"
+    mode: '0644'
+  become: true
+
+- name: Add PostgreSQL APT repository
+  apt_repository:
+    repo: "{{ pgdg_repo }}"
+    state: present
+    filename: "pgdg.list"
+    update_cache: yes
+  become: true
+
+- name: Install PostgreSQL packages
+  package:
+    name: "{{ postgres_packages }}"
+    update_cache: true
+    state: present
+  become: true
+
+- name: Ensure PostgreSQL is listening on all addresses
+  lineinfile:
+    dest: /etc/postgresql/{{ postgres_version }}/main/postgresql.conf
+    regexp: '^#listen_addresses\s*='
+    line: "listen_addresses = '{{ postgres_listen_addresses }}'"
+    state: present
+  become: true
+
+- name: Add network access configuration to pg_hba.conf
+  lineinfile:
+    dest: /etc/postgresql/{{ postgres_version }}/main/pg_hba.conf
+    regexp: '^host\s*all\s*all\s*127.0.0.1'
+    line: "host    all             all             {{ postgres_allow_hosts }}               scram-sha-256"
+  become: true
+
+- name: Create a superuser PostgreSQL database user
+  community.general.postgresql_user:
+    name: "{{ postgres_root_user }}"
+    password: "{{ postgres_root_password }}"
+    role_attr_flags: CREATEDB,SUPERUSER,CREATEROLE
+    encrypted: yes
+    state: present
+  become: true
+  become_user: postgres
+
+- name: Ensure PostgreSQL service is started
+  service:
+    name: postgresql
+    state: restarted
+    enabled: yes
+  become: true
+
+- name: Create a new PostgreSQL database with PostGIS extension
+  shell: |
+    # psql -c "CREATE DATABASE {{ postgres_gis_db }};"
+    # psql -d {{ postgres_gis_db }} -c "CREATE EXTENSION postgis;"
+    psql -c "CREATE DATABASE {{ postgres_gis_db }};" 2>/dev/null || echo "Database already exists"
+    psql -d {{ postgres_gis_db }} -c "CREATE EXTENSION postgis;" 2>/dev/null || echo "Extension already exists"
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: postgres
+  ignore_errors: yes 

@@ -1,0 +1,42 @@
+---
+- name: Create PostgreSQL database
+  postgresql_db:
+    name: "{{ postgres_db | default('') }}"
+    owner: "{{ postgres_db_owner | default('') }}"
+    state: "{{ postgres_db_state }}"
+    encoding: "{{ postgres_db_encoding }}"
+    template: "{{ postgres_db_template }}"
+  become: true
+  become_user: postgres
+  when: (postgres_db | default('')) != "" and (postgres_db_owner | default('')) != ""
+
+- name: Grant privileges to user on database
+  postgresql_privs:
+    db: "{{ postgres_db | default('') }}"
+    roles: "{{ postgres_user | default('') }}"
+    type: "{{ postgres_privilege_type }}"
+    privs: "{{ postgres_privileges }}"
+  become: true
+  become_user: postgres
+  when: (postgres_db | default('')) != "" and (postgres_user | default('')) != ""
+
+- name: Install PostgreSQL extensions
+  postgresql_ext:
+    name: "{{ item }}"
+    db: "{{ postgres_db | default('') }}"
+    state: present
+  become: true
+  become_user: postgres
+  when: (postgres_db | default('')) != "" and postgres_extensions | length > 0
+  loop: "{{ postgres_extensions }}"
+
+- name: Display PostgreSQL database creation result
+  debug:
+    msg: |
+      PostgreSQL database creation completed!
+      Database: {{ postgres_db }}
+      Owner: {{ postgres_db_owner }}
+      State: {{ postgres_db_state }}
+      Encoding: {{ postgres_db_encoding }}
+      Extensions: {{ postgres_extensions | default('None') }}
+  when: (postgres_db | default('')) != "" and (postgres_db_owner | default('')) != "" 

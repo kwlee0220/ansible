@@ -3,9 +3,11 @@
   hosts: all
   become: false
 
+  vars_files:
+    - vars/mdt_vars.yml
+
   vars:
-    user_home_dir: "{{ ansible_env.HOME }}"
-    model_dir: "{{ user_home_dir }}/mdt/models"
+    model_dir: "{{ mdt_home_dir }}/models/welder"
 
     mdt_welder_repo_url: "https://github.com/kwlee0220/mdt-welder.git"
     mdt_welder_project_dir: "{{ user_home_dir }}/development/mdtpy/mdt-welder"
@@ -13,14 +15,14 @@
   tasks:
     - name: Create directory for 'welder' model
       file:
-        path: "{{ model_dir }}/welder"
+        path: "{{ model_dir }}"
         state: directory
         mode: '0755'
 
     - name: Copy 'welder' model
       unarchive:
         src: "files/welder.zip"
-        dest: "{{ model_dir }}/welder"
+        dest: "{{ model_dir }}"
         remote_src: no
         mode: '0755'
 

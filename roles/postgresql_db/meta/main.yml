@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  author: Ansible User
+  description: Create PostgreSQL database with configurable options and extensions
+  company: 
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+  galaxy_tags:
+    - postgresql
+    - postgres
+    - database
+
+dependencies: [] 

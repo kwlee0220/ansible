@@ -2,10 +2,12 @@ user_id: "{{ ansible_user_id }}"
 user_home_dir: "{{ ansible_env.HOME }}"
 
 platform_host: "192.168.0.29"
-mdt_home: "{{ user_home_dir }}/mdt"
+mdt_home_dir: "{{ user_home_dir }}/mdt"
 src_root_dir: "{{ user_home_dir }}/development"
 mdt_version: "1.1.2"
 
-postgres_user: mdt
-postgres_db: mdt
-postgres_password: mdt2025
+ros2_ws_dir: "{{ user_home_dir }}/ros2_ws"
+
+mdt_postgres_user: mdt
+mdt_postgres_password: mdt2025
+mdt_postgres_db: mdt
