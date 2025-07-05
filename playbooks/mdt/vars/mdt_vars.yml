@@ -1,7 +1,7 @@
 user_id: "{{ ansible_user_id }}"
 user_home_dir: "{{ ansible_env.HOME }}"
 
-platform_host: "192.168.0.29"
+platform_host: "{{ ansible_host | default('localhost') }}"
 mdt_home_dir: "{{ user_home_dir }}/mdt"
 src_root_dir: "{{ user_home_dir }}/development"
 mdt_version: "1.1.2"
@@ -11,3 +11,13 @@ ros2_ws_dir: "{{ user_home_dir }}/ros2_ws"
 mdt_postgres_user: mdt
 mdt_postgres_password: mdt2025
 mdt_postgres_db: mdt
+
+install_postgresql: true
+install_pgadmin4: true
+install_mosquitto: true
+install_ros2: true
+install_docker: true
+install_minikube: true
+install_argo_workflow: true
+
+install_mdt_source: false

@@ -73,4 +73,3 @@
     executable: /bin/bash
   become: true
   become_user: postgres
-  ignore_errors: yes 

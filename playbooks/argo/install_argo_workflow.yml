@@ -22,8 +22,6 @@
       command: argo version
       register: argo_cli_version
       changed_when: false
-    - debug:
-        msg: "{{ argo_cli_version.stdout }}"
 
     # Argo Workflows 설치
     - name: Create Argo namespace

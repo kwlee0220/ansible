@@ -28,13 +28,7 @@
 
     - name: Install necessary Python modules for 'welder' instance
       pip:
-        name:
-          - "numpy>=1.22.4"
-          - simpy
-          - pandas
-          - scipy==1.15.3
-          - isodate
-        state: present
+        requirements: "{{ model_dir }}/requirements.txt"
 
     - name: Clone 'mdt-welder' repository
       git:

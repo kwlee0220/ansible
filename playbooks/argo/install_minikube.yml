@@ -46,7 +46,7 @@
     - debug:
         msg: "Minikube output: {{ minikube_output.stdout }}"
 
-    - name: Display Minikube status
-      command: minikube status
-      register: minikube_status
-      changed_when: false
+    # - name: Display Minikube status
+    #   command: minikube status
+    #   register: minikube_status
+    #   changed_when: false

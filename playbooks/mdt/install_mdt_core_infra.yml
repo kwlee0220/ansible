@@ -13,8 +13,6 @@
       role: postgresql
       vars:
         postgres_version: 16
-    # - name: Install pgAdmin4
-    #   role: pgadmin4
 
     - name: Create PostgreSQL user for MDTPlatform internal data
       role: postgresql_user
@@ -28,6 +26,10 @@
         postgres_user: "{{ mdt_postgres_user }}"
         postgres_password: "{{ mdt_postgres_password }}"
 
+    - name: Install docker
+      role: docker
+      when: install_minikube | default(true) or install_docker | default(true)
+
   tasks:
     - name: python3-pip 설치
       package:
@@ -35,6 +37,7 @@
         state: present
       become: true
 
-# pgAdmin4 installation is not available
+- import_playbook: "../postgresql/install_pgadmin4.yml"
 - import_playbook: "../mosquitto/install_mosquitto.yml"
 - import_playbook: "../ros2/install_ros2.yml"
+

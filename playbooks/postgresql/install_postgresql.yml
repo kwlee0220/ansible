@@ -51,7 +51,7 @@
         state: present
       become: true
 
-    - name: ensure PostgreSQL is listening on *
+    - name: ensure PostgreSQL is listening on all addresses
       lineinfile:
         dest: /etc/postgresql/{{ postgres_version }}/main/postgresql.conf
         regexp: '^#listen_addresses\s*='
