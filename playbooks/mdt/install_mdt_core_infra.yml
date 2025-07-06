@@ -26,6 +26,9 @@
         postgres_user: "{{ mdt_postgres_user }}"
         postgres_password: "{{ mdt_postgres_password }}"
 
+    - name: Install Mosquitto
+      role: mosquitto
+
     - name: Install docker
       role: docker
       when: install_minikube | default(true) or install_docker | default(true)
@@ -38,6 +41,5 @@
       become: true
 
 - import_playbook: "../postgresql/install_pgadmin4.yml"
-- import_playbook: "../mosquitto/install_mosquitto.yml"
 - import_playbook: "../ros2/install_ros2.yml"
 

@@ -1,0 +1,7 @@
+---
+- name: Install and Configure Mosquitto MQTT Server using Role
+  hosts: all
+  become: true
+
+  roles:
+    - mosquitto 

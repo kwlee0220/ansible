@@ -1,0 +1,44 @@
+---
+- name: Install Mosquitto packages
+  package:
+    name:
+      - mosquitto
+      - mosquitto-clients
+      - mosquitto-dev
+    state: present
+    update_cache: yes
+
+- name: Create Mosquitto configuration directory
+  file:
+    path: /etc/mosquitto/conf.d
+    state: directory
+    mode: '0755'
+
+- name: Create Mosquitto log directory
+  file:
+    path: /var/log/mosquitto
+    state: directory
+    mode: '0755'
+    owner: mosquitto
+    group: mosquitto
+
+- name: Remove existing configuration files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/mosquitto/conf.d/default.conf
+    - /etc/mosquitto/mosquitto.conf
+
+- name: Configure Mosquitto
+  template:
+    src: mosquitto.conf.j2
+    dest: /etc/mosquitto/mosquitto.conf
+    mode: '0644'
+  notify: restart mosquitto
+
+- name: Ensure Mosquitto service is enabled and started
+  service:
+    name: mosquitto
+    state: started
+    enabled: yes 

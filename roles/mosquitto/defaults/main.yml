@@ -1,0 +1,5 @@
+---
+# Mosquitto MQTT Server Configuration
+mosquitto_port: 1883
+mosquitto_websocket_port: 9001
+mosquitto_allow_anonymous: true 
