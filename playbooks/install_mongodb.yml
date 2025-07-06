@@ -1,8 +1,0 @@
----
-# MongoDB 설치를 위한 playbook
-
-- name: Install MongoDB
-  hosts: all
-  become: true
-  roles:
-    - mongodb 
