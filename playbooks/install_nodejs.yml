@@ -1,8 +1,0 @@
----
-# Node.js 설치를 위한 playbook
-
-- name: Install Node.js
-  hosts: all
-  become: true
-  roles:
-    - nodejs 
