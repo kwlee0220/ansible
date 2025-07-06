@@ -13,7 +13,7 @@ mdt_postgres_password: mdt2025
 mdt_postgres_db: mdt
 
 install_postgresql: true
-install_pgadmin4: true
+install_pgadmin4: false
 install_mosquitto: true
 install_ros2: true
 install_docker: true

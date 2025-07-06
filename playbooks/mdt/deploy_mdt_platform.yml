@@ -12,12 +12,24 @@
     mdt_dir: "{{ development_dir }}/mdt"
     misc_dir: "{{ development_dir }}/misc"
 
-    key_compoents:
+    components:
       - mdt-client
       - mdt-manager
-      - share
       - mdt-operation-http
       - mdt-workflow-argo
+      - share
+
+    component_jar_files:
+      - dir: "{{ mdt_home_dir }}/mdt-client"
+        jar_file: "files/mdt-client-all.jar"
+      - dir: "{{ mdt_home_dir }}/mdt-manager"
+        jar_file: "files/mdt-manager-all.jar"
+      - dir: "{{ mdt_home_dir }}/mdt-manager"
+        jar_file: "files/mdt-instance-all.jar"
+      - dir: "{{ mdt_home_dir }}/mdt-operation-http"
+        jar_file: "files/mdt-operation-http.jar"
+      - dir: "{{ mdt_home_dir }}/mdt-workflow-argo"
+        jar_file: "files/mdt-workflow-argo.jar"
 
   tasks:
     - name: Create top-level MDT directory
@@ -26,22 +38,19 @@
         state: directory
         mode: '0755'
 
-    - name: deploy MDT key components
-      block:
-        - name: Create MDT directory for key components
-          file:
-            path: "{{ mdt_home_dir }}/{{ item }}"
-            state: directory
-            mode: '0755'
-          loop: "{{ key_compoents }}"
+    - name: Deploy components
+      include_tasks: tasks/deploy_component.yml
+      vars:
+        component_name: "{{ item }}"
+        component_dir: "{{ mdt_home_dir }}/{{ item }}"
+      loop: "{{ components }}"
 
-        - name: unzip key components
-          unarchive:
-            src: "files/{{ item }}.zip"
-            dest: "{{ mdt_home_dir }}/{{ item }}"
-            remote_src: no
-            mode: '0755'
-          loop: "{{ key_compoents }}"
+    - name: Copy jar files to the component directories
+      include_tasks: tasks/copy_component_jar.yml
+      vars:
+        component_dir: "{{ item.dir }}"
+        component_jar_file: "{{ item.jar_file }}"
+      loop: "{{ component_jar_files }}"
 
     - name: Configure MDT settings
       block:
