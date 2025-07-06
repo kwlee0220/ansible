@@ -78,6 +78,7 @@
               export MDT_HOME={{ mdt_home_dir }}
               export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
               export MDT_ENDPOINT=http://$LOCAL_HOST:12985
+              export ARGO_ENDPOINT={{ argo_endpoint | default('http://localhost:2746') }}
               
               PATH=$HOME/.local/bin:$PATH
               PATH=$MDT_CLIENT_HOME/sbin:$PATH

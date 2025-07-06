@@ -2,6 +2,8 @@ user_id: "{{ ansible_user_id }}"
 user_home_dir: "{{ ansible_env.HOME }}"
 
 platform_host: "{{ ansible_host | default('localhost') }}"
+argo_endpoint: "https://{{ platform_host }}:2746"
+
 mdt_home_dir: "{{ user_home_dir }}/mdt"
 src_root_dir: "{{ user_home_dir }}/development"
 mdt_version: "1.1.2"
@@ -21,3 +23,4 @@ install_minikube: true
 install_argo_workflow: true
 
 install_mdt_source: false
+install_mdt_gui: true
