@@ -1,0 +1,67 @@
+---
+- name: Install MDTPlatform Management and Workflow Management GUI
+  hosts: all
+  become: false
+
+  vars_files:
+    - mdt_vars.yml
+
+  vars:
+    mdt_gui_home: "{{ mdt_home_dir }}/mdt-gui"
+    dtbackend_dir: "{{ mdt_gui_home }}/dtbackend-main"
+    dtfrontend_dir: "{{ mdt_gui_home }}/dtfrontend-main"
+    dtbackend_zip_file: "{{ mdt_gui_home }}/dtbackend-main-2025-03-06.zip"
+    dtfrontend_zip_file: "{{ mdt_gui_home }}/dtfront-main-2025-03-08.zip"
+
+  roles:
+    - role: nodejs
+      vars:
+        nodejs_install_global_packages:
+          - yarn
+
+  tasks:
+    - name: Create top-level MDT GUI directory
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ mdt_gui_home }}"
+        - "{{ dtbackend_dir }}"
+        - "{{ dtfrontend_dir }}"
+
+    - name: Unzip MDT GUI
+      unarchive:
+        src: "{{ item.zip_file }}"
+        dest: "{{ item.dir }}"
+      loop:
+        - dir: "{{ dtbackend_dir }}"
+          zip_file: "{{ dtbackend_zip_file }}"
+        - dir: "{{ dtfrontend_dir }}"
+          zip_file: "{{ dtfrontend_zip_file }}"
+
+    - name: Initialize MDT GUI
+      shell: |
+        cd {{ item }}
+        yarn install
+      args:
+        executable: /bin/bash
+      loop:
+        - "{{ dtbackend_dir }}"
+        - "{{ dtfrontend_dir }}"
+
+    - name: Create environment file
+      template:
+        src: files/_env.development.j2
+        dest: "{{ dtfrontend_dir }}/.env.development"
+
+    # - name: Start MDT GUI
+    #   shell: |
+    #     cd {{ item }}
+    #     nohup yarn start > /dev/null 2>&1 &
+    #     sleep 10
+    #   args:
+    #     executable: /bin/bash
+    #   loop:
+    #     - "{{ dtbackend_dir }}"
+    #     - "{{ dtfrontend_dir }}"
