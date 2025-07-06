@@ -7,20 +7,23 @@
       - mosquitto-dev
     state: present
     update_cache: yes
+  become: true
 
 - name: Create Mosquitto configuration directory
   file:
     path: /etc/mosquitto/conf.d
     state: directory
     mode: '0755'
+  become: true
 
 - name: Create Mosquitto log directory
   file:
     path: /var/log/mosquitto
     state: directory
     mode: '0755'
-    owner: mosquitto
-    group: mosquitto
+    # owner: mosquitto
+    # group: mosquitto
+  become: true
 
 - name: Remove existing configuration files
   file:
@@ -29,6 +32,7 @@
   with_items:
     - /etc/mosquitto/conf.d/default.conf
     - /etc/mosquitto/mosquitto.conf
+  become: true
 
 - name: Configure Mosquitto
   template:
@@ -36,9 +40,11 @@
     dest: /etc/mosquitto/mosquitto.conf
     mode: '0644'
   notify: restart mosquitto
+  become: true
 
 - name: Ensure Mosquitto service is enabled and started
   service:
     name: mosquitto
     state: started
     enabled: yes 
+  become: true
