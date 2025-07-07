@@ -26,3 +26,9 @@
     - name: Install necessary Python modules for 'innercase' instance
       pip:
         requirements: "{{ model_dir }}/requirements.txt"
+
+    - name: Create inspector directory
+      file:
+        path: "{{ user_home_dir }}/tmp/inspector"
+        state: directory
+        mode: '0755'
