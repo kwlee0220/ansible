@@ -1,0 +1,2 @@
+[mdt]
+test ansible_host=129.254.91.75 ansible_port=2922 ansible_user=kwlee ansible_password=urc2004
