@@ -1,0 +1,32 @@
+---
+- name: Install Node.js
+  hosts: all
+  become: true
+
+  vars:
+    nodejs_version: "22.x"
+    nodejs_install_global_packages:
+      - yarn
+      # - npm-check-updates
+
+  roles:
+    - nodejs
+
+  tasks:
+    - name: Verify Node.js installation
+      command: node --version
+      register: node_version
+      changed_when: false
+
+    - name: Verify npm installation
+      command: npm --version
+      register: npm_version
+      changed_when: false
+
+    - name: Display Node.js version
+      debug:
+        msg: "Node.js version: {{ node_version.stdout }}"
+
+    - name: Display npm version
+      debug:
+        msg: "npm version: {{ npm_version.stdout }}" 
