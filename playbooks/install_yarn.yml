@@ -1,0 +1,48 @@
+---
+- name: Install and configure Yarn
+  hosts: all
+  become: true
+  
+  vars:
+    # Yarn 설치 설정
+    yarn_install_method: "npm"  # npm, corepack, 또는 repository
+    yarn_version: "latest"      # 특정 버전 또는 latest
+    yarn_install_global: true   # 전역 설치 여부
+    
+    # Yarn 설정
+    yarn_config_registry: "https://registry.yarnpkg.com"
+    yarn_config_cache_folder: "~/.cache/yarn"
+    yarn_config_global_folder: "~/.yarn/global"
+    yarn_network_timeout: 100000
+    yarn_network_concurrency: 8
+    yarn_enable_telemetry: false
+    yarn_enable_scripts: true
+    
+    # Node.js 설정 (nodejs role에서 사용)
+    nodejs_version: "22.x"
+    nodejs_install_global_packages: []
+  
+  roles:
+    - yarn
+  
+  post_tasks:
+    - name: Display final status
+      debug:
+        msg: |
+          Yarn 설치가 완료되었습니다!
+          
+          설치 방법: {{ yarn_install_method }}
+          버전: {{ yarn_version }}
+          
+          사용 가능한 명령어:
+          - yarn --version
+          - yarn init
+          - yarn add [package]
+          - yarn install
+          - yarn global add [package]
+          
+          설정 확인:
+          - yarn config list
+          
+          새 터미널 세션을 열거나 다음 명령어로 환경을 새로고침하세요:
+          source ~/.bashrc 

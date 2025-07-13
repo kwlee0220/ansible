@@ -1,0 +1,6 @@
+---
+# Yarn handlers
+
+- name: reload shell environment
+  shell: source ~/.bashrc
+  become: false 

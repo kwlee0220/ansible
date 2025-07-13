@@ -1,0 +1,108 @@
+---
+# Yarn 설치 및 설정을 위한 tasks
+
+- name: Include Node.js role
+  include_role:
+    name: nodejs
+  when: yarn_install_method in ["npm", "corepack"]
+
+- name: Install Yarn via npm (method 1)
+  npm:
+    name: "yarn{{ '==' + yarn_version if yarn_version != 'latest' else '' }}"
+    global: "{{ yarn_install_global }}"
+    state: present
+  become: true
+  when: yarn_install_method == "npm"
+
+- name: Enable Corepack (Node.js 16.10+)
+  shell: corepack enable
+  args:
+    creates: /usr/local/bin/yarn
+  become: true
+  when: yarn_install_method == "corepack"
+
+- name: Install Yarn via Corepack
+  shell: corepack prepare yarn@{{ yarn_version }} --activate
+  become: true
+  when: yarn_install_method == "corepack"
+
+- name: Add Yarn repository (method 3)
+  block:
+    - name: Add Yarn GPG key
+      shell: curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor -o /usr/share/keyrings/yarn.gpg
+      args:
+        creates: /usr/share/keyrings/yarn.gpg
+      become: true
+
+    - name: Add Yarn repository
+      apt_repository:
+        repo: deb [arch=amd64 signed-by=/usr/share/keyrings/yarn.gpg] https://dl.yarnpkg.com/debian/ stable main
+        state: present
+        filename: yarn
+      become: true
+
+    - name: Install Yarn from repository
+      apt:
+        name: yarn
+        state: present
+        update_cache: yes
+      become: true
+  when: yarn_install_method == "repository"
+
+- name: Create Yarn directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ ansible_env.HOME }}/.cache/yarn"
+    - "{{ ansible_env.HOME }}/.yarn"
+    - "{{ ansible_env.HOME }}/.yarn/global"
+    - "{{ ansible_env.HOME }}/.yarn/bin"
+  become: false
+
+- name: Configure Yarn settings
+  shell: |
+    yarn config set registry {{ yarn_config_registry }}
+    yarn config set cache-folder {{ yarn_config_cache_folder }}
+    yarn config set global-folder {{ yarn_config_global_folder }}
+    yarn config set network-timeout {{ yarn_network_timeout }}
+    yarn config set network-concurrency {{ yarn_network_concurrency }}
+    yarn config set enableTelemetry {{ yarn_enable_telemetry | lower }}
+    yarn config set enableScripts {{ yarn_enable_scripts | lower }}
+  become: false
+  register: yarn_config_result
+  changed_when: yarn_config_result.rc == 0
+
+- name: Add Yarn global bin to PATH
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"'
+    state: present
+  become: false
+
+- name: Verify Yarn installation
+  command: yarn --version
+  register: yarn_version_output
+  changed_when: false
+  become: false
+
+- name: Display Yarn installation information
+  debug:
+    msg: |
+      Yarn이 성공적으로 설치되었습니다!
+      
+      설치된 버전: {{ yarn_version_output.stdout }}
+      설치 방법: {{ yarn_install_method }}
+      전역 설치: {{ yarn_install_global }}
+      
+      Yarn 명령어 사용법:
+      - yarn --version          # 버전 확인
+      - yarn init              # 새 프로젝트 초기화
+      - yarn add [package]     # 패키지 설치
+      - yarn install           # 의존성 설치
+      - yarn global add [package]  # 전역 패키지 설치
+      
+      설정 확인:
+      - yarn config list       # 현재 설정 확인
+      - yarn config get [key]  # 특정 설정 확인 

@@ -1,0 +1,9 @@
+---
+# Node-RED handlers
+
+- name: restart nodered
+  systemd:
+    name: nodered
+    state: restarted
+    daemon_reload: yes
+  become: true 

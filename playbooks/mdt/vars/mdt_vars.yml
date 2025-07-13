@@ -21,6 +21,7 @@ install_ros2: true
 install_docker: true
 install_minikube: true
 install_argo_workflow: true
+install_nodered: true
 
 install_mdt_source: false
 install_mdt_gui: true

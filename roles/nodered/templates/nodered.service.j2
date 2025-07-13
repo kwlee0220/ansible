@@ -1,0 +1,24 @@
+[Unit]
+Description=Node-RED
+After=network.target
+
+[Service]
+Type=simple
+User={{ nodered_user }}
+Group={{ nodered_group }}
+WorkingDirectory={{ nodered_data_dir }}
+Environment="NODE_OPTIONS=--max_old_space_size=512"
+ExecStart=/usr/bin/node-red
+Restart=on-failure
+KillSignal=SIGINT
+
+# 로그 설정
+StandardOutput=journal
+StandardError=journal
+
+# 보안 설정 (root 실행 시 일부 제한 해제)
+PrivateTmp=true
+ReadWritePaths={{ nodered_data_dir }} /var/log/nodered
+
+[Install]
+WantedBy=multi-user.target 

@@ -1,0 +1,37 @@
+---
+- name: Install and configure Node-RED
+  hosts: all
+  become: true
+  
+  vars:
+    # Node-RED 설정 변수들
+    nodered_port: 1880
+    nodered_admin_auth: false  # 보안을 위해 true로 설정하는 것을 권장
+    nodered_admin_user: "admin"
+    nodered_admin_password: "password123"  # 실제 사용 시 안전한 비밀번호로 변경
+    
+    # Node.js 설정 (nodejs role에서 사용)
+    nodejs_version: "22.x"
+    nodejs_install_global_packages: []
+  
+  roles:
+    - nodered
+  
+  post_tasks:
+    - name: Display final status
+      debug:
+        msg: |
+          Node-RED 설치가 완료되었습니다!
+          
+          웹 브라우저에서 다음 주소로 접속하세요:
+          http://{{ ansible_default_ipv4.address }}:{{ nodered_port }}
+          
+          관리자 인증이 활성화된 경우:
+          사용자명: {{ nodered_admin_user }}
+          비밀번호: {{ nodered_admin_password }}
+          
+          서비스 상태 확인:
+          sudo systemctl status nodered
+          
+          로그 확인:
+          sudo journalctl -u nodered -f 

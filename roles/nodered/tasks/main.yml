@@ -1,0 +1,91 @@
+---
+# Node-RED 설치 및 설정을 위한 tasks
+
+- name: Include Node.js role
+  include_role:
+    name: nodejs
+  when: nodered_install_method == "npm"
+
+- name: Create Node-RED directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ nodered_user }}"
+    group: "{{ nodered_group }}"
+    mode: '0755'
+  loop:
+    - "{{ nodered_data_dir }}"
+    - "/var/log/nodered"
+  become: true
+
+- name: Install Node-RED via npm
+  npm:
+    name: "node-red{{ '==' + nodered_version if nodered_version != 'latest' else '' }}"
+    global: "{{ nodered_install_global }}"
+    state: present
+  become: true
+  when: nodered_install_method == "npm"
+
+- name: Install Node-RED dependencies
+  npm:
+    name: "{{ item }}"
+    global: "{{ nodered_install_global }}"
+    state: present
+  loop:
+    - pm2
+    - node-red-admin
+  become: true
+  when: nodered_install_method == "npm"
+
+- name: Create Node-RED configuration file
+  template:
+    src: settings.js.j2
+    dest: "{{ nodered_data_dir }}/settings.js"
+    owner: "{{ nodered_user }}"
+    group: "{{ nodered_group }}"
+    mode: '0644'
+  become: true
+  notify: restart nodered
+
+- name: Create systemd service file
+  template:
+    src: nodered.service.j2
+    dest: /etc/systemd/system/nodered.service
+    mode: '0644'
+  become: true
+  notify: restart nodered
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+  become: true
+
+- name: Enable and start Node-RED service
+  systemd:
+    name: nodered
+    state: "{{ 'started' if nodered_service_started else 'stopped' }}"
+    enabled: "{{ nodered_service_enabled }}"
+  become: true
+
+- name: Wait for Node-RED to be ready
+  uri:
+    url: "http://localhost:{{ nodered_port }}"
+    status_code: 200
+  register: nodered_ready
+  retries: 30
+  delay: 2
+  until: nodered_ready is succeeded
+  when: nodered_service_started
+
+- name: Display Node-RED access information
+  debug:
+    msg: |
+      Node-RED has been successfully installed and started!
+      
+      Access Node-RED at: http://localhost:{{ nodered_port }}
+      Data directory: {{ nodered_data_dir }}
+      Log directory: /var/log/nodered
+      
+      To stop Node-RED: sudo systemctl stop nodered
+      To start Node-RED: sudo systemctl start nodered
+      To restart Node-RED: sudo systemctl restart nodered 

@@ -1,0 +1,74 @@
+module.exports = {
+    // Node-RED 설정 파일
+    // 자세한 설정 옵션: https://nodered.org/docs/user-guide/runtime/configuration
+
+    // 웹 서버 설정
+    uiPort: {{ nodered_port }},
+    
+    // 관리자 인증 설정
+    {% if nodered_admin_auth %}
+    adminAuth: {
+        type: "credentials",
+        users: [{
+            username: "{{ nodered_admin_user }}",
+            password: "{{ nodered_admin_password | password_hash('sha256') }}",
+            permissions: "*"
+        }]
+    },
+    {% endif %}
+
+    // 로그 설정
+    logging: {
+        console: {
+            level: "info",
+            metrics: false,
+            audit: false
+        },
+        file: {
+            level: "info",
+            metrics: false,
+            audit: false,
+            filename: "/var/log/nodered/nodered.log"
+        }
+    },
+
+    // 플로우 파일 설정
+    flowFile: "{{ nodered_flow_file }}",
+    flowFilePretty: true,
+
+    // 사용자 디렉토리 설정
+    userDir: "{{ nodered_data_dir }}",
+
+    // 보안 설정
+    disableEditor: false,
+    httpNodeAuth: false,
+    httpStaticAuth: false,
+
+    // 기능 설정
+    functionGlobalContext: {
+        // 전역 변수 설정
+    },
+
+    // 편집기 설정
+    editorTheme: {
+        projects: {
+            enabled: false
+        }
+    },
+
+    // 외부 모듈 설정
+    externalModules: {
+        autoInstall: true,
+        autoInstallRetry: 30,
+        palette: {
+            allowInstall: true,
+            allowUpdate: true,
+            allowUpload: true
+        },
+        modules: {
+            allowInstall: true,
+            allowUpdate: true,
+            allowUpload: true
+        }
+    }
+}; 

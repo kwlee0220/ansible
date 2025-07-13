@@ -4,10 +4,9 @@
   become: true
 
   vars:
+    # Node.js 설정 (nodejs role에서 사용)
     nodejs_version: "22.x"
-    nodejs_install_global_packages:
-      - yarn
-      # - npm-check-updates
+    nodejs_install_global_packages: []
 
   roles:
     - nodejs

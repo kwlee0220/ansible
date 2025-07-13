@@ -33,6 +33,10 @@
       role: docker
       when: install_minikube | default(true) or install_docker | default(true)
 
+    - name: Install NodeRED
+      role: nodered
+      when: install_nodered | default(true)
+
   tasks:
     - name: python3-pip 설치
       package:
