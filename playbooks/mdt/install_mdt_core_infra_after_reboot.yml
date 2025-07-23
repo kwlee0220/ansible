@@ -1,5 +1,5 @@
 ---
-- name: Install necessary systems for MDT platform after reboot.
+- name: Install Argo-based workflow and its dependencies after reboot.
   hosts: all
   vars_files:
     - vars/mdt_vars.yml
