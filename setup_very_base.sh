@@ -8,7 +8,8 @@ apt update && sudo apt upgrade -y
 # sudo 명령이 없는 경우에 'sudo' 패키지 설치
 apt install sudo
 
-# 사용자 계정 생성 (kwlee)
-useradd -m -s /bin/bash -G sudo kwlee
-passwd kwlee
-su kwlee
+# 사용자 계정 생성 (mdt)
+useradd -m -s /bin/bash -G sudo mdt
+# passwd mdt
+echo 'mdt:mdt2025' | chpasswd
+su mdt
