@@ -17,7 +17,7 @@ mdt_postgres_db: mdt
 
 install_postgresql: true
 install_mosquitto: true
-install_ros2: true
+install_ros2: false
 install_docker: false
 install_minikube: false
 install_argo_workflow: false

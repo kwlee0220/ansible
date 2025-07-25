@@ -5,48 +5,49 @@
     - vars/mdt_vars.yml
 
   roles:
-    # - role: basic_apps
-    # - role: temurin_jdk
-    # - role: gradle
+    - role: basic_apps
+    - role: temurin_jdk
+    - role: gradle
 
-    # - name: Install PostgreSQL
-    #   role: postgresql
-    #   vars:
-    #     postgres_version: 16
+    - name: Install PostgreSQL
+      role: postgresql
+      vars:
+        postgres_version: 16
 
-    # - name: Create PostgreSQL user for MDTPlatform internal data
-    #   role: postgresql_user
-    #   vars:
-    #     postgres_user: "{{ mdt_postgres_user }}"
-    #     postgres_password: "{{ mdt_postgres_password }}"
-    # - name: Create PostgreSQL database for MDTPlatform internal data
-    #   role: postgresql_db
-    #   vars:
-    #     postgres_db: "{{ mdt_postgres_db }}"
-    #     postgres_user: "{{ mdt_postgres_user }}"
-    #     postgres_password: "{{ mdt_postgres_password }}"
+    - name: Create PostgreSQL user for MDTPlatform internal data
+      role: postgresql_user
+      vars:
+        postgres_user: "{{ mdt_postgres_user }}"
+        postgres_password: "{{ mdt_postgres_password }}"
+    - name: Create PostgreSQL database for MDTPlatform internal data
+      role: postgresql_db
+      vars:
+        postgres_db: "{{ mdt_postgres_db }}"
+        postgres_user: "{{ mdt_postgres_user }}"
+        postgres_password: "{{ mdt_postgres_password }}"
 
-    # - name: Install pgAdmin4
-    #   role: pgadmin4
+    - name: Install pgAdmin4
+      role: pgadmin4
 
-    # - name: Install Mosquitto
-    #   role: mosquitto
+    - name: Install Mosquitto
+      role: mosquitto
+      when: install_mosquitto | default(true) | bool
 
     - name: Install ROS2
       role: ros2
-      when: install_ros2 | default(false)
+      when: install_ros2 | default(false) | bool
 
     - name: Install ROS 2 MoveIt
       role: ros-humble-moveit
-      when: install_ros2 | default(false)
+      when: install_ros2 | default(false) | bool
 
     - name: Install docker
       role: docker
-      when: install_minikube | default(true) or install_docker | default(true)
+      when: install_minikube | default(false) | bool or install_docker | default(false) | bool
 
     - name: Install NodeRED
       role: nodered
-      when: install_nodered | default(false)
+      when: install_nodered | default(false) | bool
 
   tasks:
     - name: python3-pip 설치
