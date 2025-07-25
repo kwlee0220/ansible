@@ -1,15 +1,31 @@
 ---
 
-- name: Add the GPG key
+- name: Download Google Chrome GPG key
   become: true
-  apt_key:
+  ansible.builtin.get_url:
     url: "{{ chrome_apt_key_url }}"
-    state: present
+    dest: /tmp/google-chrome.pub
+    mode: '0644'
+
+- name: Add Google Chrome GPG key to keyring
+  become: true
+  ansible.builtin.shell: |
+    gpg --dearmor < /tmp/google-chrome.pub > /usr/share/keyrings/google-chrome.gpg
+  args:
+    creates: /usr/share/keyrings/google-chrome.gpg
+
+- name: Set correct permissions for keyring
+  become: true
+  ansible.builtin.file:
+    path: /usr/share/keyrings/google-chrome.gpg
+    mode: '0644'
+    owner: root
+    group: root
 
 - name: Add repository into sources list
   become: true
   apt_repository:
-    repo: "{{ chrome_repo }}"
+    repo: "deb [arch={{ arch }} signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main"
     state: present
     filename: google-chrome
     

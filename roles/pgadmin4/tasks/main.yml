@@ -1,15 +1,32 @@
 ---
-- name: Add pgAdmin GPG key
-  ansible.builtin.apt_key:
+- name: Download pgAdmin GPG key
+  ansible.builtin.get_url:
     url: https://www.pgadmin.org/static/packages_pgadmin_org.pub
-    state: present
-    keyring: /usr/share/keyrings/packages-pgadmin-org.gpg
+    dest: /tmp/packages_pgadmin_org.pub
+    mode: '0644'
+  become: yes
+
+- name: Add pgAdmin GPG key to keyring
+  ansible.builtin.shell: |
+    gpg --dearmor < /tmp/packages_pgadmin_org.pub > /usr/share/keyrings/packages-pgadmin-org.gpg
+  args:
+    creates: /usr/share/keyrings/packages-pgadmin-org.gpg
+  become: yes
+
+- name: Set correct permissions for keyring
+  ansible.builtin.file:
+    path: /usr/share/keyrings/packages-pgadmin-org.gpg
+    mode: '0644'
+    owner: root
+    group: root
+  become: yes
 
 - name: Add pgAdmin repository
   ansible.builtin.apt_repository:
     repo: "deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg] https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/{{ ansible_distribution_release }} pgadmin4 main"
     state: present
     filename: pgadmin4
+  become: yes
 
 - name: Install required dependencies
   ansible.builtin.apt:
@@ -19,20 +36,21 @@
       - python3-wheel
     state: present
     update_cache: yes
+  become: yes
 
 - name: Install pgAdmin4
   ansible.builtin.apt:
     name: pgadmin4
     state: present
     update_cache: yes
+  become: yes
 
 - name: Create pgAdmin4 config directory
   ansible.builtin.file:
     path: "/var/lib/pgadmin"
     state: directory
     mode: '0750'
-    owner: www-data
-    group: www-data
+  become: yes
 
 - name: Create setup script
   ansible.builtin.copy:
@@ -43,13 +61,16 @@
       export PGADMIN_SETUP_EMAIL="{{ pgadmin4_email }}"
       export PGADMIN_SETUP_PASSWORD="{{ pgadmin4_password }}"
       /usr/pgadmin4/bin/setup-web.sh --yes
+  become: yes
 
 - name: Run pgAdmin4 setup script
   ansible.builtin.command:
     cmd: /tmp/pgadmin4_setup.sh
     creates: /var/lib/pgadmin/pgadmin4.db
+  become: yes
 
 - name: Remove setup script
   ansible.builtin.file:
     path: /tmp/pgadmin4_setup.sh
     state: absent 
+  become: yes

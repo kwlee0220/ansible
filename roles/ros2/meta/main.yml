@@ -1,5 +1,5 @@
 ---
-dependency: []
+dependencies: []
 galaxy_info:
   author: kwlee
   description: Install ROS2 Humble and configure environment
