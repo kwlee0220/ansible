@@ -1,0 +1,14 @@
+---
+- name: Install ROS 2 MoveIt dependencies
+  apt:
+    name:
+      - ros-humble-robot-state-publisher
+      - ros-humble-joint-state-publisher-gui
+      - ros-humble-rviz2
+
+      - ros-humble-moveit
+      - ros-humble-ros2-control
+      - ros-humble-controller-manager
+      - ros-humble-ros2-controllers
+    state: present
+  become: true

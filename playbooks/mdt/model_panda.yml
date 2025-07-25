@@ -9,6 +9,10 @@
   vars:
     model_dir: "{{ mdt_home_dir }}/models"
 
+  roles:
+    - role: ros-humble-moveit
+    - role: ros-humble-panda
+
   tasks:
     - name: Copy 'panda' model
       unarchive:
@@ -20,4 +24,4 @@
       shell:
         cmd: "cd {{ model_dir }}/panda/ros2_ws && colcon build --packages-select move_to_random_points"
 
-- import_playbook: "../ros2/install_panda_moveit_ros2.yml"
+# - import_playbook: "../ros2/install_panda_moveit_ros2.yml"
