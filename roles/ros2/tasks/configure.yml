@@ -1,0 +1,27 @@
+---
+# ROS2 환경설정 및 bashrc 설정
+
+- name: Remove the previous ROS2 configuration
+  blockinfile:
+    path: "{{ user_home_dir | default(ansible_env.HOME) }}/.bashrc"
+    marker: "# ROS2: {mark}"
+    state: absent
+  become: false
+
+- name: Configure ROS2 in bashrc
+  blockinfile:
+    path: "{{ user_home_dir | default(ansible_env.HOME) }}/.bashrc"
+    prepend_newline: yes
+    append_newline: yes
+    marker: "# ROS2: {mark}"
+    block: |
+      source /opt/ros/humble/setup.bash
+      source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
+
+      alias cc='colcon'
+      
+      export RCUTILS_COLORIZED_OUTPUT=1
+      export ROS2_DOMAIN_ID={{ ros2_domain_id | default(31) }}
+      export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      export LD_LIBRARY_PATH=/opt/ros/humble/lib:$LD_LIBRARY_PATH
+  become: false 

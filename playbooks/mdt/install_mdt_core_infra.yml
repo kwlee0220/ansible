@@ -26,8 +26,15 @@
         postgres_user: "{{ mdt_postgres_user }}"
         postgres_password: "{{ mdt_postgres_password }}"
 
+    - name: PgAdmin4
+      role: pgadmin4
+
     - name: Install Mosquitto
       role: mosquitto
+
+    - name: Install ROS2
+      role: ros2
+      when: install_ros2 | default(false)
 
     - name: Install docker
       role: docker
@@ -35,7 +42,7 @@
 
     - name: Install NodeRED
       role: nodered
-      when: install_nodered | default(true)
+      when: install_nodered | default(false)
 
   tasks:
     - name: python3-pip 설치
@@ -45,5 +52,4 @@
       become: true
 
 - import_playbook: "../postgresql/install_pgadmin4.yml"
-- import_playbook: "../ros2/install_ros2.yml"
 

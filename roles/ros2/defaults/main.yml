@@ -1,0 +1,5 @@
+---
+# ROS2 role 기본 변수
+
+user_home_dir: "{{ ansible_env.HOME }}"
+ros2_domain_id: 31 

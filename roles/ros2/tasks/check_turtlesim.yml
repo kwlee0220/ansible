@@ -1,0 +1,11 @@
+---
+# turtlesim 설치 확인
+
+- name: Check turtlesim is installed
+  shell: |
+    source /opt/ros/humble/setup.bash
+    ros2 pkg executables turtlesim
+  args:
+    executable: /bin/bash
+  ignore_errors: yes
+  become: false 
