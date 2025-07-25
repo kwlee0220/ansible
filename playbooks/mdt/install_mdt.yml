@@ -5,22 +5,11 @@
   vars_files:
     - vars/mdt_vars.yml
 
-  # tasks:
-  # - name: upgrade apt packages
-  #   apt: upgrade=yes update_cache=yes
-  #   become: true
-
-  # - name: Reboot the target computer to apply the upgrade
-  #   reboot:
-  #     msg: "Rebooting the target computer to apply the upgrade"
-  #     reboot_timeout: 300
-  #   become: true
-
 - name: MDTPlatform을 위한 기반 software를 설치
   import_playbook: "install_mdt_core_infra.yml"
 
-# - name: Reboot the target computer and install the remaining software
-#   import_playbook: "install_mdt_core_infra_after_reboot.yml"
+- name: Reboot the target computer and install the remaining software
+  import_playbook: "install_mdt_core_infra_after_reboot.yml"
 
 - name: MDT platform 기반 구조 설치
   import_playbook: deploy_mdt_platform.yml
