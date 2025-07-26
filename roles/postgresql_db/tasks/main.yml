@@ -29,14 +29,3 @@
   become_user: postgres
   when: (postgres_db | default('')) != "" and postgres_extensions | length > 0
   loop: "{{ postgres_extensions }}"
-
-- name: Display PostgreSQL database creation result
-  debug:
-    msg: |
-      PostgreSQL database creation completed!
-      Database: {{ postgres_db }}
-      Owner: {{ postgres_db_owner }}
-      State: {{ postgres_db_state }}
-      Encoding: {{ postgres_db_encoding }}
-      Extensions: {{ postgres_extensions | default('None') }}
-  when: (postgres_db | default('')) != "" and (postgres_db_owner | default('')) != "" 

@@ -5,7 +5,7 @@
     - vars/mdt_vars.yml
 
   roles:
-    - role: basic_apps
+    - role: allow_sudo
     - role: temurin_jdk
     - role: gradle
 
@@ -41,10 +41,6 @@
       role: ros-humble-moveit
       when: install_ros2 | default(false) | bool
 
-    - name: Install docker
-      role: docker
-      when: install_minikube | default(false) | bool or install_docker | default(false) | bool
-
     - name: Install NodeRED
       role: nodered
       when: install_nodered | default(false) | bool
@@ -55,4 +51,3 @@
         name: python3-pip
         state: present
       become: true
-

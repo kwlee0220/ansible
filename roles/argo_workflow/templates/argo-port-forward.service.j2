@@ -1,0 +1,15 @@
+[Unit]
+Description=Argo Workflows Port Forward Service
+After=network.target minikube.service
+Wants=network.target
+Requires=minikube.service
+
+[Service]
+Type=simple
+User={{ ansible_user | default('root') }}
+ExecStart=/usr/bin/kubectl -n {{ argo_namespace }} port-forward deployment/{{ argo_server_deployment }} {{ argo_port }}:{{ argo_port }} --address {{ argo_address }}
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target 

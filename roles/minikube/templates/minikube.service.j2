@@ -1,0 +1,16 @@
+[Unit]
+Description=Minikube Kubernetes
+After=docker.service
+Requires=docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User={{ ansible_user | default('root') }}
+ExecStart=/usr/local/bin/minikube start --memory=no-limit --cpus=no-limit
+ExecStop=/usr/local/bin/minikube stop
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target 

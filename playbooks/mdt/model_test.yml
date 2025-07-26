@@ -7,6 +7,7 @@
     - vars/mdt_vars.yml
 
   vars:
+    mdt_home_dir: "{{ ansible_env.HOME }}/mdt"
     model_dir: "{{ mdt_home_dir }}/models/test"
 
   tasks:

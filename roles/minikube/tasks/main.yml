@@ -1,0 +1,55 @@
+---
+- name: Update apt package index
+  apt:
+    update_cache: yes
+  become: true
+
+- name: Install dependencies
+  apt:
+    name:
+      - curl
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - software-properties-common
+    state: present
+  become: true
+
+- name: Install Minikube
+  shell: |
+    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    install minikube-linux-amd64 /usr/local/bin/minikube
+    minikube config set driver docker
+  args:
+    creates: /usr/local/bin/minikube
+  become: true
+
+- name: Install kubectl
+  shell: |
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    chmod +x kubectl
+    mv kubectl /usr/local/bin/
+  args:
+    creates: /usr/local/bin/kubectl
+  become: true
+
+- name: Create minikube systemd service file
+  template:
+    src: minikube.service.j2
+    dest: /etc/systemd/system/minikube.service
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+  become: true
+
+- name: Enable and start minikube service
+  systemd:
+    name: minikube
+    enabled: yes
+    state: started
+  become: true 

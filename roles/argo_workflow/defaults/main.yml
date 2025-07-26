@@ -1,0 +1,17 @@
+---
+# Argo Workflows 버전
+argo_version: "v3.6.5"
+
+# 운영체제 (linux, darwin, windows)
+argo_os: "linux"
+
+# Port forwarding 설정
+argo_port: 2746
+argo_address: "0.0.0.0"
+
+# Kubernetes 설정
+argo_namespace: "argo"
+argo_server_deployment: "argo-server"
+
+# 인증 모드
+argo_auth_mode: "server" 

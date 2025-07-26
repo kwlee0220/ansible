@@ -23,5 +23,3 @@
     - name: Run 'colcon build'
       shell:
         cmd: "cd {{ model_dir }}/panda/ros2_ws && colcon build --packages-select move_to_random_points"
-
-# - import_playbook: "../ros2/install_panda_moveit_ros2.yml"

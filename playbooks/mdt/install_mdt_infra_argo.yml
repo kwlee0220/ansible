@@ -4,6 +4,10 @@
   vars_files:
     - vars/mdt_vars.yml
 
+  roles:
+    - name: Install docker
+      role: docker
+
   tasks:
     - name: Reboot the target computer to enable Docker
       reboot:

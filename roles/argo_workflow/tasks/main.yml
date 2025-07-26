@@ -1,0 +1,70 @@
+---
+- name: Install Argo CLI
+  shell: |
+    curl -sLO https://github.com/argoproj/argo-workflows/releases/download/{{ argo_version }}/argo-{{ argo_os }}-amd64.gz
+    gunzip argo-{{ argo_os }}-amd64.gz
+    chmod +x argo-{{ argo_os }}-amd64
+    mv argo-{{ argo_os }}-amd64 /usr/local/bin/argo
+  args:
+    creates: /usr/local/bin/argo
+  become: true
+
+- name: Verify Argo CLI installation
+  command: argo version
+  register: argo_cli_version
+  changed_when: false
+
+- name: Wait for Minikube to be ready
+  command: kubectl get nodes
+  register: minikube_status
+  until: minikube_status.rc == 0
+  retries: 30
+  delay: 10
+  changed_when: false
+
+- name: Create Argo namespace
+  command: kubectl create namespace {{ argo_namespace }}
+  register: argo_namespace_result
+  ignore_errors: yes
+  failed_when: false
+  changed_when: argo_namespace_result.rc == 0
+
+- name: Install Argo Workflows in Kubernetes
+  shell: |
+    kubectl apply -n {{ argo_namespace }} -f https://github.com/argoproj/argo-workflows/releases/latest/download/install.yaml
+  args:
+    executable: /bin/bash
+
+- name: Set Argo Server authentication mode to server
+  shell: |
+    kubectl patch deployment -n {{ argo_namespace }} {{ argo_server_deployment }} --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/args", "value": ["server", "--auth-mode={{ argo_auth_mode }}"]}]'
+  args:
+    executable: /bin/bash
+
+- name: Restart Argo Server deployment
+  command: kubectl rollout restart deployment -n {{ argo_namespace }} {{ argo_server_deployment }}
+
+- name: Create argo port-forward systemd service file
+  template:
+    src: argo-port-forward.service.j2
+    dest: /etc/systemd/system/argo-port-forward.service
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+  become: true
+
+- name: Enable and start argo port-forward service
+  systemd:
+    name: argo-port-forward
+    enabled: yes
+    state: started
+  become: true
+
+- name: Display Argo UI access URL
+  debug:
+    msg: "Access Argo Workflows UI at https://localhost:{{ argo_port }}" 

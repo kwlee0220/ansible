@@ -43,10 +43,3 @@
         executable: /bin/bash
       register: minikube_output
       changed_when: "'Already running' not in minikube_output.stdout"
-    - debug:
-        msg: "Minikube output: {{ minikube_output.stdout }}"
-
-    # - name: Display Minikube status
-    #   command: minikube status
-    #   register: minikube_status
-    #   changed_when: false

@@ -1,2 +1,4 @@
 ---
-dependencies: [ros2,ros-humble-moveit] 
+dependencies:
+  - role: ros2 
+  - role: ros-humble-moveit
