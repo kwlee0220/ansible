@@ -2,6 +2,7 @@
 - name: 주요 모듈들 설치
   package:
     name:
+      - git
       - dos2unix
       - tree
       - zip
@@ -58,16 +59,16 @@
 - name: Install vim
   include_role: name=vim
 
-- name: Install jless
-  block:
-    - name: Add jless repository
-      shell: echo '\n' | add-apt-repository ppa:gslin/jless
-    - name: Install jless
-      apt: name=jless state=latest update_cache=yes
-  become: true
+# - name: Install jless
+#   block:
+#     - name: Add jless repository
+#       shell: echo '\n' | add-apt-repository ppa:gslin/jless
+#     - name: Install jless
+#       apt: name=jless state=latest update_cache=yes
+#   become: true
 
-- name: Install difftastic
-  community.general.snap:
-    name: difftastic
-    state: present
-  become: true
+# - name: Install difftastic
+#   community.general.snap:
+#     name: difftastic
+#     state: present
+#   become: true

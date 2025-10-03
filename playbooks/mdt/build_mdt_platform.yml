@@ -17,8 +17,8 @@
     pyutils_repo_url: "https://github.com/kwlee0220/pyutils.git"
     pyutils_project_dir: "{{ common_dir }}/pyutils"
 
-    argo_java_client_repo_url: "https://github.com/kwlee0220/argo-java-client.git"
-    argo_java_client_project_dir: "{{ misc_dir }}/argo-java-client"
+    # argo_java_client_repo_url: "https://github.com/kwlee0220/argo-java-client.git"
+    # argo_java_client_project_dir: "{{ misc_dir }}/argo-java-client"
 
     mdt_client_repo_url: "https://github.com/kwlee0220/mdt-client.git"
     mdt_client_project_dir: "{{ mdt_dir }}/mdt-client"
