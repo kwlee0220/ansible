@@ -52,12 +52,6 @@
     state: present
   become: true
 
-- name: Install turtlesim
-  package:
-    name: ros-humble-turtlesim
-    state: present
-  become: true
-
 - name: Install rqt
   package:
     name:
@@ -84,6 +78,3 @@
 
 - name: ROS2 환경설정 및 bashrc 설정
   include_tasks: configure.yml
-
-- name: turtlesim 설치 확인
-  include_tasks: check_turtlesim.yml 
