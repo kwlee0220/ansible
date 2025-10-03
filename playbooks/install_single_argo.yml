@@ -1,0 +1,75 @@
+---
+- name: Install Argo CLI on Ubuntu
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Download Argo CLI
+      get_url:
+        url: https://github.com/argoproj/argo-workflows/releases/latest/download/argo-linux-amd64.gz
+        dest: /tmp/argo-linux-amd64.gz
+        mode: '0644'
+
+    - name: Gunzip Argo binary
+      shell: gunzip -f /tmp/argo-linux-amd64.gz
+      args:
+        creates: /tmp/argo-linux-amd64
+
+    - name: Make Argo binary executable
+      file:
+        path: /tmp/argo-linux-amd64
+        mode: '0755'
+
+    - name: Move Argo binary to /usr/local/bin
+      copy:
+        src: /tmp/argo-linux-amd64
+        dest: /usr/local/bin/argo
+        remote_src: yes
+        mode: '0755'
+
+    - name: Verify Argo installation
+      shell: argo version
+      register: version_output
+      changed_when: false
+      become: false
+
+    - name: Create Argo port-forward systemd service
+      copy:
+        dest: /etc/systemd/system/argo-portforward.service
+        content: |
+          [Unit]
+          Description=Argo Workflows UI port-forward (2746 -> svc/argo-workflows-server)
+          After=network-online.target k3s.service
+          Wants=network-online.target
+          Requires=k3s.service
+
+          [Service]
+          Type=simple
+          User={{ ansible_user }}
+          Environment=PATH=/usr/local/bin:/usr/bin:/bin
+          Environment=KUBECONFIG=/home/{{ ansible_user }}/.kube/config
+          ExecStartPre=/usr/bin/bash -lc 'until kubectl --request-timeout=5s -n argo get svc argo-workflows-server >/dev/null 2>&1; do sleep 2; done'
+          ExecStart=/usr/bin/env kubectl -n argo port-forward svc/argo-workflows-server 2746:2746 --address 127.0.0.1
+          Restart=always
+          RestartSec=3
+          StartLimitIntervalSec=0
+          StartLimitBurst=20
+
+          [Install]
+          WantedBy=multi-user.target
+        mode: '0644'
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start Argo port-forward service
+      systemd:
+        name: argo-portforward
+        enabled: yes
+        state: started
+
+    - name: Check Argo port-forward service status
+      shell: systemctl status argo-portforward.service --no-pager
+      register: service_status
+      changed_when: false

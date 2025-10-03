@@ -1,0 +1,90 @@
+---
+- name: Install single node Kubernetes (k3s) on Ubuntu 22.04
+  hosts: all
+  become: true
+  
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        
+    - name: Install curl
+      apt:
+        name: curl
+        state: present
+        
+    - name: Install k3s
+      shell: curl -sfL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s
+        
+    - name: Wait for node to be ready
+      shell: k3s kubectl wait --for=condition=Ready nodes --all --timeout=300s
+      changed_when: false
+      
+    - name: Create .kube directory
+      file:
+        path: "{{ ansible_env.HOME }}/.kube"
+        state: directory
+        mode: '0755'
+      become: false
+        
+    - name: Copy kubeconfig
+      copy:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: "{{ ansible_env.HOME }}/.kube/config"
+        remote_src: yes
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+      become: true
+
+    - name: Add kubectl alias
+      lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        line: 'alias k="kubectl"'
+        state: present
+      become: false
+
+    - name: Create k3s group
+      group:
+        name: k3s
+        state: present
+
+    - name: Add user to k3s group
+      user:
+        name: "{{ ansible_user }}"
+        groups: k3s
+        append: yes
+
+    - name: Configure k3s permissions
+      file:
+        path: /etc/rancher/k3s/k3s.yaml
+        group: k3s
+        mode: '0640'
+
+    - name: Create k3s config directory
+      file:
+        path: /etc/rancher/k3s
+        state: directory
+        mode: '0755'
+
+    - name: Configure k3s settings
+      copy:
+        dest: /etc/rancher/k3s/config.yaml
+        content: |
+          write-kubeconfig-mode: "0640"
+          write-kubeconfig-group: "k3s"
+        mode: '0644'
+
+    - name: Restart k3s service
+      systemd:
+        name: k3s
+        state: restarted
+        daemon_reload: yes
+
+    - name: Verify k3s installation
+      shell: kubectl get nodes
+      register: nodes_output
+      changed_when: false
+      become: false
