@@ -1,0 +1,79 @@
+---
+- name: Install curl
+  apt:
+    name: curl
+    state: present
+  become: true
+    
+- name: Install k3s
+  shell: curl -sfL https://get.k3s.io | sh -
+  args:
+    creates: /usr/local/bin/k3s
+    
+- name: Wait for node to be ready
+  shell: k3s kubectl wait --for=condition=Ready nodes --all --timeout=300s
+  changed_when: false
+  become: true
+  
+- name: Create .kube directory
+  file:
+    path: "{{ user_home_dir }}/.kube"
+    state: directory
+    mode: '0755'
+    
+- name: Copy kubeconfig
+  shell: |
+    cp /etc/rancher/k3s/k3s.yaml "{{ user_home_dir }}/.kube/config"
+    chown "{{ user_id }}:{{ user_id }}" "{{ user_home_dir }}/.kube/config"
+    chmod 600 "{{ user_home_dir }}/.kube/config"
+  become: true
+
+- name: Add kubectl alias
+  lineinfile:
+    path: "{{ user_home_dir }}/.bashrc"
+    line: 'alias k="kubectl"'
+    state: present
+
+- name: Create k3s group
+  group:
+    name: k3s
+    state: present
+  become: true
+
+- name: Add user to k3s group
+  user:
+    name: "{{ ansible_user }}"
+    groups: k3s
+    append: yes
+  become: true
+
+- name: Configure k3s permissions
+  file:
+    path: /etc/rancher/k3s/k3s.yaml
+    group: k3s
+    mode: '0640'
+  become: true
+
+- name: Create k3s config directory
+  file:
+    path: /etc/rancher/k3s
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Configure k3s settings
+  copy:
+    dest: /etc/rancher/k3s/config.yaml
+    content: |
+      write-kubeconfig-mode: "0640"
+      write-kubeconfig-group: "k3s"
+    mode: '0644'
+  become: true
+
+- name: Reboot the target computer to apply the upgrade
+  reboot:
+    msg: "Rebooting the target computer to apply the upgrade"
+    reboot_timeout: "{{ k3s_reboot_timeout }}"
+  become: true
+  when: k3s_reboot_after_install
+

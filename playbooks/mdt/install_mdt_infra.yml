@@ -9,6 +9,15 @@
     - role: basic_apps
     - role: temurin_jdk
     - role: gradle
+    - role: fonts-d2coding
+    - role: hangul
+    - role: vscode
+
+    - role: docker
+      when: install_docker | default(true) | bool
+
+    - role: single_argo_workflow
+      when: install_argo_workflow | default(true) | bool
 
     - name: Install PostgreSQL
       role: postgresql

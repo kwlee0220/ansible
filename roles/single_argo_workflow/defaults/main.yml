@@ -1,0 +1,17 @@
+---
+# User settings
+user_home_dir: "{{ ansible_env.HOME }}"
+
+# Argo Workflows settings
+argo_namespace: "argo"
+argo_auth_mode: "server"
+argo_service_type: "NodePort"
+argo_port: 2746
+argo_address: "0.0.0.0"
+
+# Argo CLI settings
+argo_cli_url: "https://github.com/argoproj/argo-workflows/releases/latest/download/argo-linux-amd64.gz"
+
+# K3s service dependency
+k3s_service_name: "k3s"
+

@@ -1,0 +1,4 @@
+---
+dependencies:
+  - role: single_k8s
+

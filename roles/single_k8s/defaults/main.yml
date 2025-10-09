@@ -1,0 +1,13 @@
+---
+# User settings
+user_id: "{{ ansible_user_id }}"
+user_home_dir: "{{ ansible_env.HOME }}"
+
+# K3s settings
+k3s_reboot_after_install: true
+k3s_reboot_timeout: 300
+
+# Kubeconfig settings
+k3s_kubeconfig_mode: "0640"
+k3s_kubeconfig_group: "k3s"
+

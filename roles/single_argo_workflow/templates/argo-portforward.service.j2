@@ -1,0 +1,21 @@
+[Unit]
+Description=Argo Workflows UI port-forward ({{ argo_port }} -> svc/argo-workflows-server)
+After=network-online.target {{ k3s_service_name }}.service
+Wants=network-online.target
+Requires={{ k3s_service_name }}.service
+
+[Service]
+Type=simple
+User={{ ansible_user }}
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=KUBECONFIG={{ user_home_dir }}/.kube/config
+ExecStartPre=/usr/bin/bash -lc 'until kubectl --request-timeout=5s -n {{ argo_namespace }} get svc argo-workflows-server >/dev/null 2>&1; do sleep 2; done'
+ExecStart=/usr/bin/env kubectl -n {{ argo_namespace }} port-forward svc/argo-workflows-server {{ argo_port }}:{{ argo_port }} --address {{ argo_address }}
+Restart=always
+RestartSec=3
+StartLimitIntervalSec=0
+StartLimitBurst=20
+
+[Install]
+WantedBy=multi-user.target
+

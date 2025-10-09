@@ -7,18 +7,21 @@
       - wget
     state: present
     update_cache: yes
+  become: true
 
 - name: Create keyrings directory
   file:
     path: /etc/apt/keyrings
     state: directory
     mode: '0755'
+  become: true
 
 - name: Download Microsoft GPG key
   get_url:
     url: "{{ vscode_gpg_url }}"
     dest: /etc/apt/keyrings/microsoft.asc
     mode: '0644'
+  become: true
 
 - name: Add Microsoft repository
   apt_repository:
@@ -26,9 +29,11 @@
     state: present
     filename: vscode
     update_cache: yes
+  become: true
 
 - name: Install Visual Studio Code
   package:
     name: code
     state: latest
     update_cache: yes 
+  become: true
