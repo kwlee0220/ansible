@@ -52,6 +52,13 @@
   become: true
   command: systemctl isolate graphical
 
+- name: Create polkit directory
+  file:
+    path: /etc/polkit-1/localauthority/50-local.d
+    state: directory
+    mode: '0755'
+  become: true
+
 - name: xrdp 접속 중 Password를 지속적으로 물어보는 현상 해결 (1/2)
   become: true
   copy:

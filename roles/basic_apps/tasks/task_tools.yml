@@ -53,22 +53,5 @@
 - name: Install fzf application
   include_role: name=fzf
 
-# - name: install Atuin
-#   include_role: name=atuin
-
 - name: Install vim
   include_role: name=vim
-
-# - name: Install jless
-#   block:
-#     - name: Add jless repository
-#       shell: echo '\n' | add-apt-repository ppa:gslin/jless
-#     - name: Install jless
-#       apt: name=jless state=latest update_cache=yes
-#   become: true
-
-# - name: Install difftastic
-#   community.general.snap:
-#     name: difftastic
-#     state: present
-#   become: true

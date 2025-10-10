@@ -9,39 +9,50 @@
     - role: basic_apps
     - role: temurin_jdk
     - role: gradle
+
     - role: fonts-d2coding
+      when: install_hangul | default(true) | bool
+
     - role: hangul
+      when: install_hangul | default(true) | bool
+
     - role: vscode
+      when: install_vscode | default(true) | bool
 
     - role: docker
       when: install_docker | default(true) | bool
-
-    - role: single_argo_workflow
-      when: install_argo_workflow | default(true) | bool
 
     - name: Install PostgreSQL
       role: postgresql
       vars:
         postgres_version: 16
+      when: install_postgresql | default(true) | bool
 
     - name: Create PostgreSQL user for MDTPlatform internal data
       role: postgresql_user
       vars:
         postgres_user: "{{ mdt_postgres_user }}"
         postgres_password: "{{ mdt_postgres_password }}"
+      when: install_postgresql | default(true) | bool
+
     - name: Create PostgreSQL database for MDTPlatform internal data
       role: postgresql_db
       vars:
         postgres_db: "{{ mdt_postgres_db }}"
         postgres_user: "{{ mdt_postgres_user }}"
         postgres_password: "{{ mdt_postgres_password }}"
+      when: install_postgresql | default(true) | bool
 
     - name: Install pgAdmin4
       role: pgadmin4
+      when: install_postgresql | default(true) | bool
 
     - name: Install Mosquitto
       role: mosquitto
       when: install_mosquitto | default(true) | bool
+
+    - role: single_argo_workflow
+      when: install_argo_workflow | default(true) | bool
 
     - name: Install ROS2
       role: ros2

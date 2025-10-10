@@ -4,7 +4,7 @@
 
   vars:
     user_id: "{{ ansible_user_id }}"
-    disable_list: []
+    disable_list: [ 'python3', 'tmux', 'vscode' ]
     
   roles:
     - role: python3

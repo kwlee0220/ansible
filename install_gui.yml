@@ -14,14 +14,10 @@
         state: present
       become: true
 
-    - name: python3-pip 설치
-      package:
-        name: python3-pip
-        state: present
+    - name: Install psutil via apt (Ubuntu 22.04+)
+      apt:
+        name: python3-psutil
       become: true
-    - name: dconf 관련 모듈 (psutil) 설치
-      become: true
-      pip: name=psutil
 
   roles:
     - name: Adapt Ubuntu Desktop
