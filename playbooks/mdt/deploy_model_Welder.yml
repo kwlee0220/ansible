@@ -1,0 +1,44 @@
+---
+- name: Add 'Welder' model
+  hosts: all
+  become: false
+
+  vars_files:
+    - vars/mdt_vars.yml
+
+  vars:
+    model_Welder_dir: "{{ mdt_home_dir }}/models/Welder"
+
+    mdt_Welder_repo_url: "https://github.com/kwlee0220/mdt-welder.git"
+    mdt_Welder_project_dir: "{{ user_home_dir }}/development/mdtpy/mdt-welder"
+
+  tasks:
+    - name: Create directory for 'Welder' model
+      file:
+        path: "{{ model_Welder_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy 'Welder' model
+      unarchive:
+        src: "files/Welder.zip"
+        dest: "{{ model_Welder_dir }}"
+        remote_src: no
+        mode: '0755'
+
+    - name: Install necessary Python modules for 'Welder' instance
+      pip:
+        requirements: "{{ model_Welder_dir }}/requirements.txt"
+
+    - name: Clone 'mdt-welder' repository
+      git:
+        repo: "{{ mdt_Welder_repo_url }}"
+        dest: "{{ mdt_Welder_project_dir }}"
+        version: master
+        force: no
+
+    - name: Install mdt-Welder in editable mode
+      shell: |
+        cd {{ mdt_Welder_project_dir }} && pip3 install -e .
+      args:
+        executable: /bin/bash

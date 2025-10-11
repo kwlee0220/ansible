@@ -1,0 +1,77 @@
+---
+- name: Clone MDT projects from GitHub
+  hosts: all
+  become: false
+
+  vars_files:
+    - mdt_vars.yml
+
+  vars:
+    common_dir: "{{ src_root_dir }}/common"
+    mdt_dir: "{{ src_root_dir }}/mdt"
+    misc_dir: "{{ src_root_dir }}/misc"
+    mdtpy_dir: "{{ src_root_dir }}/mdtpy"
+
+    utils_repo_url: "https://github.com/kwlee0220/utils.git"
+    utils_project_dir: "{{ common_dir }}/utils"
+    pyutils_repo_url: "https://github.com/kwlee0220/pyutils.git"
+    pyutils_project_dir: "{{ common_dir }}/pyutils"
+
+    mdt_client_repo_url: "https://github.com/kwlee0220/mdt-client.git"
+    mdt_client_project_dir: "{{ mdt_dir }}/mdt-client"
+
+    faaast_lib_repo_url: "https://github.com/kwlee0220/faaast-lib.git"
+    faaast_lib_project_dir: "{{ mdt_dir }}/faaast/faaast-lib"
+
+    faaast_starter_repo_url: "https://github.com/kwlee0220/faaast-starter.git"
+    faaast_starter_project_dir: "{{ mdt_dir }}/faaast/faaast-starter"
+
+    mdt_instance_repo_url: "https://github.com/kwlee0220/mdt-instance.git"
+    mdt_instance_project_dir: "{{ mdt_dir }}/mdt-instance"
+
+    mdt_manager_repo_url: "https://github.com/kwlee0220/mdt-manager.git"
+    mdt_manager_project_dir: "{{ mdt_dir }}/mdt-manager"
+
+    mdt_operation_http_repo_url: "https://github.com/kwlee0220/mdt-operation-http.git"
+    mdt_operation_http_project_dir: "{{ mdt_dir }}/mdt-operation-http"
+
+    mdt_workflow_argo_repo_url: "https://github.com/kwlee0220/mdt-workflow-argo.git"
+    mdt_workflow_argo_project_dir: "{{ mdt_dir }}/mdt-workflow-argo"
+
+    mdtpy_repo_url: "https://github.com/kwlee0220/mdtpy.git"
+    mdtpy_project_dir: "{{ mdtpy_dir }}/mdtpy"
+
+  tasks:
+    - name: Create development and common directory
+      file:
+        path: "{{ src_root_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Clone MDT repositories
+      git:
+        repo: "{{ item.repo }}"
+        dest: "{{ item.dest }}"
+        version: master
+        force: no
+      loop:
+        - repo: "{{ utils_repo_url }}"
+          dest: "{{ utils_project_dir }}"
+        - repo: "{{ pyutils_repo_url }}"
+          dest: "{{ pyutils_project_dir }}"
+        - repo: "{{ mdt_client_repo_url }}"
+          dest: "{{ mdt_client_project_dir }}"
+        - repo: "{{ faaast_lib_repo_url }}"
+          dest: "{{ faaast_lib_project_dir }}"
+        - repo: "{{ faaast_starter_repo_url }}"
+          dest: "{{ faaast_starter_project_dir }}"
+        - repo: "{{ mdt_instance_repo_url }}"
+          dest: "{{ mdt_instance_project_dir }}"
+        - repo: "{{ mdt_manager_repo_url }}"
+          dest: "{{ mdt_manager_project_dir }}"
+        - repo: "{{ mdt_operation_http_repo_url }}"
+          dest: "{{ mdt_operation_http_project_dir }}"
+        - repo: "{{ mdt_workflow_argo_repo_url }}"
+          dest: "{{ mdt_workflow_argo_project_dir }}"
+        - repo: "{{ mdtpy_repo_url }}"
+          dest: "{{ mdtpy_project_dir }}"

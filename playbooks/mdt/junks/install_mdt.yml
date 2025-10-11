@@ -1,0 +1,31 @@
+---
+- name: install MDT platform
+  hosts: all
+
+  vars_files:
+    - vars/mdt_vars.yml
+
+- name: MDTPlatform을 위한 기반 software를 설치
+  import_playbook: "install_mdt_infra.yml"
+
+- name: MDTWorkflowManager 구동을 위한 Argo Workflow 설치
+  import_playbook: "install_mdt_infra_argo.yml"
+  when: install_argo_workflow | default(false) | bool
+
+- name: MDT platform 기반 구조 설치
+  import_playbook: deploy_mdt_platform.yml
+
+- name: Public MDTPlatform 소스 설치 및 빌드
+  import_playbook: "build_public_mdt_platform.yml"
+  when: not install_mdt_source | default(true) | bool
+      
+- name: MDT platform 소스 설치 및 빌드
+  import_playbook: "build_mdt_platform.yml"
+  when: install_mdt_source | default(false)
+
+- name: MDT platform GUI 설치
+  import_playbook: "install_mdt_gui.yml"
+  when: install_mdt_gui | default(false) | bool
+
+- name: 테스트용 MDT 모델 설치
+  import_playbook: "add_mdt_models.yml"

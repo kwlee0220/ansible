@@ -43,15 +43,8 @@
       - name: Create symbolic link
         file:
           src: "{{ mdt_dir }}/mdt-apps/build/libs/mdt-apps-{{ mdt_version }}-all.jar"
-          dest: "{{ mdt_home_dir }}/models/mdt-apps-all.jar"
+          dest: "{{ mdt_home_dir }}/share/mdt-apps-all.jar"
           state: link
-      when: install_mdt_source | default(false)
-    - name: Copy 'mdt-apps-all.jar' file
-      copy:
-        src: files/mdt-apps-all.jar
-        dest: "{{ mdt_home_dir }}/models/mdt-apps-all.jar"
-        mode: '0644'
-      when: not install_mdt_source | default(true)
 
   roles:
     - role: postgresql_db
@@ -59,7 +52,7 @@
         postgres_db: mdt_app
         postgres_user: "mdt"
 
-- import_playbook: "model_test.yml"
-- import_playbook: "model_welder.yml"
-- import_playbook: "model_panda.yml"
-- import_playbook: "model_innercase.yml"
+- import_playbook: "deploy_model_test.yml"
+- import_playbook: "deploy_model_Welder.yml"
+# - import_playbook: "deploy_model_panda.yml"
+- import_playbook: "deploy_model_innercase.yml"

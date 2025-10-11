@@ -1,0 +1,19 @@
+---
+- name: Install Argo-based workflow and its dependencies after reboot.
+  hosts: all
+  vars_files:
+    - vars/mdt_vars.yml
+
+  roles:
+    - name: Install docker
+      role: docker
+
+  tasks:
+    - name: Reboot the target computer to enable Docker
+      reboot:
+        msg: "Rebooting the target computer to enable Docker"
+        reboot_timeout: 300
+      become: true
+
+- import_playbook: "../argo/install_minikube.yml"
+- import_playbook: "../argo/install_argo_workflow.yml"

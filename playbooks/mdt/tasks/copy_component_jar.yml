@@ -1,6 +1,0 @@
-
-- name: Copy jar file to the component directory if necessary
-  copy:
-    src: "{{ component_jar_file }}"
-    dest: "{{ component_dir }}"
-    remote_src: no

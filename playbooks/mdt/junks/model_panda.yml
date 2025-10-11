@@ -1,0 +1,25 @@
+---
+- name: Add 'panda' model
+  hosts: all
+  become: false
+
+  vars_files:
+    - vars/mdt_vars.yml
+
+  vars:
+    model_dir: "{{ mdt_home_dir }}/models"
+
+  roles:
+    - role: ros-humble-moveit
+    - role: ros-humble-panda
+
+  tasks:
+    - name: Copy 'panda' model
+      unarchive:
+        src: "files/panda.tar.gz"
+        dest: "{{ model_dir }}"
+        remote_src: no
+
+    - name: Run 'colcon build'
+      shell:
+        cmd: "cd {{ model_dir }}/panda/ros2_ws && colcon build --packages-select move_to_random_points"

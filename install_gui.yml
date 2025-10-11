@@ -14,6 +14,12 @@
         state: present
       become: true
 
+    - name: Install PCManFM 
+      package:
+        name:
+          - pcmanfm
+      become: true
+
     - name: Install psutil via apt (Ubuntu 22.04+)
       apt:
         name: python3-psutil

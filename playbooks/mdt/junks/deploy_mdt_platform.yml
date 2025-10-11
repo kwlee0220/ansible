@@ -1,0 +1,95 @@
+---
+- name: Configure MDT platform
+  hosts: all
+  become: false
+
+  vars_files:
+    - mdt_vars.yml
+
+  vars:
+    development_dir: "{{ user_home_dir | default(ansible_env.HOME) }}/development"
+    common_dir: "{{ development_dir }}/common"
+    mdt_dir: "{{ development_dir }}/mdt"
+    misc_dir: "{{ development_dir }}/misc"
+
+    components:
+      - mdt-client
+      - mdt-manager
+      - mdt-operation-http
+      - mdt-workflow-argo
+      - share
+
+    component_jar_files:
+      - dir: "{{ mdt_home_dir }}/mdt-client"
+        jar_file: "files/mdt-client-all.jar"
+      - dir: "{{ mdt_home_dir }}/mdt-manager"
+        jar_file: "files/mdt-manager-all.jar"
+      - dir: "{{ mdt_home_dir }}/mdt-manager"
+        jar_file: "files/mdt-instance-all.jar"
+      - dir: "{{ mdt_home_dir }}/mdt-operation-http"
+        jar_file: "files/mdt-operation-http.jar"
+      - dir: "{{ mdt_home_dir }}/mdt-workflow-argo"
+        jar_file: "files/mdt-workflow-argo.jar"
+
+  tasks:
+    - name: Create top-level MDT directory
+      file:
+        path: "{{ mdt_home_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Deploy components
+      include_tasks: tasks/deploy_component.yml
+      vars:
+        component_name: "{{ item }}"
+        component_dir: "{{ mdt_home_dir }}/{{ item }}"
+      loop: "{{ components }}"
+
+    - name: Copy jar files to the component directories
+      include_tasks: tasks/copy_component_jar.yml
+      vars:
+        component_dir: "{{ item.dir }}"
+        component_jar_file: "{{ item.jar_file }}"
+      loop: "{{ component_jar_files }}"
+
+    - name: Configure MDT settings
+      block:
+        - name: Create mdt home directory
+          file:
+            path: "{{ mdt_home_dir }}"
+            state: directory
+            mode: '0755'
+
+        - name: Remove the previous MDT configuration
+          blockinfile:
+            path: "{{ user_home_dir }}/.bashrc"
+            marker: "# MDT: {mark}"
+            state: absent
+
+        - name: Configure MDT in bashrc
+          blockinfile:
+            path: "{{ user_home_dir }}/.bashrc"
+            prepend_newline: yes
+            append_newline: yes
+            insertbefore: "#THIS MUST BE AT THE END OF THE FILE"
+            marker: "# MDT: {mark}"
+            block: |
+              export LOCAL_HOST={{ platform_host | default('localhost') }}
+              export MDT_HOME={{ mdt_home_dir }}
+              export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
+              export MDT_ENDPOINT=http://$LOCAL_HOST:12985
+              export ARGO_ENDPOINT={{ argo_endpoint | default('http://localhost:2746') }}
+              
+              PATH=$HOME/.local/bin:$PATH
+              PATH=$MDT_CLIENT_HOME/sbin:$PATH
+              export PATH
+              source $MDT_CLIENT_HOME/sbin/mdt_completion
+
+              export MDT_GLOBAL_CONFIG_FILE=$MDT_HOME/share/mdt_global_config.json
+              export MDT_KEY_STORE_PASSWORD=mdt2024^^
+              export MDT_KEY_STORE_FILE=$MDT_HOME/share/mdt_cert.p12
+
+              PYTHONPATH=$PYTHONPATH:$HOME/development/common/pyutils
+              PYTHONPATH=$PYTHONPATH:$HOME/development/mdtpy/mdtpy
+              export PYTHONPATH
+      become: false

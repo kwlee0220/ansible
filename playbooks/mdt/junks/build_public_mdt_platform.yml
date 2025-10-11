@@ -1,0 +1,47 @@
+---
+- name: Build MDT platform source code
+  hosts: all
+  become: false
+
+  vars_files:
+    - mdt_vars.yml
+
+  vars:
+    common_dir: "{{ src_root_dir }}/common"
+    mdtpy_dir: "{{ src_root_dir }}/mdtpy"
+
+    pyutils_repo_url: "https://github.com/kwlee0220/pyutils.git"
+    pyutils_project_dir: "{{ common_dir }}/pyutils"
+    mdtpy_repo_url: "https://github.com/kwlee0220/mdtpy.git"
+    mdtpy_project_dir: "{{ mdtpy_dir }}/mdtpy"
+
+  tasks:
+    - name: Create development directory
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ src_root_dir }}"
+        - "{{ common_dir }}"
+        - "{{ mdtpy_dir }}"
+
+    - name: Clone 'pyutils' repository
+      git:
+        repo: "{{ pyutils_repo_url }}"
+        dest: "{{ pyutils_project_dir }}"
+        version: master
+        force: no
+
+    - name: Clone 'mdtpy' repository
+      git:
+        repo: "{{ mdtpy_repo_url }}"
+        dest: "{{ mdtpy_project_dir }}"
+        version: master
+        force: no
+
+    - name: Install necessary Python modules for 'mdtpy'
+      pip:
+        name:
+          - dataclasses_json
+        state: present
