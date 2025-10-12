@@ -11,19 +11,11 @@
     - role: gradle
 
     - role: fonts-d2coding
-      when: install_hangul | default(true) | bool
-
     - role: hangul
-      when: install_hangul | default(true) | bool
-
-    - name: Install Tilix
-      role: tilix
-
+    - role: tilix
+    - role: google-chrome
     - role: vscode
-      when: install_vscode | default(true) | bool
-
     - role: docker
-      when: install_docker | default(true) | bool
 
     - name: Install PostgreSQL
       role: postgresql

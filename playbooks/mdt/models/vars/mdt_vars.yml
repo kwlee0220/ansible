@@ -1,0 +1,6 @@
+user_id: "{{ ansible_user_id }}"
+user_home_dir: "{{ ansible_env.HOME }}"
+
+mdt_home_dir: "{{ user_home_dir }}/mdt"
+src_root_dir: "{{ user_home_dir }}/development"
+mdt_version: "1.2"

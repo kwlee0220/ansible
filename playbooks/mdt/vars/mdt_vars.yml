@@ -2,7 +2,6 @@ user_id: "{{ ansible_user_id }}"
 user_home_dir: "{{ ansible_env.HOME }}"
 
 platform_host: "{{ ansible_host | default('localhost') }}"
-# platform_host: "192.168.0.29"
 argo_endpoint: "https://{{ platform_host }}:2746"
 
 mdt_home_dir: "{{ user_home_dir }}/mdt"
@@ -15,14 +14,8 @@ mdt_postgres_user: mdt
 mdt_postgres_password: mdt2025
 mdt_postgres_db: mdt
 
-install_vscode: true
-install_hangul: true
-install_postgresql: true
-install_mosquitto: true
+install_postgresql: false
+install_mosquitto: false
 install_ros2: false
-install_docker: true
-install_argo_workflow: true
+install_argo_workflow: false
 install_nodered: false
-
-install_mdt_source: false
-install_mdt_gui: false
