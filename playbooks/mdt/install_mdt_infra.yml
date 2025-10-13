@@ -4,6 +4,23 @@
   vars_files:
     - vars/mdt_vars.yml
 
+  pre_tasks:
+    - name: Install dconf-cli, dconf editor
+      package:
+        name:
+          - gnome-tweaks
+          - dconf-cli
+          - dconf-editor
+          - dbus-x11
+        update_cache: true
+        state: present
+      become: true
+
+    - name: Install psutil via apt (Ubuntu 22.04+)
+      apt:
+        name: python3-psutil
+      become: true
+
   roles:
     - role: allow_sudo
     - role: basic_apps
@@ -13,6 +30,7 @@
     - role: fonts-d2coding
     - role: hangul
     - role: tilix
+    - role: gnome-terminal
     - role: google-chrome
     - role: vscode
     - role: docker
@@ -74,3 +92,29 @@
         name:
           - pcmanfm
       become: true
+
+    - name: Add postgres IP entry to /etc/hosts if not present
+      blockinfile:
+        path: /etc/hosts
+        prepend_newline: yes
+        append_newline: yes
+        insertbefore: "# The following lines are desirable for IPv6 capable hosts"
+        marker: "# POSTGRES: {mark}"
+        block: |
+          127.0.0.1       postgres
+      become: true
+      when: install_postgresql | default(true) | bool
+
+    - name: Add MQTT IP entry to /etc/hosts if not present
+      blockinfile:
+        path: /etc/hosts
+        prepend_newline: yes
+        append_newline: yes
+        insertbefore: "# The following lines are desirable for IPv6 capable hosts"
+        marker: "# MQTT: {mark}"
+        block: |
+          127.0.0.1       mqtt_broker
+      become: true
+      when: install_mosquitto | default(true) | bool
+
+- import_playbook: "../linux/samba/add_samba_client_share.yml"

@@ -14,8 +14,8 @@ mdt_postgres_user: mdt
 mdt_postgres_password: mdt2025
 mdt_postgres_db: mdt
 
-install_postgresql: false
-install_mosquitto: false
+install_postgresql: true
+install_mosquitto: true
+install_argo_workflow: true
 install_ros2: false
-install_argo_workflow: false
 install_nodered: false

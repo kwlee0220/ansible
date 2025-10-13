@@ -1,0 +1,19 @@
+---
+- name: test
+  hosts: all
+
+  # vars:
+    # samba_client: "{{ ansible_user_id }}"
+    # samba_client_passwd: "{{ ansible_password }}"
+    # share_name: home
+    # share_path: "/home/{{ ansible_user_id }}"
+
+  # roles:
+  #   - role: basic_apps
+
+  # tasks:
+  #   - name: Test task
+  #     debug:
+  #       msg: "Starting samba setup"
+
+- import_playbook: "playbooks/linux/samba/add_samba_client_share.yml"

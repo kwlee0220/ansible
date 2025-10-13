@@ -4,7 +4,7 @@
 
   vars:
     samba_client: "{{ ansible_user_id }}"
-    samba_client_passwd: "urc2004"
+    samba_client_passwd: "{{ ansible_password }}"
     share_name: home
     share_path: "/home/{{ ansible_user_id }}"
 

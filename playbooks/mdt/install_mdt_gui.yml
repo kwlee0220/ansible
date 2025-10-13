@@ -45,13 +45,13 @@
         src: files/_env.development.j2
         dest: "{{ dtfront_dir }}/.env.development"
 
-    - name: Start MDT GUI
-      shell: |
-        cd {{ item }}
-        nohup yarn start > /dev/null 2>&1 &
-        sleep 10
-      args:
-        executable: /bin/bash
-      loop:
-        - "{{ dtbackend_dir }}"
-        - "{{ dtfront_dir }}"
+    # - name: Start MDT GUI
+    #   shell: |
+    #     cd {{ item }}
+    #     nohup yarn start > /dev/null 2>&1 &
+    #     sleep 10
+    #   args:
+    #     executable: /bin/bash
+    #   loop:
+    #     - "{{ dtbackend_dir }}"
+    #     - "{{ dtfront_dir }}"
