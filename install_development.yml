@@ -4,13 +4,14 @@
 
   vars:
     user_id: "{{ ansible_user_id }}"
-    disable_list: [ 'python3', 'tmux', 'vscode' ]
+    # disable_list: [ 'python3', 'vscode' ]
+    disable_list: [ 'python3' ]
     
   roles:
+    - role: temurin_jdk
+      when: "'temurin_jdk' not in disable_list"
     - role: python3
       when: "'python3' not in disable_list"
-    - role: tmux
-      when: "'tmux' not in disable_list"
     - role: vscode
       when: "ansible_virtualization_type != 'wsl' and 'vscode' not in disable_list"
     - role: docker
