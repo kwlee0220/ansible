@@ -8,12 +8,12 @@
     # share_name: home
     # share_path: "/home/{{ ansible_user_id }}"
 
-  # roles:
-  #   - role: basic_apps
+  roles:
+    - role: single_argo_workflow
 
   # tasks:
   #   - name: Test task
   #     debug:
   #       msg: "Starting samba setup"
 
-- import_playbook: "playbooks/linux/samba/add_samba_client_share.yml"
+# - import_playbook: "playbooks/linux/samba/add_samba_client_share.yml"
