@@ -39,6 +39,7 @@
     name:
       - ros-humble-desktop
       - ros-dev-tools
+      - ros-humble-topic-tools
       - ros-humble-rmw-cyclonedds-cpp
     state: present
   become: true
