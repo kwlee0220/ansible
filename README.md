@@ -38,6 +38,10 @@
 ```
 setup_ansible.sh
 ```
+### Toolbox를 설치하기
+```
+pip install git+https://github.com/larsks/ansible-toolbox
+```
 ### 특정 role만 실행하기
 ```
 ansible-role <role>
