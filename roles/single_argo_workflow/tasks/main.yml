@@ -40,6 +40,12 @@
     dest: /tmp/argo-linux-amd64.gz
     mode: '0644'
 
+- name: Create default-admin rolebinding in Argo namespace
+  shell: kubectl create rolebinding default-admin --clusterrole=admin --serviceaccount={{ argo_namespace }}:default -n {{ argo_namespace }} || true
+  environment:
+    KUBECONFIG: "{{ user_home_dir }}/.kube/config"
+  changed_when: false
+
 - name: Extract Argo CLI
   shell: gunzip /tmp/argo-linux-amd64.gz
   args:
