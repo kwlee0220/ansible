@@ -45,6 +45,14 @@
       line: "unset XDG_RUNTIME_DIR"
   notify: restart xrdp
 
+- name: Enable Wayland by uncommenting WaylandEnable in /etc/gdm3/custom.conf (접속시 검은 화면만 보이는 문제 해결)
+  become: true
+  lineinfile:
+    path: /etc/gdm3/custom.conf
+    regexp: '^#WaylandEnable=false'
+    line: 'WaylandEnable=false'
+    state: present
+
 - name: Login 과정에서 password 입력 후 멈추는 문제 해결 1/2
   become: true
   command: systemctl set-default graphical
