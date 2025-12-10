@@ -6,7 +6,7 @@ argo_endpoint: "https://{{ platform_host }}:2746"
 
 mdt_home_dir: "{{ user_home_dir }}/mdt"
 src_root_dir: "{{ user_home_dir }}/development"
-mdt_version: "1.2"
+mdt_version: "1.4.0"
 
 ros2_ws_dir: "{{ user_home_dir }}/ros2_ws"
 

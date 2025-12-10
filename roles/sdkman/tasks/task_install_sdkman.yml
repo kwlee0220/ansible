@@ -11,13 +11,13 @@
   args:
     executable: /bin/bash
 
-- name: Install Java Temurin {{ java_version }} using SDKMAN
-  shell: |
-    source {{ user_home_dir }}/.sdkman/bin/sdkman-init.sh && sdk install java {{ java_version }}
-  args:
-    executable: /bin/bash
-  environment:
-    SDKMAN_DIR: "{{ user_home_dir }}/.sdkman"
+# - name: Install Java Temurin {{ java_version }} using SDKMAN
+#   shell: |
+#     source {{ user_home_dir }}/.sdkman/bin/sdkman-init.sh && sdk install java {{ java_version }}
+#   args:
+#     executable: /bin/bash
+#   environment:
+#     SDKMAN_DIR: "{{ user_home_dir }}/.sdkman"
 
 - name: Install Gradle {{ gradle_version }} using SDKMAN
   shell: |

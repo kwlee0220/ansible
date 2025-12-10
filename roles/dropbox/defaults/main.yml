@@ -1,0 +1,9 @@
+---
+dropbox_repo: "deb [signed-by=/etc/apt/keyrings/dropbox.gpg] http://linux.dropbox.com/ubuntu jammy main"
+dropbox_gpg_url: "https://linux.dropbox.com/fedora/rpm-public-key.asc"
+dropbox_gpg_path: "/etc/apt/keyrings/dropbox.gpg"
+
+# 추가 옵션들
+dropbox_install_nautilus: true     # Nautilus 연동 설치 여부
+dropbox_enable_daemon: false        # Dropbox 데몬(클라이언트) 자동 실행 여부
+dropbox_user: "{{ ansible_user_id }}"  # 데몬을 실행할 사용자

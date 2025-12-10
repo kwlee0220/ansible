@@ -1,0 +1,16 @@
+---
+# Cursor 설치용 .deb 다운로드 URL
+# 기본 값은 항상 최신 버전을 가리키는 엔드포인트/링크로 설정해 두고,
+# 필요 시 inventory나 playbook에서 override 하시면 됩니다.
+#
+# 예시 1) (권장) 공식 다운로드 페이지에서 "Linux .deb (x64)" 링크를 복사해 사용
+#   https://cursor.com/download 에서 현재 최신 릴리스의 x64 .deb 링크를 복사
+#
+# 예시 2) 별도의 always-latest 엔드포인트를 알고 있다면 그 URL로 교체
+cursor_deb_url: "https://api2.cursor.sh/updates/download/golden/linux-x64-deb/cursor/2.1"
+
+# .deb를 저장할 로컬 경로
+cursor_deb_local_path: "/tmp/cursor-latest.deb"
+
+# 설치 후 패키지 이름 (apt에서 관리되는 이름)
+cursor_package_name: "cursor"

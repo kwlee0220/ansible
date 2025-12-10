@@ -1,0 +1,53 @@
+---
+- name: Ensure keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: yes
+
+- name: Download Dropbox GPG key
+  ansible.builtin.get_url:
+    url: "{{ dropbox_gpg_url }}"
+    dest: "/tmp/dropbox.asc"
+    mode: '0644'
+  become: yes
+
+- name: Import Dropbox GPG key (convert to dearmor)
+  ansible.builtin.command: >
+    gpg --dearmor -o {{ dropbox_gpg_path }} /tmp/dropbox.asc
+  args:
+    creates: "{{ dropbox_gpg_path }}"
+  become: yes
+
+- name: Add Dropbox apt repository
+  ansible.builtin.apt_repository:
+    repo: "{{ dropbox_repo }}"
+    filename: "dropbox"
+    state: present
+  notify: apt_update
+  become: yes
+
+- name: Install Dropbox package
+  ansible.builtin.apt:
+    name: dropbox
+    state: latest
+    update_cache: yes
+  become: yes
+
+- name: Remove temporary Dropbox GPG key file
+  ansible.builtin.file:
+    path: "/tmp/dropbox.asc"
+    state: absent
+  become: yes
+
+# --- 여기서부터 추가 부분 ---
+
+- name: Start Dropbox daemon for user (dropbox start -i)
+  ansible.builtin.command: dropbox start -i
+  become: yes
+  become_user: "{{ dropbox_user }}"
+  when: dropbox_enable_daemon
+  changed_when: false   # 매번 실행되어도 changed로 안 보이게

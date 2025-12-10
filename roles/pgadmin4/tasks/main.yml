@@ -1,4 +1,11 @@
 ---
+- name: Remove legacy pgAdmin GPG key from trusted.gpg
+  shell: |
+    apt-key list | grep -q "pgAdmin" && apt-key del "$(apt-key list | grep -B1 'pgAdmin\|PostgreSQL' | head -1 | awk '{print $NF}')" || true
+  become: yes
+  ignore_errors: true
+  changed_when: false
+
 - name: Download pgAdmin GPG key
   ansible.builtin.get_url:
     url: https://www.pgadmin.org/static/packages_pgadmin_org.pub
@@ -9,6 +16,7 @@
 - name: Add pgAdmin GPG key to keyring
   ansible.builtin.shell: |
     gpg --dearmor < /tmp/packages_pgadmin_org.pub > /usr/share/keyrings/packages-pgadmin-org.gpg
+    chmod 644 /usr/share/keyrings/packages-pgadmin-org.gpg
   args:
     creates: /usr/share/keyrings/packages-pgadmin-org.gpg
   become: yes
@@ -19,6 +27,12 @@
     mode: '0644'
     owner: root
     group: root
+  become: yes
+
+- name: Remove temporary GPG key file
+  ansible.builtin.file:
+    path: /tmp/packages_pgadmin_org.pub
+    state: absent
   become: yes
 
 - name: Add pgAdmin repository

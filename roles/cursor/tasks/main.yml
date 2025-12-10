@@ -1,0 +1,30 @@
+---
+- name: Ensure dependencies for downloading deb are present (curl/wget optional)
+  ansible.builtin.package:
+    name:
+      - ca-certificates
+    state: present
+  become: yes
+
+- name: Download latest Cursor .deb
+  ansible.builtin.get_url:
+    url: "{{ cursor_deb_url }}"
+    dest: "{{ cursor_deb_local_path }}"
+    mode: "0644"
+    force: yes        # 항상 최신으로 다시 받으려면 yes, 변경 없으면 재다운로드 막으려면 no
+  # /tmp 은 일반 사용자도 쓰기 가능하므로 become 불필요
+  become: no
+
+- name: Install/upgrade Cursor from downloaded deb
+  ansible.builtin.apt:
+    deb: "{{ cursor_deb_local_path }}"
+    state: present
+    update_cache: yes
+  become: yes
+
+# (선택) 설치 후 패키지가 정상 등록되었는지 확인용
+- name: Ensure Cursor package is installed
+  ansible.builtin.package:
+    name: "{{ cursor_package_name }}"
+    state: present
+  become: yes
