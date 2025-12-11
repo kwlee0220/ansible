@@ -1,10 +1,6 @@
 ---
 # Yarn 설치 및 설정을 위한 tasks
-
-- name: Include Node.js role
-  include_role:
-    name: nodejs
-  when: yarn_install_method in ["npm", "corepack"]
+# Note: nodejs role은 meta/main.yml의 dependencies에 의해 자동으로 실행됩니다
 
 - name: Install Yarn via npm (method 1)
   npm:

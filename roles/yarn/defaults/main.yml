@@ -6,10 +6,6 @@ yarn_install_method: "npm"  # npm, corepack, 또는 repository
 yarn_version: "latest"      # 특정 버전 또는 latest
 yarn_install_global: true   # 전역 설치 여부
 
-# Node.js 설정 (nodejs role에서 사용)
-nodejs_version: "22.x"
-nodejs_install_global_packages: []
-
 # Yarn 설정
 yarn_config_registry: "https://registry.yarnpkg.com"  # 기본 레지스트리
 yarn_config_cache_folder: "~/.cache/yarn"            # 캐시 폴더
