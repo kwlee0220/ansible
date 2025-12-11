@@ -1,0 +1,7 @@
+[mdt]
+; sample ansible_host=192.168.0.6 ansible_port=2468 ansible_user=mdt ansible_password=mdt2025
+
+; [vbox:vars]
+; install_postgresql=true
+; install_mosquitto=true
+; install_docker=false
