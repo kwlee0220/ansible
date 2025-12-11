@@ -9,7 +9,7 @@
     # share_path: "/home/{{ ansible_user_id }}"
 
   roles:
-    - role: cursor
+    - role: python_dev_env
 
   # tasks:
   #   - name: Test task
