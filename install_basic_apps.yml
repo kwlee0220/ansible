@@ -5,4 +5,4 @@
   roles:
     - role: basic_apps
 
-  
+- import_playbook: playbooks/linux/samba/add_samba_client_share.yml
