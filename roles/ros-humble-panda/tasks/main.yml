@@ -1,5 +1,5 @@
 ---
-- name: Install ROS 2 MoveIt dependencies
+- name: Install ROS 2 Panda dependencies
   apt:
     name:
       - ros-humble-moveit-resources-panda-moveit-config
