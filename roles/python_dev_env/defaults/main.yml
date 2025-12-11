@@ -1,0 +1,23 @@
+---
+# 사용자 정보 (항상 ansible_user_id 사용)
+python_dev_home: "/home/{{ ansible_user_id }}"
+
+# pyenv 설정
+pyenv_root: "{{ python_dev_home }}/.pyenv"
+
+# 설치할 Python 버전 목록
+pyenv_python_versions:
+  - "3.11.7"
+
+# pyenv global 버전
+pyenv_global_version: "3.11.7"
+
+# Poetry 설정
+poetry_install: true
+poetry_version: ""     # "" 이면 최신
+poetry_enable_in_project_venv: true
+
+# PATH, pyenv init 넣을 셸 rc 파일
+python_dev_shell_rc_files:
+  - "{{ python_dev_home }}/.bashrc"
+  - "{{ python_dev_home }}/.zshrc"
