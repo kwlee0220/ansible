@@ -40,21 +40,24 @@
       role: mosquitto
       when: install_mosquitto | default(true) | bool
 
-    - role: single_argo_workflow
+    - name: Install Yarn
+      role: yarn
+      when: install_nodejs | default(true) | bool
+
+    - role: k3s_single
+      when: install_argo_workflow | default(true) | bool
+    - role: argo_workflows_helm
       when: install_argo_workflow | default(true) | bool
 
     - name: Install ROS2
       role: ros2
       when: install_ros2 | default(false) | bool
-
     - name: Install ROS 2 MoveIt
       role: ros-humble-moveit
       when: install_ros2 | default(false) | bool
-
     - name: Install ROS 2 Panda
       role: ros-humble-panda
       when: install_ros2 | default(false) | bool
-
     - name: Install NodeRED
       role: nodered
       when: install_nodered | default(false) | bool

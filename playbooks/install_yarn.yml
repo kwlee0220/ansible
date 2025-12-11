@@ -4,23 +4,6 @@
   become: true
   
   vars:
-    # Yarn 설치 설정
-    yarn_install_method: "npm"  # npm, corepack, 또는 repository
-    yarn_version: "latest"      # 특정 버전 또는 latest
-    yarn_install_global: true   # 전역 설치 여부
-    
-    # Yarn 설정
-    yarn_config_registry: "https://registry.yarnpkg.com"
-    yarn_config_cache_folder: "~/.cache/yarn"
-    yarn_config_global_folder: "~/.yarn/global"
-    yarn_network_timeout: 100000
-    yarn_network_concurrency: 8
-    yarn_enable_telemetry: false
-    yarn_enable_scripts: true
-    
-    # Node.js 설정 (nodejs role에서 사용)
-    nodejs_version: "22.x"
-    nodejs_install_global_packages: []
   
   roles:
     - yarn

@@ -9,7 +9,7 @@
     # share_path: "/home/{{ ansible_user_id }}"
 
   roles:
-    - role: python_dev_env
+    - role: argo_workflows_helm
 
   # tasks:
   #   - name: Test task
