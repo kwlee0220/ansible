@@ -62,3 +62,39 @@
       role: nodered
       when: install_nodered | default(false) | bool
 
+  tasks:
+    - name: Configure MDT in bashrc
+      blockinfile:
+        path: "{{ user_home_dir }}/.bashrc"
+        prepend_newline: yes
+        append_newline: yes
+        insertbefore: "#THIS MUST BE AT THE END OF THE FILE"
+        marker: "# MDT: {mark}"
+        block: |
+          export LOCAL_HOST={{ platform_host | default('localhost') }}
+          export MDT_HOME=$HOME/mdt
+
+          # MDT Client
+          export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
+          source $MDT_CLIENT_HOME/sbin/mdt_completion
+          export PATH=$PATH:$MDT_CLIENT_HOME/sbin
+
+          # MDT Manager
+          # export MDT_ENDPOINT=http://$LOCAL_HOST:12985
+          # export MDT_WORKFLOW_ENDPOINT=http://$LOCAL_HOST:12989
+          export ARGO_ENDPOINT={{ argo_endpoint | default('http://localhost:2746') }}
+          export PATH=$PATH:$MDT_HOME/mdt-manager/sbin
+
+          # MDT Instance 설정용
+          export MDT_GLOBAL_CONFIG_FILE=$MDT_HOME/mdt-manager/config/mdt_global_config.json
+          export MDT_KEY_STORE_FILE=$MDT_HOME/mdt-manager/config/mdt_cert.p12
+          export MDT_KEY_STORE_PASSWORD=mdt2024^^
+
+          # export POSTGRES_HOST=$LOCAL_HOST
+
+          # MDTPY
+          PYTHONPATH=$PYTHONPATH:$HOME/development/common/pyutils
+          PYTHONPATH=$PYTHONPATH:$HOME/development/mdtpy/mdtpy
+          export PYTHONPATH
+
+          export MDT_BUILD_VERSION={{ mdt_build_version }}

@@ -42,7 +42,7 @@
           executable: /bin/bash
       - name: Create symbolic link
         file:
-          src: "{{ mdt_dir }}/mdt-apps/build/libs/mdt-apps-{{ mdt_version }}-all.jar"
+          src: "{{ mdt_dir }}/mdt-apps/build/libs/mdt-apps-{{ mdt_build_version }}-all.jar"
           dest: "{{ mdt_home_dir }}/share/mdt-apps-all.jar"
           state: link
 
