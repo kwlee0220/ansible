@@ -1,0 +1,85 @@
+---
+- name: Ensure dependencies for k3s installation are present
+  ansible.builtin.apt:
+    name:
+      - curl
+      - ca-certificates
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Check if k3s is already installed
+  ansible.builtin.stat:
+    path: "{{ k3s_binary_path }}"
+  register: k3s_bin
+
+- name: Install k3s single-node server via official script
+  ansible.builtin.shell: |
+    curl -sfL {{ k3s_install_script_url }} | \
+    INSTALL_K3S_CHANNEL={{ k3s_channel }} \
+    INSTALL_K3S_EXEC="server {{ k3s_server_extra_args }}" \
+    sh -
+  args:
+    executable: /bin/bash
+  become: yes
+  when: not k3s_bin.stat.exists
+
+- name: Ensure k3s service is enabled and running
+  ansible.builtin.service:
+    name: k3s
+    state: started
+    enabled: yes
+  become: yes
+
+# ------------------------------
+# kubeconfig 사용자 홈으로 복사
+# ------------------------------
+
+- name: Ensure .kube directory exists for user
+  ansible.builtin.file:
+    path: "/home/{{ k3s_kubeconfig_owner }}/.kube"
+    state: directory
+    owner: "{{ k3s_kubeconfig_owner }}"
+    group: "{{ k3s_kubeconfig_owner }}"
+    mode: "0700"
+  become: yes
+  when: k3s_copy_kubeconfig_to_user
+
+- name: Copy k3s kubeconfig to user home
+  ansible.builtin.copy:
+    src: "{{ k3s_kubeconfig_source }}"
+    dest: "{{ k3s_kubeconfig_dest }}"
+    owner: "{{ k3s_kubeconfig_owner }}"
+    group: "{{ k3s_kubeconfig_owner }}"
+    mode: "0600"
+    remote_src: yes
+  become: yes
+  when: k3s_copy_kubeconfig_to_user
+
+- name: Replace 127.0.0.1 with node IP in kubeconfig (optional)
+  ansible.builtin.lineinfile:
+    path: "{{ k3s_kubeconfig_dest }}"
+    regexp: 'server: https://127\.0\.0\.1:6443'
+    line: "    server: https://{{ ansible_default_ipv4.address }}:6443"
+    backrefs: no
+  become: yes
+  when:
+    - k3s_copy_kubeconfig_to_user
+    - k3s_replace_server_ip
+
+# ------------------------------
+# 디버그용 출력
+# ------------------------------
+
+- name: Show k3s service status (debug)
+  ansible.builtin.shell: |
+    systemctl is-active k3s || true
+  args:
+    executable: /bin/bash
+  become: yes
+  register: k3s_status
+  changed_when: false
+
+- name: Debug k3s status
+  ansible.builtin.debug:
+    msg: "k3s service status: {{ k3s_status.stdout }}"

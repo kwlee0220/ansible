@@ -1,0 +1,29 @@
+---
+# 설치에 사용할 k3s 채널 (stable, latest, v1.29 등)
+k3s_channel: "stable"
+
+# 단일 노드 서버 실행 인자
+# 기본적으로 --write-kubeconfig-mode 644 포함 (일반 사용자가 /etc/rancher/k3s/k3s.yaml 읽을 수 있게)
+# 추가 옵션은 k3s_server_extra_args_append 로 이어 붙일 수 있음
+k3s_server_extra_args_base: "--write-kubeconfig-mode 644"
+k3s_server_extra_args_append: ""     # 예: "--disable traefik"
+k3s_server_extra_args: "{{ k3s_server_extra_args_base }} {{ k3s_server_extra_args_append }}"
+
+# 설치 스크립트 URL (공식)
+k3s_install_script_url: "https://get.k3s.io"
+
+# k3s 바이너리 경로 (설치 여부 체크용)
+k3s_binary_path: "/usr/local/bin/k3s"
+
+# kubeconfig 관련 설정
+k3s_kubeconfig_source: "/etc/rancher/k3s/k3s.yaml"
+
+# kubectl을 사용할 사용자 (Ansible 접속 사용자)
+k3s_kubeconfig_owner: "{{ ansible_user_id }}"
+k3s_kubeconfig_dest: "/home/{{ k3s_kubeconfig_owner }}/.kube/config"
+
+# kubeconfig를 사용자 홈으로 복사할지 여부
+k3s_copy_kubeconfig_to_user: true
+
+# kubeconfig의 server 주소를 127.0.0.1 대신 노드 IP로 바꿀지 여부
+k3s_replace_server_ip: true
