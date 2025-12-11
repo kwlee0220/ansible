@@ -1,0 +1,205 @@
+---
+# ------------------------------------------
+# 0. Helm 설치 여부 확인
+# ------------------------------------------
+
+- name: Check if helm is installed
+  ansible.builtin.stat:
+    path: "{{ argo_helm_bin }}"
+  register: helm_stat
+
+- name: Install Helm if missing (official install script)
+  ansible.builtin.shell: |
+    curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+  args:
+    executable: /bin/bash
+  become: yes
+  when: not helm_stat.stat.exists
+
+# ------------------------------------------
+# 1. kubectl 존재 확인
+# ------------------------------------------
+
+- name: Ensure kubectl is available
+  ansible.builtin.command: kubectl version --client=true --output=yaml
+  register: argo_kubectl_check
+  failed_when: argo_kubectl_check.rc != 0
+  changed_when: false
+
+# ------------------------------------------
+# 2. Helm repo 설정
+# ------------------------------------------
+
+- name: Get current helm repos
+  ansible.builtin.command: "{{ argo_helm_bin }} repo list -o yaml"
+  register: argo_helm_repo_list
+  changed_when: false
+  failed_when: false
+
+- name: Check if argo repo exists
+  ansible.builtin.set_fact:
+    argo_helm_repo_exists: "{{ argo_helm_repo_list.stdout is search('name: ' ~ argo_helm_repo_name ~ '\\b') }}"
+
+- name: Add argo helm repo if missing
+  ansible.builtin.command: >
+    {{ argo_helm_bin }} repo add {{ argo_helm_repo_name }} {{ argo_helm_repo_url }}
+  when: not argo_helm_repo_exists
+  changed_when: true
+
+- name: Update helm repos
+  ansible.builtin.command: "{{ argo_helm_bin }} repo update"
+  changed_when: true
+
+# ------------------------------------------
+# 3. Argo Workflows 설치 (Helm Chart)
+# ------------------------------------------
+
+- name: Build helm command
+  ansible.builtin.set_fact:
+    argo_helm_install_cmd: >-
+      {{ argo_helm_bin }} upgrade --install
+      {{ argo_release_name }} {{ argo_helm_chart }}
+      --namespace {{ argo_namespace }}
+      --create-namespace
+      --set server.secure=false
+      --set server.authModes[0]=server
+
+- name: Append version
+  ansible.builtin.set_fact:
+    argo_helm_install_cmd: "{{ argo_helm_install_cmd }} --version {{ argo_helm_chart_version }}"
+  when: argo_helm_chart_version | length > 0
+
+- name: Append values file
+  ansible.builtin.set_fact:
+    argo_helm_install_cmd: "{{ argo_helm_install_cmd }} -f {{ argo_helm_values_file }}"
+  when: argo_helm_values_file | length > 0
+
+- name: Install/Upgrade Argo Workflows
+  ansible.builtin.shell: "{{ argo_helm_install_cmd }}"
+  args:
+    executable: /bin/bash
+  environment:
+    KUBECONFIG: "{{ argo_kubeconfig_path }}"
+    HOME: "/home/{{ ansible_user_id }}"
+  become: yes
+  become_user: "{{ ansible_user_id }}"
+
+# ------------------------------------------
+# 4. Argo CLI 설치
+# ------------------------------------------
+
+- name: Check if Argo CLI exists
+  ansible.builtin.stat:
+    path: "{{ argo_cli_bin_path }}"
+  register: argo_cli_stat
+  when: argo_install_cli
+
+- name: Download Argo CLI
+  ansible.builtin.get_url:
+    url: "{{ argo_cli_download_url }}"
+    dest: "/tmp/argo-linux-amd64.gz"
+  when:
+    - argo_install_cli
+    - not argo_cli_stat.stat.exists
+
+- name: Decompress Argo CLI
+  ansible.builtin.shell: gzip -d /tmp/argo-linux-amd64.gz
+  args:
+    executable: /bin/bash
+  when:
+    - argo_install_cli
+    - not argo_cli_stat.stat.exists
+
+- name: Install Argo CLI
+  ansible.builtin.copy:
+    src: "/tmp/argo-linux-amd64"
+    dest: "{{ argo_cli_bin_path }}"
+    mode: "0755"
+    owner: root
+    group: root
+    remote_src: yes
+  become: yes
+  when:
+    - argo_install_cli
+    - not argo_cli_stat.stat.exists
+
+# ------------------------------------------
+# 5. Debug
+# ------------------------------------------
+
+- name: Get Argo Workflows pods
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ argo_kubeconfig_path }}
+    -n {{ argo_namespace }} get pods
+  register: argo_pods
+  changed_when: false
+
+- debug:
+    msg: "{{ argo_pods.stdout }}"
+
+# --------------------------------------------------------
+# 6. Argo Workflows port-forward를 systemd 서비스로 관리
+# --------------------------------------------------------
+
+- name: Create systemd unit for Argo port-forward (if enabled)
+  ansible.builtin.copy:
+    dest: "/etc/systemd/system/{{ argo_port_forward_systemd_unit }}"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Argo Workflows port-forward (svc/{{ argo_port_forward_service_name }})
+      After=network-online.target
+
+      [Service]
+      Type=simple
+      User={{ ansible_user_id }}
+      WorkingDirectory=/home/{{ ansible_user_id }}
+      Environment=KUBECONFIG={{ argo_port_forward_kubeconfig }}
+      ExecStart=/usr/local/bin/kubectl -n {{ argo_port_forward_namespace }} port-forward svc/{{ argo_port_forward_service_name }} {{ argo_port_forward_local_port }}:{{ argo_port_forward_remote_port }}
+      Restart=always
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+  when: argo_port_forward_enabled
+  become: yes
+
+- name: Reload systemd after creating Argo port-forward unit
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  when: argo_port_forward_enabled
+  become: yes
+
+- name: Ensure Argo port-forward service is enabled and started
+  ansible.builtin.systemd:
+    name: "{{ argo_port_forward_systemd_unit }}"
+    state: started
+    enabled: yes
+  when: argo_port_forward_enabled
+  become: yes
+
+# ------------------ 서비스 삭제/정지 ------------------
+
+- name: Stop Argo port-forward service if disabled
+  ansible.builtin.systemd:
+    name: "{{ argo_port_forward_systemd_unit }}"
+    state: stopped
+    enabled: no
+  when: not argo_port_forward_enabled
+  become: yes
+  failed_when: false
+
+- name: Remove Argo port-forward systemd unit if disabled
+  ansible.builtin.file:
+    path: "/etc/systemd/system/{{ argo_port_forward_systemd_unit }}"
+    state: absent
+  when: not argo_port_forward_enabled
+  become: yes
+
+- name: Reload systemd after removing Argo port-forward unit
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  when: not argo_port_forward_enabled
+  become: yes

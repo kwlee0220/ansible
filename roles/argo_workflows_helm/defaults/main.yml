@@ -1,0 +1,58 @@
+---
+# Argo Workflows가 설치될 네임스페이스
+argo_namespace: "argo"
+
+# Helm repo 설정
+argo_helm_repo_name: "argo"
+argo_helm_repo_url: "https://argoproj.github.io/argo-helm"
+
+# Helm chart / release 설정
+argo_helm_chart: "argo/argo-workflows"
+argo_release_name: "argo-workflows"
+
+# kubeconfig 경로 (기본: Ansible 접속 사용자의 ~/.kube/config)
+argo_kubeconfig_path: "/home/{{ ansible_user_id }}/.kube/config"
+
+# helm chart 버전 (빈 문자열이면 최신)
+argo_helm_chart_version: ""
+
+# values.yaml (원격 경로, 없으면 chart 기본값 사용)
+# 예: "/home/{{ ansible_user_id }}/argo-values.yaml"
+argo_helm_values_file: ""
+
+# Helm 바이너리 이름/경로
+argo_helm_bin: "helm"
+
+# -----------------------------
+# Argo CLI 설치 옵션
+# -----------------------------
+
+# Argo CLI를 설치할지 여부
+argo_install_cli: true
+
+# Argo CLI 설치 경로
+argo_cli_bin_path: "/usr/local/bin/argo"
+
+# Argo CLI 다운로드 URL (Linux amd64, latest)
+argo_cli_download_url: "https://github.com/argoproj/argo-workflows/releases/latest/download/argo-linux-amd64.gz"
+
+# -----------------------------
+# Argo Server port-forward systemd 서비스 설정
+# -----------------------------
+
+# 포트포워딩 서비스 켤지 여부
+argo_port_forward_enabled: true
+
+# systemd unit 이름
+argo_port_forward_systemd_unit: "argo-workflows-port-forward.service"
+
+# 포트포워딩 대상 (svc/… 형식)
+argo_port_forward_namespace: "argo"
+argo_port_forward_service_name: "argo-workflows-server"
+
+# 로컬/원격 포트
+argo_port_forward_local_port: 2746
+argo_port_forward_remote_port: 2746
+
+# 포트포워딩에 사용할 kubeconfig (기존에 쓰시던 값 재사용)
+argo_port_forward_kubeconfig: "{{ argo_kubeconfig_path }}"
