@@ -67,18 +67,19 @@
             marker: "# MDT: {mark}"
             block: |
               export LOCAL_HOST={{ platform_host | default('localhost') }}
-              export MDT_HOME=$HOME/mdt
+              export MDT_HOME={{ mdt_home_dir }}
 
               # MDT Client
               export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
               source $MDT_CLIENT_HOME/sbin/mdt_completion
-              export PATH=$MDT_CLIENT_HOME/sbin:$PATH
 
               # MDT Manager
               # export MDT_ENDPOINT=http://$LOCAL_HOST:12985
               # export MDT_WORKFLOW_ENDPOINT=http://$LOCAL_HOST:2746
               export ARGO_ENDPOINT={{ argo_endpoint | default('http://localhost:2746') }}
-              export PATH=$MDT_HOME/mdt-manager/sbin:$PATH
+
+              # PATH: MDT Client와 Manager 경로를 모두 포함
+              export PATH=$MDT_CLIENT_HOME/sbin:$MDT_HOME/mdt-manager/sbin:$PATH
 
               # MDT Instance 설정용
               export MDT_GLOBAL_CONFIG_FILE=$MDT_HOME/mdt-manager/config/mdt_global_config.json
