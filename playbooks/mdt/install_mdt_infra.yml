@@ -98,3 +98,12 @@
           export PYTHONPATH
 
           export MDT_BUILD_VERSION={{ mdt_build_version }}
+
+    - name: Create mdt-related directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ mdt_home_dir }}"
+        - "{{ src_root_dir }}"
