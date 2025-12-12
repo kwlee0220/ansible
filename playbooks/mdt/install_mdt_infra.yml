@@ -32,6 +32,13 @@
         postgres_password: "{{ mdt_postgres_password }}"
       when: install_postgresql | default(true) | bool
 
+    - name: Create PostgreSQL database for sample models
+      role: postgresql_db
+      vars:
+        postgres_db: mdt_app
+        postgres_user: "mdt"
+      when: install_postgresql | default(true) | bool
+
     - name: Install pgAdmin4
       role: pgadmin4
       when: install_postgresql | default(true) | bool

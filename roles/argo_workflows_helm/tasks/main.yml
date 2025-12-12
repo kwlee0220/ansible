@@ -122,6 +122,21 @@
   when:
     - argo_install_cli
     - not argo_cli_stat.stat.exists
+    
+- name: Create RoleBinding 'default-admin' for serviceaccount 'default' with admin clusterrole in namespace 'argo'
+  ansible.builtin.command: >
+    kubectl create rolebinding default-admin --clusterrole=admin --serviceaccount=argo:default -n argo
+  environment:
+    KUBECONFIG: "{{ argo_kubeconfig_path }}"
+    HOME: "/home/{{ ansible_user_id }}"
+  register: create_default_admin_rolebinding
+  changed_when: "'created' in create_default_admin_rolebinding.stdout or 'rolebinding.rbac.authorization.k8s.io/default-admin created' in create_default_admin_rolebinding.stdout"
+  failed_when: create_default_admin_rolebinding.rc != 0 and
+               ('AlreadyExists' not in create_default_admin_rolebinding.stderr and
+                'already exists' not in create_default_admin_rolebinding.stderr and
+                'already exists' not in create_default_admin_rolebinding.stdout)
+  become: yes
+
 
 # ------------------------------------------
 # 5. Debug
