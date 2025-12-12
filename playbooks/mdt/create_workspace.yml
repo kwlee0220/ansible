@@ -67,23 +67,30 @@
             marker: "# MDT: {mark}"
             block: |
               export LOCAL_HOST={{ platform_host | default('localhost') }}
-              export MDT_HOME={{ mdt_home_dir }}
+              export MDT_HOME=$HOME/mdt
+
+              # MDT Client
               export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
-              export MDT_ENDPOINT=http://$LOCAL_HOST:12985
-              export ARGO_ENDPOINT={{ argo_endpoint | default('http://localhost:2746') }}
-              
-              PATH=$HOME/.local/bin:$PATH
-              PATH=$MDT_CLIENT_HOME/sbin:$PATH
-              export PATH
               source $MDT_CLIENT_HOME/sbin/mdt_completion
+              export PATH=$MDT_CLIENT_HOME/sbin:$PATH
 
-              export MDT_GLOBAL_CONFIG_FILE=$MDT_HOME/share/mdt_global_config.json
+              # MDT Manager
+              # export MDT_ENDPOINT=http://$LOCAL_HOST:12985
+              # export MDT_WORKFLOW_ENDPOINT=http://$LOCAL_HOST:2746
+              export ARGO_ENDPOINT={{ argo_endpoint | default('http://localhost:2746') }}
+              export PATH=$MDT_HOME/mdt-manager/sbin:$PATH
+
+              # MDT Instance 설정용
+              export MDT_GLOBAL_CONFIG_FILE=$MDT_HOME/mdt-manager/config/mdt_global_config.json
+              export MDT_KEY_STORE_FILE=$MDT_HOME/mdt-manager/config/mdt_cert.p12
               export MDT_KEY_STORE_PASSWORD=mdt2024^^
-              export MDT_KEY_STORE_FILE=$MDT_HOME/share/mdt_cert.p12
 
+              # MDTPY
               PYTHONPATH=$PYTHONPATH:$HOME/development/common/pyutils
               PYTHONPATH=$PYTHONPATH:$HOME/development/mdtpy/mdtpy
               export PYTHONPATH
+
+              export MDT_BUILD_VERSION=1.4.0
 
     - name: Create symbolic links
       file:
