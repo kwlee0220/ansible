@@ -5,4 +5,11 @@
   roles:
     - role: basic_apps
 
+  tasks:
+    - name: Create development directory
+      file:
+        path: "{{ ansible_env.HOME }}/tmp"
+        state: directory
+        mode: '0755'
+
 - import_playbook: playbooks/linux/samba/add_samba_client_share.yml
