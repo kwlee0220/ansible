@@ -83,11 +83,11 @@
 
           # MDT Client
           export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
-          source $MDT_CLIENT_HOME/sbin/mdt_completion
+          source $MDT_CLIENT_HOME/sbin/completion/mdt_completion
           export PATH=$PATH:$MDT_CLIENT_HOME/sbin
 
           # MDT Manager
-          # export MDT_ENDPOINT=http://$LOCAL_HOST:12985
+          export MDT_ENDPOINT=http://$LOCAL_HOST:12985
           # export MDT_WORKFLOW_ENDPOINT=http://$LOCAL_HOST:12989
           export ARGO_ENDPOINT=http://localhost:2746
           export PATH=$PATH:$MDT_HOME/mdt-manager/sbin
