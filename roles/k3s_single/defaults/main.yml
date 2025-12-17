@@ -26,4 +26,6 @@ k3s_kubeconfig_dest: "/home/{{ k3s_kubeconfig_owner }}/.kube/config"
 k3s_copy_kubeconfig_to_user: true
 
 # kubeconfig의 server 주소를 127.0.0.1 대신 노드 IP로 바꿀지 여부
-k3s_replace_server_ip: true
+# false로 설정하면 127.0.0.1을 유지하여 IP 변경에 안전합니다
+# true로 설정하면 설치 시점의 IP를 사용하지만, IP 변경 시 kubectl 연결이 실패할 수 있습니다
+k3s_replace_server_ip: false
