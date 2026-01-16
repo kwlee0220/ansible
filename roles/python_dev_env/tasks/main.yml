@@ -80,7 +80,8 @@
   become_user: "{{ ansible_user_id }}"
   environment:
     HOME: "{{ python_dev_home }}"
-  when: pyenv_python_versions | length > 0
+  # when: pyenv_python_versions | length > 0
+  when: pyenv_python_versions is defined and pyenv_python_versions | length > 0
 
 - name: Set pyenv global version
   shell: |
@@ -94,7 +95,8 @@
   become_user: "{{ ansible_user_id }}"
   environment:
     HOME: "{{ python_dev_home }}"
-  when: pyenv_global_version | length > 0
+  when: pyenv_global_version is defined and pyenv_global_version | length > 0
+  # when: pyenv_global_version | length > 0
 
 # --------------------
 # Poetry 설치

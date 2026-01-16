@@ -16,6 +16,6 @@ mdt_postgres_db: mdt
 install_postgresql: true
 install_mosquitto: true
 install_nodejs: true
-install_argo_workflow: true
+install_argo_workflow: false
 install_ros2: true
 install_nodered: false

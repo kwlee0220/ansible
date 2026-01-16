@@ -51,10 +51,10 @@
       role: yarn
       when: install_nodejs | default(true) | bool
 
-    - role: k3s_single
-      when: install_argo_workflow | default(true) | bool
-    - role: argo_workflows_helm
-      when: install_argo_workflow | default(true) | bool
+    # - role: k3s_single
+    #   when: install_argo_workflow | default(true) | bool
+    # - role: argo_workflows_helm
+    #   when: install_argo_workflow | default(true) | bool
 
     - name: Install ROS2
       role: ros2
@@ -97,12 +97,11 @@
           export MDT_KEY_STORE_FILE=$MDT_HOME/mdt-manager/config/mdt_cert.p12
           export MDT_KEY_STORE_PASSWORD=mdt2024^^
 
-          # export POSTGRES_HOST=$LOCAL_HOST
+          export POSTGRES_URL=jdbc:postgresql://localhost:5432
+          export MQTT_BROKER_URL=tcp://localhost:1883
 
           # MDTPY
-          PYTHONPATH=$PYTHONPATH:$HOME/development/common/pyutils
-          PYTHONPATH=$PYTHONPATH:$HOME/development/mdtpy/mdtpy
-          export PYTHONPATH
+          export MDT_PYTHON=$MDT_HOME/mdt-manager/venv/bin/python3
 
           export MDT_BUILD_VERSION={{ mdt_build_version }}
 
