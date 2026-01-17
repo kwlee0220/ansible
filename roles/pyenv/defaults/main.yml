@@ -1,0 +1,22 @@
+---
+# 대상 사용자 (기본: ansible 접속 사용자)
+pyenv_user: "{{ ansible_user_id }}"
+
+# 대상 사용자 HOME (Ubuntu 일반 계정 기본)
+python_dev_home: "/home/{{ pyenv_user }}"
+
+# pyenv 설치 경로
+pyenv_root: "{{ python_dev_home }}/.pyenv"
+
+# 'latest'를 사용하거나 버전을 명시적으로 pin (원하는 태그/커밋으로 고정)
+pyenv_version: "latest"
+pyenv_virtualenv_version: "latest"
+# pyenv_version: "v2.4.0"
+# pyenv_virtualenv_version: "v1.2.4"
+
+# Ubuntu 22.04에서 Python 빌드까지 고려하면 true 권장
+pyenv_install_build_deps: true
+
+# bash init 파일 경로 (bash 전용)
+pyenv_bash_profile_path: "{{ python_dev_home }}/.bash_profile"
+pyenv_bashrc_path: "{{ python_dev_home }}/.bashrc"

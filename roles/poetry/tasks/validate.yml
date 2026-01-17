@@ -1,0 +1,21 @@
+---
+- name: Ensure target OS is Ubuntu 22.04
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.distribution == "Ubuntu"
+      - ansible_facts.distribution_version is version("22.04", "==")
+    fail_msg: "This role supports Ubuntu 22.04 only."
+
+- name: Validate Poetry settings
+  ansible.builtin.assert:
+    that:
+      - poetry_user is string
+      - python_dev_home is string
+      - python_dev_home | length > 0
+      - poetry_install_method in ["official_installer"]
+      - poetry_version is string
+      - poetry_version | length > 0
+      - poetry_home is string
+    fail_msg: >
+      Invalid configuration. poetry_version must be 'latest' or a specific version string like '1.8.4'.
+      poetry_home must be a string ('' for default).

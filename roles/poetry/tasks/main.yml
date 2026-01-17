@@ -1,0 +1,16 @@
+---
+# 0) Fail-fast validation
+- name: Validate role variables
+  ansible.builtin.include_tasks: validate.yml
+
+# 1) Ubuntu 22.04 deps
+- name: Install Ubuntu 22.04 dependencies
+  ansible.builtin.include_tasks: deps_ubuntu2204.yml
+
+# 2) Install Poetry
+- name: Install Poetry
+  ansible.builtin.include_tasks: install.yml
+
+# 3) Configure bash init files
+- name: Configure bash init files (.bash_profile/.bashrc)
+  ansible.builtin.include_tasks: shell_init.yml

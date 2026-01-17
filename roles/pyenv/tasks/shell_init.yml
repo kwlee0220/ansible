@@ -1,0 +1,92 @@
+---
+- name: Define pyenv login init block (.bash_profile)
+  ansible.builtin.set_fact:
+    pyenv_login_init_block: |
+      # pyenv (login)
+      export PYENV_ROOT="{{ pyenv_root }}"
+      export PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH"
+      if command -v pyenv 1>/dev/null 2>&1; then
+        eval "$(pyenv init --path)"
+      fi
+
+- name: Define pyenv interactive init block (.bashrc)
+  ansible.builtin.set_fact:
+    pyenv_interactive_init_block: |
+      # pyenv (interactive)
+      export PYENV_ROOT="{{ pyenv_root }}"
+      export PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH"
+      if command -v pyenv 1>/dev/null 2>&1; then
+        eval "$(pyenv init -)"
+        eval "$(pyenv virtualenv-init -)"
+      fi
+
+# .bash_profile 생성/권한 보장
+- name: Ensure .bash_profile exists
+  ansible.builtin.file:
+    path: "{{ pyenv_bash_profile_path }}"
+    state: touch
+    owner: "{{ pyenv_user }}"
+    group: "{{ pyenv_user }}"
+    mode: "0644"
+  become: yes
+  become_user: "{{ pyenv_user }}"
+  environment:
+    HOME: "{{ python_dev_home }}"
+
+# .bash_profile에 pyenv login 블록 삽입
+- name: Insert pyenv login init block into .bash_profile
+  ansible.builtin.blockinfile:
+    path: "{{ pyenv_bash_profile_path }}"
+    block: "{{ pyenv_login_init_block }}"
+    create: yes
+    owner: "{{ pyenv_user }}"
+    group: "{{ pyenv_user }}"
+    mode: "0644"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: pyenv login"
+  become: yes
+  become_user: "{{ pyenv_user }}"
+  environment:
+    HOME: "{{ python_dev_home }}"
+
+# 로그인 시 .bashrc 로드 보장
+- name: Ensure .bash_profile sources .bashrc
+  ansible.builtin.lineinfile:
+    path: "{{ pyenv_bash_profile_path }}"
+    line: '[[ -f ~/.bashrc ]] && . ~/.bashrc'
+    create: yes
+    insertafter: EOF
+    owner: "{{ pyenv_user }}"
+    group: "{{ pyenv_user }}"
+    mode: "0644"
+  become: yes
+  become_user: "{{ pyenv_user }}"
+  environment:
+    HOME: "{{ python_dev_home }}"
+
+# .bashrc 생성/권한 보장
+- name: Ensure .bashrc exists
+  ansible.builtin.file:
+    path: "{{ pyenv_bashrc_path }}"
+    state: touch
+    owner: "{{ pyenv_user }}"
+    group: "{{ pyenv_user }}"
+    mode: "0644"
+  become: yes
+  become_user: "{{ pyenv_user }}"
+  environment:
+    HOME: "{{ python_dev_home }}"
+
+# .bashrc에 pyenv interactive 블록 삽입
+- name: Insert pyenv interactive init block into .bashrc
+  ansible.builtin.blockinfile:
+    path: "{{ pyenv_bashrc_path }}"
+    block: "{{ pyenv_interactive_init_block }}"
+    create: yes
+    owner: "{{ pyenv_user }}"
+    group: "{{ pyenv_user }}"
+    mode: "0644"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: pyenv interactive"
+  become: yes
+  become_user: "{{ pyenv_user }}"
+  environment:
+    HOME: "{{ python_dev_home }}"

@@ -1,0 +1,13 @@
+# roles/pyenv_bash_ubuntu2204/tasks/validate.yml
+---
+- name: Validate pyenv version settings
+  ansible.builtin.assert:
+    that:
+      - pyenv_version is string
+      - pyenv_version | length > 0
+      - pyenv_virtualenv_version is string
+      - pyenv_virtualenv_version | length > 0
+    fail_msg: >
+      Invalid pyenv version configuration.
+      Use 'latest' or a valid git tag/branch/commit SHA
+      (e.g. 'v2.4.0').

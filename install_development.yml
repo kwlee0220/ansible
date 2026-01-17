@@ -4,7 +4,7 @@
 
   vars:
     user_id: "{{ ansible_user_id }}"
-    disable_list: [ 'temurin_jdk', 'python3' ]
+    disable_list: [ 'temurin_jdk', 'pyenv', 'poetry' ]
 
     sdkman_java_version: "21.0.5-tem"
     sdkman_gradle_version: "8.9"
@@ -13,11 +13,17 @@
     - role: temurin_jdk
       when: "'temurin_jdk' not in disable_list"
 
-    - role: python3
-      when: "'python3' not in disable_list"
+    - role: pyenv
+      vars:
+        pyenv_user: "{{ ansible_user_id }}"
+        python_dev_home: "/home/{{ ansible_user_id }}"
+        pyenv_version: "latest"
+        pyenv_virtualenv_version: "latest"
+        pyenv_install_build_deps: true
 
-    - role: python_dev_env
-      when: "'python_dev_env' not in disable_list"
+    - role: poetry
+      vars:
+        poetry_version: "latest"
 
     - role: vscode
       when: "ansible_virtualization_type != 'wsl' and 'vscode' not in disable_list"

@@ -1,0 +1,30 @@
+---
+- name: Install required packages for pyenv on Ubuntu 22.04
+  ansible.builtin.apt:
+    name:
+      - git
+      - curl
+      - ca-certificates
+
+      # Python build deps (common)
+      - build-essential
+      - libssl-dev
+      - zlib1g-dev
+      - libbz2-dev
+      - libreadline-dev
+      - libsqlite3-dev
+      - libffi-dev
+      - liblzma-dev
+      - tk-dev
+      - xz-utils
+
+      # Recommended extras (often needed by some modules)
+      - llvm
+      - libncursesw5-dev
+      - libgdbm-dev
+      - libc6-dev
+      - libdb-dev
+      - uuid-dev
+    state: present
+    update_cache: yes
+  become: yes

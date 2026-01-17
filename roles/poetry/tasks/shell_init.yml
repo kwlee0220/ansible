@@ -1,0 +1,78 @@
+---
+- name: Define Poetry PATH init block
+  ansible.builtin.set_fact:
+    poetry_path_init_block: |
+      # Poetry (PATH)
+      {% if poetry_home | length > 0 %}
+      export POETRY_HOME="{{ poetry_home }}"
+      export PATH="$POETRY_HOME/bin:$PATH"
+      {% else %}
+      export PATH="$HOME/.local/bin:$PATH"
+      {% endif %}
+
+- name: Ensure .bash_profile exists
+  ansible.builtin.file:
+    path: "{{ poetry_bash_profile_path }}"
+    state: touch
+    owner: "{{ poetry_user }}"
+    group: "{{ poetry_user }}"
+    mode: "0644"
+  become: yes
+  become_user: "{{ poetry_user }}"
+  environment:
+    HOME: "{{ python_dev_home }}"
+
+- name: Ensure .bashrc exists
+  ansible.builtin.file:
+    path: "{{ poetry_bashrc_path }}"
+    state: touch
+    owner: "{{ poetry_user }}"
+    group: "{{ poetry_user }}"
+    mode: "0644"
+  become: yes
+  become_user: "{{ poetry_user }}"
+  environment:
+    HOME: "{{ python_dev_home }}"
+
+# 로그인 시 .bashrc 로드 보장(SSH 로그인 등에서 일관성 확보)
+- name: Ensure .bash_profile sources .bashrc
+  ansible.builtin.lineinfile:
+    path: "{{ poetry_bash_profile_path }}"
+    line: '[[ -f ~/.bashrc ]] && . ~/.bashrc'
+    create: yes
+    insertafter: EOF
+    owner: "{{ poetry_user }}"
+    group: "{{ poetry_user }}"
+    mode: "0644"
+  become: yes
+  become_user: "{{ poetry_user }}"
+  environment:
+    HOME: "{{ python_dev_home }}"
+
+- name: Insert Poetry PATH block into .bash_profile
+  ansible.builtin.blockinfile:
+    path: "{{ poetry_bash_profile_path }}"
+    block: "{{ poetry_path_init_block }}"
+    create: yes
+    owner: "{{ poetry_user }}"
+    group: "{{ poetry_user }}"
+    mode: "0644"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: poetry"
+  become: yes
+  become_user: "{{ poetry_user }}"
+  environment:
+    HOME: "{{ python_dev_home }}"
+
+- name: Insert Poetry PATH block into .bashrc
+  ansible.builtin.blockinfile:
+    path: "{{ poetry_bashrc_path }}"
+    block: "{{ poetry_path_init_block }}"
+    create: yes
+    owner: "{{ poetry_user }}"
+    group: "{{ poetry_user }}"
+    mode: "0644"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: poetry"
+  become: yes
+  become_user: "{{ poetry_user }}"
+  environment:
+    HOME: "{{ python_dev_home }}"

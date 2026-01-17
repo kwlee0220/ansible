@@ -1,0 +1,39 @@
+---
+# 설치 후 poetry가 노출되는 경로(공식 installer 기준):
+# - 기본: ~/.local/bin/poetry (권장 PATH)
+# - POETRY_HOME 지정 시: $POETRY_HOME/bin/poetry
+- name: Compute expected Poetry binary path
+  ansible.builtin.set_fact:
+    poetry_bin_path: >-
+      {{
+        (poetry_home | length > 0)
+        | ternary(poetry_home ~ '/bin/poetry', python_dev_home ~ '/.local/bin/poetry')
+      }}
+
+- name: Check if Poetry is already installed
+  ansible.builtin.stat:
+    path: "{{ poetry_bin_path }}"
+  register: poetry_bin
+
+# B안: environment를 dict로 조립 (omit 사용 금지)
+- name: Build Poetry installer environment
+  ansible.builtin.set_fact:
+    poetry_installer_env: >-
+      {{
+        {'HOME': python_dev_home}
+        | combine((poetry_home | length > 0) | ternary({'POETRY_HOME': poetry_home}, {}))
+        | combine((poetry_version != 'latest') | ternary({'POETRY_VERSION': poetry_version}, {}))
+      }}
+  when: not poetry_bin.stat.exists
+
+- name: Install Poetry using official installer (latest or pinned)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    curl -sSL https://install.python-poetry.org | python3 -
+  args:
+    executable: /bin/bash
+    creates: "{{ poetry_bin_path }}"
+  become: yes
+  become_user: "{{ poetry_user }}"
+  environment: "{{ poetry_installer_env }}"
+  when: not poetry_bin.stat.exists

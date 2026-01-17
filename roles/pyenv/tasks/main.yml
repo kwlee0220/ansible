@@ -1,0 +1,17 @@
+---
+# 0. 입력값 검증 (FAIL FAST)
+- name: Validate role variables
+  ansible.builtin.include_tasks: validate.yml
+
+# 1. 의존성 설치
+- name: Install Ubuntu 22.04 build dependencies
+  ansible.builtin.include_tasks: deps_ubuntu2204.yml
+  when: pyenv_install_build_deps | bool
+
+# 2. pyenv 설치
+- name: Install pyenv and plugins
+  ansible.builtin.include_tasks: install.yml
+
+# 3. bash 초기화 파일 구성
+- name: Configure bash init files
+  ansible.builtin.include_tasks: shell_init.yml
