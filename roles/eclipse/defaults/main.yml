@@ -1,0 +1,40 @@
+---
+# 대상 사용자 (기본: ansible 접속 사용자)
+eclipse_user: "{{ ansible_user_id }}"
+
+# Ubuntu 22.04 일반 계정 홈
+eclipse_user_home: "/home/{{ eclipse_user }}"
+
+# Eclipse 버전/아키텍처/패키지
+eclipse_version: "2025-12"
+eclipse_arch: "linux-gtk-x86_64"
+eclipse_package: "eclipse-java"
+
+# 설치 경로 (사용자 로컬)
+eclipse_install_dir: "{{ eclipse_user_home }}/.local/opt/eclipse/{{ eclipse_version }}"
+
+# 임시 파일
+eclipse_tmp_tarball: "/tmp/eclipse-{{ eclipse_version }}.tar.gz"
+
+# 다운로드 URL (download.php?file=... 형식 그대로)
+eclipse_tarball: "{{ eclipse_package }}-{{ eclipse_version }}-R-{{ eclipse_arch }}.tar.gz"
+eclipse_milestone: "R"
+eclipse_mirror_id: "1273"
+eclipse_tarball_url: >-
+  https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/{{ eclipse_version }}/{{ eclipse_milestone }}/{{ eclipse_tarball }}&mirror_id={{ eclipse_mirror_id }}&r=1
+
+# Lombok
+eclipse_install_lombok: true
+lombok_jar_url: "https://projectlombok.org/downloads/lombok.jar"
+lombok_jar_path: "{{ eclipse_install_dir }}/lombok.jar"
+eclipse_ini_path: "{{ eclipse_install_dir }}/eclipse.ini"
+
+# Desktop entry (사용자 로컬)
+eclipse_desktop_dir: "{{ eclipse_user_home }}/.local/share/applications"
+eclipse_desktop_entry_path: "{{ eclipse_desktop_dir }}/eclipse.desktop"
+
+# Icon 후보 (설치물에 따라 다를 수 있어 fallback 형태)
+eclipse_icon_candidates:
+  - "{{ eclipse_install_dir }}/icon.xpm"
+  - "{{ eclipse_install_dir }}/icon.png"
+  - "{{ eclipse_install_dir }}/plugins/org.eclipse.platform_*/eclipse*.png"

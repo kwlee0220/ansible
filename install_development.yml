@@ -4,7 +4,7 @@
 
   vars:
     user_id: "{{ ansible_user_id }}"
-    disable_list: [ 'temurin_jdk', 'pyenv', 'poetry' ]
+    disable_list: [ 'temurin_jdk' ]
 
     sdkman_java_version: "21.0.5-tem"
     sdkman_gradle_version: "8.9"
@@ -12,6 +12,9 @@
   roles:
     - role: temurin_jdk
       when: "'temurin_jdk' not in disable_list"
+
+    - role: eclipse
+      when: "'eclipse' not in disable_list"
 
     - role: pyenv
       vars:

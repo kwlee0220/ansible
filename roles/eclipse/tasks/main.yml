@@ -1,0 +1,12 @@
+---
+- name: Validate inputs / OS
+  ansible.builtin.include_tasks: validate.yml
+
+- name: Install dependencies (Ubuntu 22.04)
+  ansible.builtin.include_tasks: deps_ubuntu2204.yml
+
+- name: Install Eclipse (user-local)
+  ansible.builtin.include_tasks: install.yml
+
+- name: Configure desktop entry (user-local)
+  ansible.builtin.include_tasks: desktop.yml

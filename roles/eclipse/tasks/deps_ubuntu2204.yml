@@ -1,0 +1,10 @@
+---
+- name: Install required packages (Ubuntu 22.04)
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - default-jre-headless
+    state: present
+    update_cache: yes
+  become: yes

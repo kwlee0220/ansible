@@ -1,0 +1,62 @@
+---
+- name: Create Eclipse installation directory
+  ansible.builtin.file:
+    path: "{{ eclipse_install_dir }}"
+    state: directory
+    owner: "{{ eclipse_user }}"
+    group: "{{ eclipse_user }}"
+    mode: "0755"
+  become: yes
+
+- name: Download Eclipse tarball
+  ansible.builtin.get_url:
+    url: "{{ eclipse_tarball_url }}"
+    dest: "{{ eclipse_tmp_tarball }}"
+    mode: "0644"
+    force: yes
+    validate_certs: yes
+    http_agent: "Mozilla/5.0"
+
+- name: Verify downloaded tarball is valid
+  ansible.builtin.shell:
+    cmd: "tar -tzf {{ eclipse_tmp_tarball }} > /dev/null 2>&1"
+  register: tarball_check
+  changed_when: false
+  failed_when: tarball_check.rc != 0
+
+- name: Extract Eclipse tarball (idempotent)
+  ansible.builtin.unarchive:
+    src: "{{ eclipse_tmp_tarball }}"
+    dest: "{{ eclipse_install_dir }}"
+    remote_src: yes
+    extra_opts:
+      - "--strip-components=1"
+    creates: "{{ eclipse_install_dir }}/eclipse"
+
+- name: Download Lombok jar
+  ansible.builtin.get_url:
+    url: "{{ lombok_jar_url }}"
+    dest: "{{ lombok_jar_path }}"
+    mode: "0644"
+  become: yes
+  become_user: "{{ eclipse_user }}"
+  environment:
+    HOME: "{{ eclipse_user_home }}"
+  when: eclipse_install_lombok | bool
+
+- name: Ensure Lombok javaagent is configured in eclipse.ini
+  ansible.builtin.lineinfile:
+    path: "{{ eclipse_ini_path }}"
+    regexp: '^-javaagent:.*lombok\.jar$'
+    line: "-javaagent:{{ lombok_jar_path }}"
+    insertafter: '^-vmargs$'
+  become: yes
+  become_user: "{{ eclipse_user }}"
+  environment:
+    HOME: "{{ eclipse_user_home }}"
+  when: eclipse_install_lombok | bool
+
+- name: Clean up temporary tarball
+  ansible.builtin.file:
+    path: "{{ eclipse_tmp_tarball }}"
+    state: absent

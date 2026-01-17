@@ -1,54 +1,107 @@
 ---
-- name: Install Eclipse IDE on Ubuntu
+- name: Install Eclipse IDE (user-local) on Ubuntu 22.04
   hosts: all
+  gather_facts: yes
 
   vars:
-    user_home_dir: "{{ ansible_env.HOME }}"
-    install_dir: "{{ user_home_dir }}/local/eclipse"
+    target_user: "{{ ansible_user_id }}"
+    user_home_dir: "/home/{{ target_user }}"
 
-    eclipse_version: "2024-12"
-    eclipse_download_site: "https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/2024-12/R/"
+    # User-local install
+    install_dir: "{{ user_home_dir }}/.local/opt/eclipse/{{ eclipse_version }}"
+    tmp_file: "/tmp/eclipse-{{ eclipse_version }}.tar.gz"
+
+    # Eclipse package settings
+    eclipse_version: "2025-12"
     eclipse_arch: "linux-gtk-x86_64"
     eclipse_tarball: "eclipse-java-{{ eclipse_version }}-R-{{ eclipse_arch }}.tar.gz"
-    eclipse_tarball_url: "{{ eclipse_download_site }}/{{ eclipse_version }}/R/{{ eclipse_tarball }}"
-    
-    desktop_entry_path: "/usr/share/applications/eclipse.desktop"
-    tmp_file: "/tmp/eclipse.tar.gz"
+
+    # Correct download.php URL format (no path concatenation after querystring)
+    # You may change mirror_id if needed.
+    eclipse_tarball_url: >-
+      https://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/{{ eclipse_version }}/R/{{ eclipse_tarball }}&mirror_id=1273
+
+    # Desktop entry (user-local)
+    desktop_dir: "{{ user_home_dir }}/.local/share/applications"
+    desktop_entry_path: "{{ desktop_dir }}/eclipse.desktop"
+
+    # Lombok
     lombok_jar_url: "https://projectlombok.org/downloads/lombok.jar"
+    lombok_jar_path: "{{ install_dir }}/lombok.jar"
+    eclipse_ini_path: "{{ install_dir }}/eclipse.ini"
 
   tasks:
-    - name: Create installation directory
-      file:
+    - name: Validate OS is Ubuntu 22.04
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == "Ubuntu"
+          - ansible_facts.distribution_version is version("22.04", "==")
+        fail_msg: "This playbook supports Ubuntu 22.04 only."
+
+    - name: Ensure Java runtime is installed (for Lombok agent)
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - default-jre-headless
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Create Eclipse installation directory
+      ansible.builtin.file:
         path: "{{ install_dir }}"
         state: directory
-        mode: '0755'
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+        mode: "0755"
+      become: yes
 
-    - name: Download Eclipse IDE for Java Developers tarball
-      get_url:
+    - name: Download Eclipse tarball
+      ansible.builtin.get_url:
         url: "{{ eclipse_tarball_url }}"
         dest: "{{ tmp_file }}"
+        mode: "0644"
 
-    - name: Extract Eclipse tarball
-      unarchive:
+    - name: Extract Eclipse tarball (idempotent)
+      ansible.builtin.unarchive:
         src: "{{ tmp_file }}"
         dest: "{{ install_dir }}"
         remote_src: yes
         extra_opts:
           - "--strip-components=1"
+        creates: "{{ install_dir }}/eclipse"
 
     - name: Download Lombok jar
-      get_url:
+      ansible.builtin.get_url:
         url: "{{ lombok_jar_url }}"
-        dest: "{{ install_dir }}/lombok.jar"
-
-    - name: Integrate Lombok with Eclipse
-      command: "java -jar {{ install_dir }}/lombok.jar install {{ install_dir }}/eclipse"
-      args:
-        creates: "{{ install_dir }}/eclipse.ini"
-
-    - name: Create Eclipse desktop entry
+        dest: "{{ lombok_jar_path }}"
+        mode: "0644"
       become: yes
-      copy:
+      become_user: "{{ target_user }}"
+
+    # Lombok integration without GUI installer:
+    # Insert -javaagent line into eclipse.ini after -vmargs
+    - name: Ensure Lombok javaagent is configured in eclipse.ini
+      ansible.builtin.lineinfile:
+        path: "{{ eclipse_ini_path }}"
+        regexp: '^-javaagent:.*lombok\.jar$'
+        line: "-javaagent:{{ lombok_jar_path }}"
+        insertafter: '^-vmargs$'
+      become: yes
+      become_user: "{{ target_user }}"
+
+    - name: Ensure desktop applications directory exists
+      ansible.builtin.file:
+        path: "{{ desktop_dir }}"
+        state: directory
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+        mode: "0755"
+      become: yes
+
+    - name: Create Eclipse desktop entry (user-local)
+      ansible.builtin.copy:
         dest: "{{ desktop_entry_path }}"
         content: |
           [Desktop Entry]
@@ -58,12 +111,12 @@
           Terminal=false
           Icon={{ install_dir }}/icon.xpm
           Categories=Development;IDE;
-        owner: root
-        group: root
-        mode: '0644'
-        remote_src: true
+        owner: "{{ target_user }}"
+        group: "{{ target_user }}"
+        mode: "0644"
+      become: yes
 
     - name: Clean up temporary files
-      file:
+      ansible.builtin.file:
         path: "{{ tmp_file }}"
         state: absent

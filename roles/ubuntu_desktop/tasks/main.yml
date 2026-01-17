@@ -19,7 +19,7 @@
     gsettings set org.gnome.shell.extensions.dash-to-dock dock-position "'LEFT'"
     gsettings set org.gnome.shell.extensions.dash-to-dock show-trash "false"
 
-    gsettings set org.gnome.shell favorite-apps "['google-chrome.desktop', 'cursor.desktop', 'code.desktop', 'com.gexperts.Tilix.desktop', 'org.gnome.Terminal.desktop', 'pcmanfm.desktop', 'snap-store_ubuntu-software.desktop', 'gnome-control-center.desktop']"
+    gsettings set org.gnome.shell favorite-apps "['google-chrome.desktop', 'eclipse.desktop', 'cursor.desktop', 'code.desktop', 'com.gexperts.Tilix.desktop', 'org.gnome.Terminal.desktop', 'pcmanfm.desktop', 'snap-store_ubuntu-software.desktop', 'gnome-control-center.desktop']"
   args:
     executable: /bin/bash
   become: false

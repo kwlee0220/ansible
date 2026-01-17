@@ -1,0 +1,46 @@
+---
+- name: Ensure desktop applications directory exists
+  ansible.builtin.file:
+    path: "{{ eclipse_desktop_dir }}"
+    state: directory
+    owner: "{{ eclipse_user }}"
+    group: "{{ eclipse_user }}"
+    mode: "0755"
+  become: yes
+
+- name: Find available Eclipse icon
+  ansible.builtin.find:
+    paths:
+      - "{{ eclipse_install_dir }}"
+      - "{{ eclipse_install_dir }}/plugins"
+    patterns:
+      - "icon.xpm"
+      - "icon.png"
+      - "eclipse*.png"
+    file_type: file
+    recurse: yes
+  register: eclipse_icons
+
+- name: Select icon path (fallback to icon.xpm)
+  ansible.builtin.set_fact:
+    eclipse_icon_path: >-
+      {{
+        (eclipse_icons.files | map(attribute='path') | list | first)
+        | default(eclipse_install_dir ~ '/icon.xpm')
+      }}
+
+- name: Create Eclipse desktop entry (user-local)
+  ansible.builtin.copy:
+    dest: "{{ eclipse_desktop_entry_path }}"
+    content: |
+      [Desktop Entry]
+      Name=Eclipse IDE for Java Developers
+      Type=Application
+      Exec={{ eclipse_install_dir }}/eclipse
+      Terminal=false
+      Icon={{ eclipse_icon_path }}
+      Categories=Development;IDE;
+    owner: "{{ eclipse_user }}"
+    group: "{{ eclipse_user }}"
+    mode: "0644"
+  become: yes
