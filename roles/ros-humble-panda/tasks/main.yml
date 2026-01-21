@@ -4,5 +4,6 @@
     name:
       - ros-humble-moveit-resources-panda-moveit-config
       - ros-humble-moveit-resources-panda-description
+      - ros-humble-franka-description
     state: present
   become: true

@@ -5,6 +5,7 @@
       - ros-humble-robot-state-publisher
       - ros-humble-joint-state-publisher-gui
       - ros-humble-rviz2
+      - ros-humble-xacro
 
       - ros-humble-moveit
       - ros-humble-ros2-control
