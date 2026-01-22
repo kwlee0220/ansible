@@ -49,6 +49,7 @@
     name:
       - python3-colcon-common-extensions
       - python3-rosdep
+      - python3-catkin-pkg
       - python3-argcomplete
     state: present
   become: true
