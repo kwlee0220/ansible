@@ -1,0 +1,52 @@
+---
+- name: Create ROS 2 workspace and src directory
+  file:
+    path: "{{ workspace_dir }}/src"
+    state: directory
+    mode: '0755'
+
+- name: Clone franka_ros2 repository
+  git:
+    repo: 'https://github.com/frankarobotics/franka_ros2.git'
+    dest: "{{ workspace_dir }}/src"
+
+- name: Import VCS dependencies
+  shell:
+    cmd: vcs import src < src/dependency.repos --recursive --skip-existing
+    chdir: "{{ workspace_dir }}"
+  register: vcs_import_result
+  changed_when: "'imported' in vcs_import_result.stdout"
+
+- name: Update rosdep database
+  shell:
+    cmd: rosdep update
+    executable: /bin/bash
+  environment:
+    HOME: "{{ ansible_env.HOME }}"
+  register: rosdep_update_result
+  changed_when: "'updated cache' in rosdep_update_result.stdout or 'updated' in rosdep_update_result.stdout"
+  failed_when: false
+
+- name: Install project dependencies using rosdep
+  shell:
+    cmd: "rosdep install --from-paths src --ignore-src --rosdistro {{ ros_distro }} -y"
+    chdir: "{{ workspace_dir }}"
+    executable: /bin/bash
+  environment:
+    HOME: "{{ ansible_env.HOME }}"
+  register: rosdep_result
+  changed_when: "'All required rosdeps installed successfully' not in rosdep_result.stdout"
+
+- name: Build the workspace with colcon
+  shell:
+    cmd: "source /opt/ros/{{ ros_distro }}/setup.bash && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release"
+    chdir: "{{ workspace_dir }}"
+    executable: /bin/bash
+  register: colcon_result
+  changed_when: "'Summary:' in colcon_result.stdout"
+
+- name: Add workspace sourcing to .bashrc
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: "source {{ workspace_dir }}/install/setup.bash"
+    state: present
