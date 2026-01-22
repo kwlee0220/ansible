@@ -70,7 +70,7 @@
     rosdep update
   args:
     executable: /bin/bash
-  become: true
+  # become: true
 
 - name: Install rosbridge-suite
   package:
