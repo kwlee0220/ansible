@@ -9,8 +9,11 @@
     # share_path: "/home/{{ ansible_user_id }}"
 
   roles:
-    - role: python_dev_env
-
+    - role: ros2
+    - role: ros-humble-moveit
+    - role: ros-humble-panda
+    - role: franka_ros2
+    
   # tasks:
   #   - name: Test task
   #     debug:

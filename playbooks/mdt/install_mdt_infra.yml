@@ -65,6 +65,7 @@
     - name: Install ROS 2 Panda
       role: ros-humble-panda
       when: install_ros2 | default(false) | bool
+
     - name: Install NodeRED
       role: nodered
       when: install_nodered | default(false) | bool
@@ -88,7 +89,7 @@
 
           # MDT Manager
           export MDT_ENDPOINT=http://$LOCAL_HOST:12985
-          # export MDT_WORKFLOW_ENDPOINT=http://$LOCAL_HOST:12989
+          export MDT_WORKFLOW_ENDPOINT=http://$LOCAL_HOST:12989
           export ARGO_ENDPOINT=http://localhost:2746
           export PATH=$PATH:$MDT_HOME/mdt-manager/sbin
 

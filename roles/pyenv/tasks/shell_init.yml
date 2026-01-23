@@ -7,6 +7,7 @@
       [[ -d "$PYENV_ROOT/bin" ]] && export PATH="$PYENV_ROOT/bin:$PATH"
       if command -v pyenv 1>/dev/null 2>&1; then
         eval "$(pyenv init --path)"
+        pyenv global system
       fi
 
 - name: Define pyenv interactive init block (.bashrc)
@@ -18,6 +19,7 @@
       if command -v pyenv 1>/dev/null 2>&1; then
         eval "$(pyenv init -)"
         eval "$(pyenv virtualenv-init -)"
+        pyenv global system
       fi
 
 # .bash_profile 생성/권한 보장
