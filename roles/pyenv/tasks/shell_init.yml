@@ -4,7 +4,7 @@
     pyenv_login_init_block: |
       # pyenv (login)
       export PYENV_ROOT="{{ pyenv_root }}"
-      export PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH"
+      [[ -d "$PYENV_ROOT/bin" ]] && export PATH="$PYENV_ROOT/bin:$PATH"
       if command -v pyenv 1>/dev/null 2>&1; then
         eval "$(pyenv init --path)"
       fi
@@ -14,7 +14,7 @@
     pyenv_interactive_init_block: |
       # pyenv (interactive)
       export PYENV_ROOT="{{ pyenv_root }}"
-      export PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH"
+      [[ -d "$PYENV_ROOT/bin" ]] && export PATH="$PYENV_ROOT/bin:$PATH"
       if command -v pyenv 1>/dev/null 2>&1; then
         eval "$(pyenv init -)"
         eval "$(pyenv virtualenv-init -)"
