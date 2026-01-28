@@ -45,8 +45,11 @@
   register: colcon_result
   changed_when: "'Summary:' in colcon_result.stdout"
 
-- name: Add workspace sourcing to .bashrc
-  lineinfile:
+- name: Add workspace sourcing to .bashrc using blockinfile
+  blockinfile:
     path: "{{ ansible_env.HOME }}/.bashrc"
-    line: "source {{ workspace_dir }}/install/setup.bash"
+    marker: "# {mark} Franka ROS2: {mark}"
+    block: |
+
+      source {{ workspace_dir }}/install/setup.bash
     state: present

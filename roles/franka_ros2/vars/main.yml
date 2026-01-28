@@ -3,3 +3,4 @@
 workspace_dir: "{{ ansible_env.HOME }}/local/ros2/franka_ros2_ws"
 
 ros_distro: humble
+clean_build_before_install: true

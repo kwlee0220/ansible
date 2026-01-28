@@ -2,18 +2,7 @@
 - name: Install ROS 2 MoveIt dependencies
   apt:
     name:
-      - ros-humble-robot-state-publisher
-      - ros-humble-joint-state-publisher-gui
-      - ros-humble-rviz2
-      - ros-humble-xacro
-
       - ros-humble-moveit
-      - ros-humble-ros2-control
-      - ros-humble-controller-manager
-      - ros-humble-ros2-controllers
-      - ros-humble-tf-transformations
-
-      # MoveIt 2와 Servo 관련 패키지
       - ros-humble-moveit-servo
       - ros-humble-moveit-visual-tools
 

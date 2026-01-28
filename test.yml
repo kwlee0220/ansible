@@ -8,8 +8,10 @@
     # share_name: home
     # share_path: "/home/{{ ansible_user_id }}"
 
-  # roles:
-  #   - role: franka_ros2
+  roles:
+    - role: ros2
+    - role: ros-humble-moveit
+    - role: franka_ros2
     
   # tasks:
   #   - name: Test task

@@ -1,0 +1,9 @@
+---
+# ROS 배포판 설정
+ros_distro: humble
+
+# 워크스페이스 경로 (사용자 홈 디렉토리 기준)
+workspace_dir: "{{ ansible_env.HOME }}/local/ros2/ws_moveit2"
+
+# 빌드 타입 (Release, Debug, RelWithDebInfo)
+build_type: Release

@@ -1,0 +1,85 @@
+---
+- name: 시스템 패키지 업데이트
+  become: yes
+  apt:
+    update_cache: yes
+    upgrade: dist
+
+- name: MoveIt 2 빌드를 위한 필수 도구 설치
+  become: yes
+  apt:
+    name:
+      - build-essential
+      - cmake
+      - git
+      - python3-colcon-common-extensions
+      - python3-flake8
+      - python3-rosdep
+      - python3-setuptools
+      - python3-vcstool
+      - wget
+    state: present
+
+- name: rosdep 초기화 및 업데이트
+  shell: |
+    if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
+      sudo rosdep init
+    fi
+    rosdep update
+  args:
+    executable: /bin/bash
+
+- name: 기존에 설치된 MoveIt 데비안 패키지 삭제 (충돌 방지)
+  become: yes
+  apt:
+    name: "ros-{{ ros_distro }}-moveit*"
+    state: absent
+
+- name: 워크스페이스 디렉토리 생성
+  file:
+    path: "{{ workspace_dir }}/src"
+    state: directory
+    mode: '0755'
+
+- name: MoveIt 2 소스 코드 클론 (Humble 브랜치)
+  git:
+    repo: https://github.com/moveit/moveit2.git
+    dest: "{{ workspace_dir }}/src/moveit2"
+    version: "{{ ros_distro }}"
+
+- name: vcstool을 사용하여 연관 저장소 가져오기
+  shell: |
+    vcs import < moveit2/moveit2.repos
+    if [ -f "moveit2/moveit2_{{ ros_distro }}.repos" ]; then
+      vcs import < "moveit2/moveit2_{{ ros_distro }}.repos"
+    fi
+  args:
+    chdir: "{{ workspace_dir }}/src"
+    executable: /bin/bash
+
+- name: rosdep을 사용하여 의존성 설치
+  shell: |
+    source /opt/ros/{{ ros_distro }}/setup.bash
+    rosdep install -r --from-paths . --ignore-src --rosdistro {{ ros_distro }} -y
+  args:
+    chdir: "{{ workspace_dir }}/src"
+    executable: /bin/bash
+
+- name: MoveIt 2 빌드 (colcon build)
+  shell: |
+    source /opt/ros/{{ ros_distro }}/setup.bash
+    colcon build --event-handlers desktop_notification- status- --cmake-args -DCMAKE_BUILD_TYPE={{ build_type }}
+  args:
+    chdir: "{{ workspace_dir }}"
+    executable: /bin/bash
+  async: 3600  # 빌드 시간이 길어질 수 있으므로 비동기 처리 (최대 1시간)
+  poll: 30
+
+- name: Add workspace sourcing to .bashrc using blockinfile
+  blockinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    marker: "# {mark} MoveIt2: {mark}"
+    block: |
+
+      source {{ workspace_dir }}/install/setup.bash
+    state: present
