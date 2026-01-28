@@ -1,3 +1,5 @@
 ---
-workspace_dir: "{{ ansible_env.HOME }}/franka_ros2_ws"
+# workspace_dir: "{{ ansible_env.HOME }}/franka_ros2_ws"
+workspace_dir: "{{ ansible_env.HOME }}/local/ros2/franka_ros2_ws"
+
 ros_distro: humble
