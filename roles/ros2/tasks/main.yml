@@ -34,6 +34,16 @@
     update_cache: yes
   become: true
 
+- name: Install ROS2 Python dependencies
+  package:
+    name:
+      - python3-colcon-common-extensions
+      - python3-rosdep
+      - python3-catkin-pkg
+      - python3-argcomplete
+    state: present
+  become: true
+
 - name: Install ROS 2 Humble packages
   package:
     name:
@@ -51,16 +61,6 @@
       - ros-humble-controller-manager
       - ros-humble-ros2-controllers
       - ros-humble-tf-transformations
-    state: present
-  become: true
-
-- name: Install ROS2 Python dependencies
-  package:
-    name:
-      - python3-colcon-common-extensions
-      - python3-rosdep
-      - python3-catkin-pkg
-      - python3-argcomplete
     state: present
   become: true
 
