@@ -11,15 +11,16 @@
       - ros-humble-ros2-control
       - ros-humble-controller-manager
       - ros-humble-ros2-controllers
+      - ros-humble-tf-transformations
 
       # MoveIt 2와 Servo 관련 패키지
       - ros-humble-moveit-servo
       - ros-humble-moveit-visual-tools
 
     # Joystick 관련
-      - ros-humble-joy-linux
+      # - ros-humble-joy-linux
       # SDL2-based joystick support
-      # - ros-humble-joy
+      - ros-humble-joy
       - ros-humble-joy-teleop
     state: present
   become: true
