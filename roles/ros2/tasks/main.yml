@@ -64,6 +64,13 @@
     state: present
   become: true
 
+- name: Install ROS2 Python dependencies for 'ros-humble-tf-transformations'
+  package:
+    name:
+      - transforms3d
+    state: present
+  become: true
+
 - name: Install rqt
   package:
     name:
