@@ -10,7 +10,6 @@
     model_dir: "{{ mdt_home_dir }}/models"
 
   roles:
-    - role: ros-humble-moveit
     - role: ros-humble-panda
 
   tasks:

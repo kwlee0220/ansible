@@ -1,0 +1,50 @@
+---
+- name: 필요한 도구 설치 (git, python3-vcstool 등)
+  become: yes
+  apt:
+    name:
+      - git
+      - python3-vcstool
+      - python3-rosdep
+      - python3-colcon-common-extensions
+      - python3-colcon-mixin
+    state: present
+    update_cache: yes
+
+- name: 워크스페이스 src 디렉토리 생성
+  file:
+    path: "{{ ws_path }}/src"
+    state: directory
+    mode: '0755'
+
+- name: MoveIt2 Tutorials 저장소 클론
+  git:
+    repo: 'https://github.com/ros-planning/moveit2_tutorials'
+    dest: "{{ ws_path }}/src/moveit2_tutorials"
+    version: "{{ moveit_branch }}"
+
+- name: .repos 파일을 이용해 관련 소스코드 가져오기 (vcs import)
+  shell: |
+    vcs import < moveit2_tutorials/moveit2_tutorials.repos
+  args:
+    chdir: "{{ ws_path }}/src"
+    creates: "{{ ws_path }}/src/moveit2"
+
+- name: rosdep update 실행
+  command: rosdep update
+  ignore_errors: yes
+
+- name: rosdep을 이용한 의존성 패키지 설치
+  become: yes
+  shell: |
+    rosdep install -r --from-paths src --ignore-src --rosdistro {{ ros_distro }} -y
+  args:
+    chdir: "{{ ws_path }}"
+
+- name: MoveIt 2 빌드 실행 (메모리 고려하여 worker 제한)
+  shell: |
+    . /opt/ros/{{ ros_distro }}/setup.sh && \
+    colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --parallel-workers {{ max_parallel_workers }}
+  args:
+    chdir: "{{ ws_path }}"
+    executable: /bin/bash

@@ -1,4 +1,3 @@
 ---
 dependencies:
-  - role: ros2 
-  - role: ros-humble-moveit
+  - role: ros2

@@ -59,9 +59,11 @@
     - name: Install ROS2
       role: ros2
       when: install_ros2 | default(false) | bool
-    - name: Install ROS 2 MoveIt
-      role: ros-humble-moveit
+
+    - name: Build ROS 2 MoveIt from Github
+      role: ros-humble-moveit-build
       when: install_ros2 | default(false) | bool
+      
     - name: Install ROS 2 Panda
       role: ros-humble-panda
       when: install_ros2 | default(false) | bool

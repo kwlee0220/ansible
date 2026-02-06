@@ -9,9 +9,7 @@
     # share_path: "/home/{{ ansible_user_id }}"
 
   roles:
-    - role: ros2
-    - role: ros-humble-moveit
-    - role: franka_ros2
+    - role: ros-humble-moveit-build
     
   # tasks:
   #   - name: Test task

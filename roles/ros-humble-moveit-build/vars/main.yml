@@ -1,0 +1,8 @@
+---
+# MoveIt 2 빌드를 위한 기본 변수
+ros_distro: humble
+ws_path: "{{ ansible_env.HOME }}/local/ros2/ws_moveit2"
+moveit_branch: humble
+
+# 메모리 부족 방지를 위한 병렬 빌드 제한 (시스템 사양에 따라 조절)
+max_parallel_workers: 2
