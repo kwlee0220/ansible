@@ -53,7 +53,6 @@
   blockinfile:
     path: "{{ ansible_env.HOME }}/.bashrc"
     marker: "# {mark} MoveIt2: {mark}"
-    block: |
-
+    block: | 
       source {{ ws_path }}/install/setup.bash
     state: present
