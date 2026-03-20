@@ -48,3 +48,11 @@
   args:
     chdir: "{{ ws_path }}"
     executable: /bin/bash
+
+- name: Add workspace sourcing to .bashrc using blockinfile
+  blockinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    marker: "# {mark} MoveIt2: {mark}"
+    block: |
+      [[ -s "{{ ws_path }}/install/setup.bash" ]] && source {{ ws_path }}/install/setup.bash
+    state: present
