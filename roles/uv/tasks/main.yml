@@ -1,0 +1,92 @@
+---
+- name: Ensure dependencies are installed
+  become: true
+  ansible.builtin.apt:
+    name: "{{ uv_dependencies }}"
+    state: present
+    update_cache: true
+
+- name: Ensure uv install directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ uv_install_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Check if uv binary exists in install dir
+  ansible.builtin.stat:
+    path: "{{ uv_install_dir }}/uv"
+  register: uv_binary_stat
+
+- name: Read installed uv version
+  ansible.builtin.command: "{{ uv_install_dir }}/uv --version"
+  register: uv_version_cmd
+  changed_when: false
+  failed_when: false
+  when: uv_binary_stat.stat.exists
+
+- name: Parse installed uv version
+  ansible.builtin.set_fact:
+    uv_installed_version: >-
+      {{
+        (uv_version_cmd.stdout | regex_search('([0-9]+\.[0-9]+\.[0-9]+)', '\1') | first)
+        if (uv_binary_stat.stat.exists and uv_version_cmd.rc == 0)
+        else ''
+      }}
+
+- name: Determine whether uv installation is required
+  ansible.builtin.set_fact:
+    uv_install_required: >-
+      {{
+        (not uv_binary_stat.stat.exists)
+        or
+        (uv_version != 'latest' and uv_installed_version != uv_version)
+      }}
+
+- name: Set installer URL for latest
+  ansible.builtin.set_fact:
+    uv_installer_url: "https://astral.sh/uv/install.sh"
+  when: uv_version == "latest"
+
+- name: Set installer URL for specific version
+  ansible.builtin.set_fact:
+    uv_installer_url: "https://astral.sh/uv/{{ uv_version }}/install.sh"
+  when: uv_version != "latest"
+
+- name: Download uv installer only when needed
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ uv_installer_url }}"
+    dest: "{{ uv_installer_path }}"
+    mode: "0755"
+    force: true
+  when: uv_install_required
+
+- name: Install uv only when needed
+  become: true
+  ansible.builtin.command: "{{ uv_installer_path }}"
+  environment:
+    UV_UNMANAGED_INSTALL: "{{ uv_install_dir }}"
+    UV_NO_MODIFY_PATH: "{{ '1' if uv_no_modify_path else '0' }}"
+  when: uv_install_required
+  notify: Ensure uv symlink
+
+- name: Ensure uv symlink exists
+  become: true
+  ansible.builtin.file:
+    src: "{{ uv_install_dir }}/uv"
+    dest: "{{ uv_bin_link_path }}"
+    state: link
+    force: true
+
+- name: Verify uv installation
+  ansible.builtin.command: "{{ uv_bin_link_path }} --version"
+  register: uv_verify
+  changed_when: false
+
+- name: Assert uv installed successfully
+  ansible.builtin.assert:
+    that:
+      - uv_verify.rc == 0
+    fail_msg: "uv installation verification failed"
+    success_msg: "uv is installed successfully"

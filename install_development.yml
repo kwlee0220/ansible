@@ -4,7 +4,7 @@
 
   vars:
     user_id: "{{ ansible_user_id }}"
-    disable_list: [ 'temurin_jdk' ]
+    disable_list: [ 'temurin_jdk', 'pyenv', 'poetry' ]
 
     sdkman_java_version: "21.0.5-tem"
     sdkman_gradle_version: "8.9"
@@ -23,16 +23,26 @@
         pyenv_version: "latest"
         pyenv_virtualenv_version: "latest"
         pyenv_install_build_deps: true
+      when: "'pyenv' not in disable_list"
 
     - role: poetry
       vars:
         poetry_version: "latest"
+
+    - role: uv
+      when: "'uv' not in disable_list"
 
     - role: vscode
       when: "ansible_virtualization_type != 'wsl' and 'vscode' not in disable_list"
 
     - role: docker
       when: "'docker' not in disable_list"
+
+    - role: portainer
+      vars:
+        portainer_additional_ports:
+          - "9000:9000"
+      when: "'portainer' not in disable_list"
       
     - role: sdkman
       when: "'sdkman' not in disable_list"

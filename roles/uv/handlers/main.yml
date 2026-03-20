@@ -1,0 +1,8 @@
+---
+- name: Ensure uv symlink
+  become: true
+  ansible.builtin.file:
+    src: "{{ uv_install_dir }}/uv"
+    dest: "{{ uv_bin_link_path }}"
+    state: link
+    force: true

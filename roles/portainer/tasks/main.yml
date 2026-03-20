@@ -1,0 +1,52 @@
+---
+- name: Validate Docker socket exists
+  ansible.builtin.stat:
+    path: "{{ portainer_docker_socket }}"
+  register: portainer_docker_socket_stat
+
+- name: Fail if Docker socket is missing
+  ansible.builtin.fail:
+    msg: >-
+      Docker socket was not found at {{ portainer_docker_socket }}.
+      Install and start Docker before applying this role.
+  when: not portainer_docker_socket_stat.stat.exists
+
+- name: Ensure Portainer data volume exists
+  community.docker.docker_volume:
+    name: "{{ portainer_data_volume_name }}"
+    state: present
+
+- name: Ensure Portainer container is running
+  community.docker.docker_container:
+    name: "{{ portainer_container_name }}"
+    image: "{{ portainer_image }}"
+    state: "{{ portainer_container_state }}"
+    restart_policy: "{{ portainer_restart_policy }}"
+    pull: "{{ portainer_pull }}"
+    recreate: false
+    comparisons:
+      image: strict
+      env: strict
+      labels: strict
+      networks: strict
+      published_ports: strict
+      volumes: strict
+    published_ports: "{{ portainer_published_ports + portainer_additional_ports }}"
+    volumes:
+      - "{{ portainer_docker_socket }}:/var/run/docker.sock"
+      - "{{ portainer_data_volume_name }}:/data"
+    command: "{{ portainer_command if portainer_command | length > 0 else omit }}"
+  register: portainer_container_result
+
+- name: Gather Portainer container info
+  community.docker.docker_container_info:
+    name: "{{ portainer_container_name }}"
+  register: portainer_container_info
+
+- name: Show Portainer access information
+  ansible.builtin.debug:
+    msg:
+      - "Portainer container: {{ portainer_container_name }}"
+      - "Portainer image: {{ portainer_image }}"
+      - "Access URL: {{ portainer_admin_url_scheme }}://{{ ansible_host | default(inventory_hostname) }}:{{ portainer_admin_url_port }}"
+      - "Container running: {{ portainer_container_info.exists and portainer_container_info.container.State.Running }}"

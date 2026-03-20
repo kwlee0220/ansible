@@ -9,7 +9,10 @@
     # share_path: "/home/{{ ansible_user_id }}"
 
   roles:
-    - role: ros-humble-moveit-build
+    - role: portainer
+      vars:
+        portainer_additional_ports:
+          - "9000:9000"
     
   # tasks:
   #   - name: Test task

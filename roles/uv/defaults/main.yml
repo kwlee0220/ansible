@@ -1,0 +1,20 @@
+---
+# "latest" 또는 "0.10.9" 같은 고정 버전
+uv_version: "latest"
+
+# 설치 위치
+uv_install_dir: "/opt/uv"
+
+# 심볼릭 링크 경로
+uv_bin_link_path: "/usr/local/bin/uv"
+
+# shell profile 수정 금지
+uv_no_modify_path: true
+
+# 필요 패키지
+uv_dependencies:
+  - curl
+  - ca-certificates
+
+# installer 임시 경로
+uv_installer_path: "/tmp/uv-install.sh"

@@ -1,0 +1,35 @@
+---
+# Portainer image
+portainer_image: "portainer/portainer-ce:lts"
+
+# Container settings
+portainer_container_name: "portainer"
+portainer_restart_policy: "always"
+portainer_container_state: "started"
+
+# Published ports
+# 공식 문서 기준: 9443(HTTPS), 8000(edge agent tunnel)
+portainer_published_ports:
+  - "9443:9443"
+  - "8000:8000"
+
+# Optional legacy HTTP port (필요 시만 사용)
+# 예: ["9000:9000"]
+portainer_additional_ports: []
+
+# Data persistence
+portainer_data_volume_name: "portainer_data"
+
+# Docker socket
+portainer_docker_socket: "/var/run/docker.sock"
+
+# Container command override
+# 기본값은 이미지 기본 entrypoint/command 사용
+portainer_command: ""
+
+# Pull behavior
+portainer_pull: true
+
+# TLS/HTTP exposure hints
+portainer_admin_url_scheme: "https"
+portainer_admin_url_port: "9443"

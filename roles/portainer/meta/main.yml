@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: portainer
+  author: your_name
+  description: Install and run Portainer CE as a Docker container
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+
+dependencies: []
+collections:
+  - community.docker
