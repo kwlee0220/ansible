@@ -28,6 +28,7 @@
     - role: poetry
       vars:
         poetry_version: "latest"
+      when: "'poetry' not in disable_list"
 
     - role: uv
       when: "'uv' not in disable_list"
