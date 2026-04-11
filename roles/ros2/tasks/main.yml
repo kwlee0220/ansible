@@ -61,6 +61,10 @@
       - ros-humble-controller-manager
       - ros-humble-ros2-controllers
       - ros-humble-tf-transformations
+
+      - ros-humble-cv-bridge
+      - ros-humble-image-transport
+      - ros-humble-compressed-image-transport
     state: present
   become: true
 
