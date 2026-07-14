@@ -12,6 +12,7 @@
   copy:
     dest: "/etc/sudoers.d/{{ user_id }}"
     content: "{{ user_id }}    ALL=(ALL)  NOPASSWD: ALL\n"
-    mode: 0440
+    mode: '0440'
+    validate: '/usr/sbin/visudo -csf %s'
   become: true
   when: not sudoer_file.stat.exists

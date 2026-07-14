@@ -12,11 +12,13 @@
   when: not portainer_docker_socket_stat.stat.exists
 
 - name: Ensure Portainer data volume exists
+  become: true
   community.docker.docker_volume:
     name: "{{ portainer_data_volume_name }}"
     state: present
 
 - name: Ensure Portainer container is running
+  become: true
   community.docker.docker_container:
     name: "{{ portainer_container_name }}"
     image: "{{ portainer_image }}"
@@ -39,6 +41,7 @@
   register: portainer_container_result
 
 - name: Gather Portainer container info
+  become: true
   community.docker.docker_container_info:
     name: "{{ portainer_container_name }}"
   register: portainer_container_info

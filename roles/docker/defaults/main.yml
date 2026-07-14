@@ -11,4 +11,15 @@ docker_compose_standalone: false
 
 # Docker service configuration
 docker_service_enabled: true
-docker_service_state: started 
+docker_service_state: started
+
+# APT repo target. Docker only serves 'ubuntu' and 'debian' repos, so
+# derivatives are mapped to their upstream. Override docker_repo_release for
+# derivatives whose codename Docker doesn't serve (e.g. Linux Mint -> jammy).
+docker_distribution_map:
+  Linux Mint: ubuntu
+  "Pop!_OS": ubuntu
+  Zorin OS: ubuntu
+  elementary OS: ubuntu
+docker_repo_distribution: "{{ docker_distribution_map[ansible_distribution] | default(ansible_distribution | lower) }}"
+docker_repo_release: "{{ ansible_distribution_release }}" 

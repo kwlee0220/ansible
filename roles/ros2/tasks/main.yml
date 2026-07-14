@@ -1,6 +1,19 @@
 ---
 # ROS2 설치를 위한 tasks
 
+- name: Install locales package
+  package:
+    name: locales
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Generate en_US.UTF-8 locale
+  community.general.locale_gen:
+    name: en_US.UTF-8
+    state: present
+  become: true
+
 - name: Ensure that the Ubuntu Universe repository is enabled.
   package:
     name:
@@ -8,6 +21,8 @@
       - curl
       - gnupg2
       - lsb-release
+      - ca-certificates
+      - build-essential
     state: present
     update_cache: yes
   become: true
@@ -28,7 +43,7 @@
 
 - name: ROS 2 저장소 라인 추가
   ansible.builtin.apt_repository:
-    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu jammy main"
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu {{ ansible_distribution_release }} main"
     state: present
     filename: ros2
     update_cache: yes
@@ -37,6 +52,7 @@
 - name: Install ROS2 Python dependencies
   package:
     name:
+      - python3-pip
       - python3-colcon-common-extensions
       - python3-rosdep
       - python3-catkin-pkg
@@ -50,6 +66,7 @@
       - ros-humble-desktop
       - ros-dev-tools
       - ros-humble-topic-tools
+      - ros-humble-rosbag2-storage-mcap   # ros2 bag MCAP 포맷 지원
       - ros-humble-rmw-cyclonedds-cpp
 
       - ros-humble-robot-state-publisher
@@ -71,7 +88,7 @@
 - name: Install ROS2 Python dependencies for 'ros-humble-tf-transformations'
   package:
     name:
-      - transforms3d
+      - python3-transforms3d
     state: present
   become: true
 
@@ -86,12 +103,15 @@
   become: true
 
 - name: Initialize rosdep
-  shell: |
-    rosdep init
-    rosdep update
+  ansible.builtin.command: rosdep init
   args:
-    executable: /bin/bash
+    creates: /etc/ros/rosdep/sources.list.d/20-default.list
   become: true
+
+- name: Update rosdep
+  ansible.builtin.command: rosdep update
+  become: false
+  changed_when: false
 
 - name: Install rosbridge-suite
   package:

@@ -1,8 +1,30 @@
 ---
-- name: Install ROS 2 MoveIt dependencies
-  apt:
+# MoveIt2 는 소스 오버레이가 아니라 apt 바이너리로 설치한다. 소스 오버레이는
+# apt 라이브러리(geometric_shapes 등) 자동 업그레이드 시 SONAME 불일치로 깨지므로
+# 사용하지 않는다.
+# 참고: ros2-control / ros2-controllers / tf-transformations / python3-transforms3d 는
+#       의존 role 인 ros2 가 이미 설치하므로 여기서는 중복 설치하지 않는다.
+- name: Install MoveIt2 (apt binaries)
+  ansible.builtin.apt:
     name:
-    # Joystick 관련
+      - ros-humble-moveit
+      - ros-humble-moveit-servo                          # moveit 메타에 미포함, 별도 필요
+      - ros-humble-moveit-resources-panda-moveit-config
+      - ros-humble-moveit-resources-panda-description
+    state: present
+  become: true
+
+- name: Install moveit_py (optional — apt 미제공 시 무시)
+  ansible.builtin.apt:
+    name: ros-humble-moveit-py
+    state: present
+  failed_when: false
+  become: true
+
+- name: Install ROS 2 MoveIt dependencies
+  ansible.builtin.apt:
+    name:
+      # Joystick 관련
       - ros-humble-joy
       - ros-humble-joy-teleop
     state: present

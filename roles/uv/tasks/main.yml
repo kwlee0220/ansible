@@ -34,13 +34,31 @@
         else ''
       }}
 
+- name: Query latest uv release from GitHub
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/astral-sh/uv/releases/latest
+    return_content: true
+  register: uv_latest_release
+  changed_when: false
+  failed_when: false
+  when: uv_version == "latest"
+
+- name: Determine target uv version
+  ansible.builtin.set_fact:
+    uv_target_version: >-
+      {{
+        (uv_latest_release.json.tag_name | regex_replace('^v', ''))
+        if (uv_version == 'latest' and uv_latest_release.json is defined)
+        else (uv_version if uv_version != 'latest' else uv_installed_version)
+      }}
+
 - name: Determine whether uv installation is required
   ansible.builtin.set_fact:
     uv_install_required: >-
       {{
         (not uv_binary_stat.stat.exists)
         or
-        (uv_version != 'latest' and uv_installed_version != uv_version)
+        (uv_installed_version != uv_target_version)
       }}
 
 - name: Set installer URL for latest

@@ -22,7 +22,7 @@
   roles:
     - name: Adapt Ubuntu Desktop
       role: ubuntu_desktop
-      when: ansible_virtualization_type != 'wsl'
+      when: ansible_virtualization_type | default('') != 'wsl'
 
     - name: Install gnome-terminal
       role: gnome-terminal
@@ -35,7 +35,7 @@
 
     - name: Install google-chrome
       role: google-chrome
-      when: ansible_virtualization_type != 'wsl'
+      when: ansible_virtualization_type | default('') != 'wsl'
 
     - name: Install xrdp
       role: xrdp

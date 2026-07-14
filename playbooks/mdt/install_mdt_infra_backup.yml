@@ -1,0 +1,113 @@
+---
+- name: install necessary softwares for MDT platform
+  hosts: all
+  vars_files:
+    - vars/mdt_vars.yml
+
+  pre_tasks:
+    - name: Install psutil via apt (Ubuntu 22.04+)
+      apt:
+        name: python3-psutil
+      become: true
+
+  roles:
+    - name: Install PostgreSQL
+      role: postgresql
+      vars:
+        postgres_version: 16
+      when: install_postgresql | default(true) | bool
+
+    - name: Create PostgreSQL user for MDTPlatform internal data
+      role: postgresql_user
+      vars:
+        postgres_user: "{{ mdt_postgres_user }}"
+        postgres_password: "{{ mdt_postgres_password }}"
+      when: install_postgresql | default(true) | bool
+
+    - name: Create PostgreSQL database for MDTPlatform internal data
+      role: postgresql_db
+      vars:
+        postgres_db: "{{ mdt_postgres_db }}"
+        postgres_user: "{{ mdt_postgres_user }}"
+        postgres_password: "{{ mdt_postgres_password }}"
+      when: install_postgresql | default(true) | bool
+
+    - name: Create PostgreSQL database for sample models
+      role: postgresql_db
+      vars:
+        postgres_db: mdt_app
+        postgres_user: "mdt"
+      when: install_postgresql | default(true) | bool
+
+    - name: Install pgAdmin4
+      role: pgadmin4
+      when: install_postgresql | default(true) | bool
+
+    - name: Install Mosquitto
+      role: mosquitto
+      when: install_mosquitto | default(true) | bool
+
+    - name: Install Yarn
+      role: yarn
+      when: install_nodejs | default(true) | bool
+
+    - name: Install ROS2
+      role: ros2
+      when: install_ros2 | default(false) | bool
+
+    - name: Build ROS 2 MoveIt from Github
+      role: ros-humble-moveit-build
+      when: install_ros2 | default(false) | bool
+      
+    - name: Install ROS 2 Panda
+      role: ros-humble-panda
+      when: install_ros2 | default(false) | bool
+
+    - name: Install NodeRED
+      role: nodered
+      when: install_nodered | default(false) | bool
+
+  tasks:
+    - name: Configure MDT in bashrc
+      blockinfile:
+        path: "{{ user_home_dir }}/.bashrc"
+        prepend_newline: yes
+        append_newline: yes
+        insertbefore: "#THIS MUST BE AT THE END OF THE FILE"
+        marker: "# MDT: {mark}"
+        block: |
+          export LOCAL_HOST={{ platform_host | default('localhost') }}
+          export MDT_HOME=$HOME/mdt
+
+          # MDT Client
+          export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
+          source $MDT_CLIENT_HOME/sbin/completion/mdt_completion
+          export PATH=$PATH:$MDT_CLIENT_HOME/sbin
+
+          # MDT Manager
+          export MDT_ENDPOINT=http://$LOCAL_HOST:12985
+          export MDT_WORKFLOW_ENDPOINT=http://$LOCAL_HOST:12989
+          export ARGO_ENDPOINT=http://localhost:2746
+          export PATH=$PATH:$MDT_HOME/mdt-manager/sbin
+
+          # MDT Instance 설정용
+          export MDT_GLOBAL_CONFIG_FILE=$MDT_HOME/mdt-manager/config/mdt_global_config.json
+          export MDT_KEY_STORE_FILE=$MDT_HOME/mdt-manager/config/mdt_cert.p12
+          export MDT_KEY_STORE_PASSWORD=mdt2024^^
+
+          export POSTGRES_URL=jdbc:postgresql://localhost:5432
+          export MQTT_BROKER_URL=tcp://localhost:1883
+
+          # MDTPY
+          export MDT_PYTHON=$MDT_HOME/mdt-manager/venv/bin/python3
+
+          export MDT_BUILD_VERSION={{ mdt_build_version }}
+
+    - name: Create mdt-related directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ mdt_home_dir }}"
+        - "{{ src_root_dir }}"

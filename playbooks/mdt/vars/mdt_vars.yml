@@ -5,7 +5,7 @@ platform_host: "{{ ansible_host | default('localhost') }}"
 
 mdt_home_dir: "{{ user_home_dir }}/mdt"
 src_root_dir: "{{ user_home_dir }}/development"
-mdt_build_version: "1.4.0"
+mdt_build_version: "1.5.0"
 
 ros2_ws_dir: "{{ user_home_dir }}/ros2_ws"
 

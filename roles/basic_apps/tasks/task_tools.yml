@@ -34,7 +34,10 @@
           regexp: 'source /usr/share/autojump/autojump.sh'
           line: "[[ -s /usr/share/autojump/autojump.sh ]] && source /usr/share/autojump/autojump.sh"
           state: present
-    - command: "dos2unix {{ user_home_dir }}/.bashrc"
+    - name: Normalize .bashrc line endings
+      command: "dos2unix {{ user_home_dir }}/.bashrc"
+      register: dos2unix_result
+      changed_when: "'converting file' in dos2unix_result.stderr"
 
 - name: Install gdu application
   block:
@@ -47,7 +50,16 @@
         src: "/tmp/gdu_linux_amd64.tgz"
         dest: "/usr/local/bin/"
         remote_src: yes
-  ignore_errors: true
+    - name: Install extracted binary as 'gdu'
+      copy:
+        src: "/usr/local/bin/gdu_linux_amd64"
+        dest: "/usr/local/bin/gdu"
+        mode: '0755'
+        remote_src: yes
+  rescue:
+    - name: Warn that gdu installation was skipped
+      debug:
+        msg: "gdu installation failed; continuing without it (non-fatal)."
   become: true
 
 - name: Install fzf application

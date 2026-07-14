@@ -18,3 +18,4 @@
     {{ user_home_dir }}/.fzf/install --all
   args:
     executable: /bin/bash
+    creates: "{{ user_home_dir }}/.fzf/bin/fzf"

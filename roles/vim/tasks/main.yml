@@ -3,10 +3,16 @@
   become: true
   package: name=vim
   
-- name: copy colorschema 
-  copy: src="{{ item }}" dest="{{ user_home_dir }}/.vim/colors/"
+- name: copy colorschema
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ user_home_dir }}/.vim/colors/"
+    mode: '0644'
   with_fileglob:
     - "files/*.vim"
 
 - name: Vim 설정 파일 복사
-  copy: src=files/vimrc dest="{{ user_home_dir }}/.vimrc"
+  ansible.builtin.copy:
+    src: files/vimrc
+    dest: "{{ user_home_dir }}/.vimrc"
+    mode: '0644'
