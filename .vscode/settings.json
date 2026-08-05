@@ -1,3 +1,5 @@
 {
-    "ansible.python.interpreterPath": "c:\\Users\\kwlee\\miniconda3\\envs\\mdt\\python.exe"
+    "ansible.python.interpreterPath": "c:\\Users\\kwlee\\miniconda3\\envs\\mdt\\python.exe",
+    "editor.rulers": [100],
+    "workbench.tree.indent": 14
 }
