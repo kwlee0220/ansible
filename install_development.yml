@@ -5,8 +5,9 @@
   vars:
     user_id: "{{ ansible_user_id }}"
 
-    sdkman_java_version: "21.0.5-tem"
-    sdkman_gradle_version: "8.9"
+    sdkman_java_version: "21.0.12-tem"
+    # sdkman_gradle_version: "8.9"
+    sdkman_gradle_version: "9.6.1"
 
   roles:
     # - role: temurin_jdk
