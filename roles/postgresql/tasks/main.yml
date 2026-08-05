@@ -46,8 +46,25 @@
     line: "host    all             all             {{ postgres_allow_hosts }}               scram-sha-256"
   become: true
 
+- name: Ensure PostgreSQL service is started
+  service:
+    name: postgresql
+    state: restarted
+    enabled: yes
+  become: true
+
+- name: Wait for PostgreSQL to accept connections
+  command: pg_isready -q
+  register: pg_isready_result
+  until: pg_isready_result.rc == 0
+  retries: 30
+  delay: 2
+  changed_when: false
+  become: true
+  become_user: postgres
+
 - name: Create a superuser PostgreSQL database user
-  community.general.postgresql_user:
+  community.postgresql.postgresql_user:
     name: "{{ postgres_root_user }}"
     password: "{{ postgres_root_password }}"
     role_attr_flags: CREATEDB,SUPERUSER,CREATEROLE
@@ -55,13 +72,6 @@
     state: present
   become: true
   become_user: postgres
-
-- name: Ensure PostgreSQL service is started
-  service:
-    name: postgresql
-    state: restarted
-    enabled: yes
-  become: true
 
 - name: Create a new PostgreSQL database with PostGIS extension
   shell: |
