@@ -1,12 +1,25 @@
 ---
+# fcitx4(fcitx 패키지)는 upstream EOL 이라 fcitx5 를 기본으로 사용한다.
+# fcitx5 / fcitx5-hangul 은 22.04(jammy)와 24.04(noble) 저장소에 모두 있어 배포판 분기가 필요 없다.
+# 기존 fcitx4 환경을 유지해야 하면 fcitx_version: 4 로 지정한다 (defaults/main.yml 참고).
+#
+# fcitx5 는 fcitx5-data/fcitx5-modules 만 의존하고 GTK 프론트엔드를 끌어오지 않으므로
+# fcitx5-frontend-gtk3 를 명시적으로 설치한다 (fcitx4 의 fcitx 는 메타패키지라 자동 포함이었다).
+# Qt 앱을 쓴다면 fcitx5-frontend-qt5 를, 설정 GUI 가 필요하면 fcitx5-config-qt 를 추가하면 된다.
+- name: fcitx 버전별 설정값 결정
+  set_fact:
+    fcitx_packages: "{{ ['fcitx5', 'fcitx5-hangul', 'fcitx5-frontend-gtk3'] if fcitx_version | int == 5 else ['fcitx', 'fcitx-hangul'] }}"
+    fcitx_autostart_cmd: "{{ 'fcitx5 -d' if fcitx_version | int == 5 else 'fcitx-autostart' }}"
+    fcitx_daemon_cmd: "{{ 'fcitx5 -d' if fcitx_version | int == 5 else 'fcitx' }}"
+    fcitx_config_file: "{{ user_home_dir }}/.config/{{ 'fcitx5' if fcitx_version | int == 5 else 'fcitx' }}/config"
+
 - name: Install Hangul input
   package:
-    name:
-      - fcitx
-      - fcitx-hangul
+    name: "{{ fcitx_packages }}"
     state: present
   become: true
 
+# 입력기 환경변수 값은 fcitx4 와 fcitx5 가 동일하다 (둘 다 IM 모듈 이름이 'fcitx').
 - name: bashrc settings
   block:
     - name: Remove the previous Fcitx Hangul configuration
@@ -26,18 +39,46 @@
           export XMODIFIERS=@im=fcitx
           export DefaultIMModule=fcitx
           # export LC_CTYPE=ko_KR.UTF-8
-          fcitx-autostart &>/dev/null
+          {{ fcitx_autostart_cmd }} &>/dev/null
 
-- name: Run fcitx-autostart
-  description: Running 'fcitx-autostart' might be better but it takes too much time.
-  shell: fcitx &>/dev/null
+- name: Run fcitx daemon
+  # fcitx4: 'fcitx-autostart' 가 더 낫지만 시간이 오래 걸려 'fcitx' 를 쓴다.
+  # fcitx5: '-d' 로 데몬화되어 즉시 반환된다.
+  shell: "{{ fcitx_daemon_cmd }} &>/dev/null"
   args:
     executable: /bin/bash
 
-- name: Update fcitx configuration file to change the default input method
+- name: Check fcitx configuration file
+  stat:
+    path: "{{ fcitx_config_file }}"
+  register: fcitx_config
+  become: false
+
+# fcitx4 는 'TriggerKey=' 한 줄로 트리거 키를 지정한다.
+- name: Update fcitx4 configuration file to change the default input method
   lineinfile:
-    path: "{{ user_home_dir }}/.config/fcitx/config"
-    regexp: '^#TriggerKey='
+    path: "{{ fcitx_config_file }}"
+    regexp: '^#?TriggerKey='
     line: 'TriggerKey=SHIFT_SPACE CTRL_SPACE'
     state: present
+  when:
+    - fcitx_version | int == 4
+    - fcitx_config.stat.exists
+  become: false
+
+# fcitx5 는 [Hotkey/TriggerKeys] 섹션에 0, 1, ... 번호별 항목으로 지정한다.
+- name: Update fcitx5 configuration file to change the default input method
+  community.general.ini_file:
+    path: "{{ fcitx_config_file }}"
+    section: Hotkey/TriggerKeys
+    option: "{{ item.slot }}"
+    value: "{{ item.combo }}"
+    no_extra_spaces: true
+  loop:
+    # 'keys' 같은 이름은 dict 내장 메서드와 충돌하므로 쓰지 않는다.
+    - { slot: '0', combo: 'Shift+space' }
+    - { slot: '1', combo: 'Control+space' }
+  when:
+    - fcitx_version | int == 5
+    - fcitx_config.stat.exists
   become: false

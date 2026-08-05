@@ -1,2 +1,7 @@
 ---
 user_home_dir: "{{ ansible_env.HOME }}"
+
+# WSL2 한글 입력기 버전. fcitx4 는 upstream EOL 이므로 fcitx5 를 기본으로 쓴다.
+# fcitx5 / fcitx5-hangul 은 22.04(jammy)와 24.04(noble) 저장소에 모두 존재하므로
+# 배포판에 관계없이 동일하게 동작한다. 기존 fcitx4 환경을 유지하려면 4 로 지정한다.
+fcitx_version: 5
