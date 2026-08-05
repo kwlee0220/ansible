@@ -10,13 +10,11 @@
       - build-essential
       - ripgrep
       - tldr
-      # - htop
       - btop
-      - neofetch
+      - fastfetch
       - cpufetch
       - net-tools
       - ffmpeg
-      # - trash-cli
       - bat
       - fd-find
       - jq
