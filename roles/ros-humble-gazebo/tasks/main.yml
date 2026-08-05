@@ -8,6 +8,7 @@
   apt:
     name:
       - ros-humble-gazebo-ros-pkgs
+      - ros-humble-ign-ros2-control
     state: present
   become: true
 
