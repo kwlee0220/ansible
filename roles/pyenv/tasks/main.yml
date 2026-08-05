@@ -5,7 +5,7 @@
 
 # 1. 의존성 설치
 - name: Install Ubuntu build dependencies
-  ansible.builtin.include_tasks: deps_ubuntu2204.yml
+  ansible.builtin.include_tasks: deps_ubuntu.yml
   when: pyenv_install_build_deps | bool
 
 # 2. pyenv 설치

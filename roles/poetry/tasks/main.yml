@@ -5,7 +5,7 @@
 
 # 1) Ubuntu deps (22.04 / 24.04 공통)
 - name: Install Ubuntu dependencies
-  ansible.builtin.include_tasks: deps_ubuntu2204.yml
+  ansible.builtin.include_tasks: deps_ubuntu.yml
 
 # 2) Install Poetry
 - name: Install Poetry

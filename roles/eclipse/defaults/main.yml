@@ -2,7 +2,7 @@
 # 대상 사용자 (기본: ansible 접속 사용자)
 eclipse_user: "{{ ansible_user_id }}"
 
-# Ubuntu 22.04 일반 계정 홈
+# 일반 계정 홈
 eclipse_user_home: "/home/{{ eclipse_user }}"
 
 # Eclipse 버전/아키텍처/패키지

@@ -1,8 +1,8 @@
 ---
 galaxy_info:
-  role_name: pyenv_bash_ubuntu2204
+  role_name: pyenv_bash_ubuntu
   author: "internal"
-  description: "Install pyenv and manage bash init files on Ubuntu 22.04"
+  description: "Install pyenv and manage bash init files on Ubuntu"
   license: "proprietary"
   min_ansible_version: "2.13"
 dependencies: []

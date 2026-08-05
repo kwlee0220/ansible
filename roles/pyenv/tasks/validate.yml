@@ -1,4 +1,4 @@
-# roles/pyenv_bash_ubuntu2204/tasks/validate.yml
+# roles/pyenv/tasks/validate.yml
 ---
 - name: Validate pyenv version settings
   ansible.builtin.assert:
