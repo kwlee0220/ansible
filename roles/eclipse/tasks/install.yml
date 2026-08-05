@@ -8,18 +8,25 @@
     mode: "0755"
   become: yes
 
+# 타르볼이 350MiB 를 넘으므로 이미 설치돼 있으면 다운로드/검증/압축해제를 통째로 건너뛴다.
+# (예전에는 force: yes 로 매 실행마다 전부 다시 받은 뒤 마지막에 삭제했다.)
+- name: Check whether Eclipse is already installed
+  ansible.builtin.stat:
+    path: "{{ eclipse_install_dir }}/eclipse"
+  register: eclipse_installed
+
 - name: Download Eclipse tarball
   ansible.builtin.get_url:
     url: "{{ eclipse_tarball_url }}"
     dest: "{{ eclipse_tmp_tarball }}"
     mode: "0644"
-    force: yes
     validate_certs: yes
     http_agent: "Mozilla/5.0"
   become: yes
   become_user: "{{ eclipse_user }}"
   environment:
     HOME: "{{ eclipse_user_home }}"
+  when: not eclipse_installed.stat.exists
 
 - name: Verify downloaded tarball is valid
   ansible.builtin.shell:
@@ -29,6 +36,7 @@
   failed_when: tarball_check.rc != 0
   become: yes
   become_user: "{{ eclipse_user }}"
+  when: not eclipse_installed.stat.exists
 
 - name: Extract Eclipse tarball (idempotent)
   ansible.builtin.unarchive:
@@ -42,6 +50,7 @@
   become_user: "{{ eclipse_user }}"
   environment:
     HOME: "{{ eclipse_user_home }}"
+  when: not eclipse_installed.stat.exists
 
 - name: Download Lombok jar
   ansible.builtin.get_url:
@@ -72,3 +81,4 @@
     state: absent
   become: yes
   become_user: "{{ eclipse_user }}"
+  when: not eclipse_installed.stat.exists

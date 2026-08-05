@@ -3,8 +3,8 @@
 - name: Validate role variables
   ansible.builtin.include_tasks: validate.yml
 
-# 1) Ubuntu 22.04 deps
-- name: Install Ubuntu 22.04 dependencies
+# 1) Ubuntu deps (22.04 / 24.04 공통)
+- name: Install Ubuntu dependencies
   ansible.builtin.include_tasks: deps_ubuntu2204.yml
 
 # 2) Install Poetry

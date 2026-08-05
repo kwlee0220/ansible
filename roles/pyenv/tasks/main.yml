@@ -4,7 +4,7 @@
   ansible.builtin.include_tasks: validate.yml
 
 # 1. 의존성 설치
-- name: Install Ubuntu 22.04 build dependencies
+- name: Install Ubuntu build dependencies
   ansible.builtin.include_tasks: deps_ubuntu2204.yml
   when: pyenv_install_build_deps | bool
 

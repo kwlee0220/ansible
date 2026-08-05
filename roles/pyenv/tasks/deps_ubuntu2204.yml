@@ -1,5 +1,5 @@
 ---
-- name: Install required packages for pyenv on Ubuntu 22.04
+- name: Install required packages for pyenv on Ubuntu
   ansible.builtin.apt:
     name:
       - git
@@ -20,7 +20,9 @@
 
       # Recommended extras (often needed by some modules)
       - llvm
-      - libncursesw5-dev
+      # libncursesw5-dev / libncurses5-dev 는 24.04 에서 제거되었다.
+      # libncurses-dev 는 22.04, 24.04 양쪽에 모두 존재한다.
+      - libncurses-dev
       - libgdbm-dev
       - libc6-dev
       - libdb-dev
