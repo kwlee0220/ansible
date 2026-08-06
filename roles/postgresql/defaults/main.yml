@@ -1,6 +1,6 @@
 ---
 # PostgreSQL 설치 관련 변수
-postgres_version: 16
+postgres_version: 18
 postgres_root_user: "postgres"
 postgres_root_password: "postgres"
 
@@ -23,7 +23,18 @@ postgres_packages:
 
 # 네트워크 설정
 postgres_listen_addresses: "*"
-postgres_allow_hosts: "0.0.0.0/0"
+
+# 접속 허용 범위
+#   subnet : 서버가 속한 서브넷에서만 접속 허용 (기본값)
+#   all    : 어디서나 접속 허용
+postgres_access_scope: subnet
+
+# postgres_access_scope 로부터 유도된다.
+# 임의의 대역만 열려면 이 변수를 직접 지정하면 되고, 그 경우 scope 값은 무시된다.
+# 어느 쪽이든 127.0.0.1/32 와 ::1/128 로컬 접속은 항상 별도로 허용된다.
+postgres_allow_hosts: >-
+  {{ '0.0.0.0/0' if postgres_access_scope == 'all'
+  else ansible_default_ipv4.network ~ '/' ~ ansible_default_ipv4.prefix }}
 
 # PostGIS 데이터베이스 설정
 postgres_gis_db: "gisdb" 

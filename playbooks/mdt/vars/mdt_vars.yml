@@ -5,16 +5,13 @@ platform_host: "{{ ansible_host | default('localhost') }}"
 
 mdt_home_dir: "{{ user_home_dir }}/mdt"
 src_root_dir: "{{ user_home_dir }}/development"
-mdt_build_version: "1.5.0"
+mdt_build_version: "1.7.0"
 
 ros2_ws_dir: "{{ user_home_dir }}/ros2_ws"
 
 mdt_postgres_user: mdt
 mdt_postgres_password: mdt2025
 mdt_postgres_db: mdt
-
-mdt_pgadmin_email: admin@mdt.local
-mdt_pgadmin_password: mdt2025
 
 install_postgresql: true
 install_mosquitto: true

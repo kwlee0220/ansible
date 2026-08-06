@@ -1,4 +1,13 @@
 ---
+- name: Validate postgres_access_scope
+  assert:
+    that: postgres_access_scope in ['subnet', 'all']
+    fail_msg: >-
+      postgres_access_scope 는 'subnet' 또는 'all' 이어야 한다
+      (지정된 값: {{ postgres_access_scope }}).
+      특정 대역만 열려면 postgres_allow_hosts 를 직접 지정한다.
+    quiet: true
+
 - name: Remove existing PostgreSQL repository files
   file:
     path: "{{ item }}"
@@ -52,11 +61,32 @@
     state: present
   become: true
 
-- name: Add network access configuration to pg_hba.conf
+- name: Remove stale network access entries from pg_hba.conf
+  #   이전 실행이 남긴 허용 대역(예: 0.0.0.0/0)을 걷어낸다. 이 줄이 남아 있으면
+  #   pg_hba 는 first-match-wins 라 새로 추가한 좁은 대역이 도달하지 못한다.
+  #   ::1/128 은 '[0-9]' 조건에 걸리지 않으므로 그대로 보존된다.
   lineinfile:
     dest: /etc/postgresql/{{ postgres_version }}/main/pg_hba.conf
-    regexp: '^host\s*all\s*all\s*127.0.0.1'
+    regexp: "^host\\s+all\\s+all\\s+(?!127\\.0\\.0\\.1/32\\s|{{ postgres_allow_hosts | regex_escape }}\\s)[0-9]"
+    state: absent
+  become: true
+
+- name: Ensure the loopback entry exists in pg_hba.conf
+  #   postgres_allow_hosts 를 서브넷으로 좁히면 127.0.0.1 이 어느 대역에도
+  #   포함되지 않으므로, localhost TCP 접속용 줄을 항상 따로 보장한다.
+  lineinfile:
+    dest: /etc/postgresql/{{ postgres_version }}/main/pg_hba.conf
+    regexp: '^host\s+all\s+all\s+127\.0\.0\.1/32\s'
+    line: "host    all             all             127.0.0.1/32            scram-sha-256"
+    insertafter: '^local\s+all\s+all'
+  become: true
+
+- name: Allow access from {{ postgres_allow_hosts }} in pg_hba.conf
+  lineinfile:
+    dest: /etc/postgresql/{{ postgres_version }}/main/pg_hba.conf
+    regexp: "^host\\s+all\\s+all\\s+{{ postgres_allow_hosts | regex_escape }}\\s"
     line: "host    all             all             {{ postgres_allow_hosts }}               scram-sha-256"
+    insertafter: '^host\s+all\s+all\s+127\.0\.0\.1/32\s'
   become: true
 
 - name: Ensure PostgreSQL service is started

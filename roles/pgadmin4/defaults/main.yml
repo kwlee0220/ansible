@@ -1,8 +1,8 @@
 ---
 # Default variables for pgAdmin4 installation
-pgadmin4_version: latest
-pgadmin4_web_mode: true
-# Placeholders only -- override these per host/group (ideally from a vault)
-# before using this role for anything reachable off the machine.
-pgadmin4_email: "admin@example.com"
-pgadmin4_password: "admin123"
+#
+# 이 role 은 데스크톱 버전만 설치한다. upstream APT 저장소에서 web 모드용
+# pgadmin4 / pgadmin4-web 패키지가 없어졌고, 남아 있는 것은 pgadmin4-desktop 과
+# 그 의존성인 pgadmin4-server 뿐이다.
+# 따라서 web 모드용 관리자 계정(email/password) 설정도 더 이상 하지 않는다.
+pgadmin4_package: pgadmin4-desktop

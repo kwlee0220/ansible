@@ -1,3 +1,7 @@
 ---
 user_id: "{{ ansible_user_id }}"
 user_home_dir: "{{ ansible_env.HOME }}"
+
+# 배포판 아카이브에 fastfetch 가 없을 때 받아 쓸 .deb.
+# libc6 2.35 미만(Ubuntu 20.04 이하)이면 fastfetch-linux-amd64-polyfilled.deb 로 바꾼다.
+fastfetch_deb_url: "https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-amd64.deb"

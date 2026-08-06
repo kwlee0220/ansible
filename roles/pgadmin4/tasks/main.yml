@@ -47,57 +47,11 @@
     filename: pgadmin4
   become: yes
 
-- name: Install required dependencies
+# pgadmin4-server 는 pgadmin4-desktop 의 의존성으로 함께 설치된다.
+# 데스크톱 앱은 사용자별 ~/.pgadmin 아래에 상태를 두므로 별도 초기화가 필요 없다.
+- name: Install pgAdmin4 desktop
   ansible.builtin.apt:
-    name:
-      - python3-pip
-      - python3-setuptools
-      - python3-wheel
+    name: "{{ pgadmin4_package }}"
     state: present
     update_cache: yes
   become: yes
-
-- name: Install pgAdmin4
-  ansible.builtin.apt:
-    name: pgadmin4
-    state: present
-    update_cache: yes
-  become: yes
-
-- name: Create pgAdmin4 config directory
-  ansible.builtin.file:
-    path: "/var/lib/pgadmin"
-    state: directory
-    mode: '0750'
-  become: yes
-
-# The setup credentials never become readable to non-root users: the script is
-# mode 0700 under /root rather than world-readable under /tmp, no_log keeps the
-# rendered password out of the logs, and passing it via the environment is
-# avoided because Ansible would expose it in the remote process command line.
-# Removal sits in `always` so an aborted setup cannot leave the file behind.
-- name: Configure pgAdmin4 web mode
-  become: yes
-  block:
-    - name: Create setup script
-      ansible.builtin.copy:
-        dest: /root/.pgadmin4_setup.sh
-        mode: '0700'
-        owner: root
-        group: root
-        content: |
-          #!/bin/bash
-          export PGADMIN_SETUP_EMAIL="{{ pgadmin4_email }}"
-          export PGADMIN_SETUP_PASSWORD="{{ pgadmin4_password }}"
-          /usr/pgadmin4/bin/setup-web.sh --yes
-      no_log: true
-
-    - name: Run pgAdmin4 setup script
-      ansible.builtin.command:
-        cmd: /root/.pgadmin4_setup.sh
-        creates: /var/lib/pgadmin/pgadmin4.db
-  always:
-    - name: Remove setup script
-      ansible.builtin.file:
-        path: /root/.pgadmin4_setup.sh
-        state: absent
