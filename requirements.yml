@@ -4,5 +4,13 @@
 collections:
   - name: community.general
     version: ">=9.0.0"
+
+  # postgresql 롤의 postgresql_user 모듈에 필요.
+  # community.general 의 같은 이름 모듈은 이 컬렉션으로 리다이렉트되는 구버전 이름이다.
   - name: community.postgresql
+    version: ">=3.0.0"
+
+  # portainer 롤의 docker_volume / docker_container / docker_container_info 모듈에 필요.
+  # 롤 meta 의 collections: 키는 검색 경로 힌트일 뿐 자동 설치를 하지 않으므로 여기 명시한다.
+  - name: community.docker
     version: ">=3.0.0"

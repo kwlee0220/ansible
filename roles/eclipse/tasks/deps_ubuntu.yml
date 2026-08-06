@@ -1,5 +1,5 @@
 ---
-- name: Install required packages (Ubuntu 22.04)
+- name: Install required packages (Ubuntu)
   ansible.builtin.apt:
     name:
       - ca-certificates

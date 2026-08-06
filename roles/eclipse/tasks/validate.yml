@@ -1,10 +1,10 @@
 ---
-- name: Ensure target OS is Ubuntu 22.04
+- name: Ensure target OS is Ubuntu 22.04 or later
   ansible.builtin.assert:
     that:
       - ansible_facts.distribution == "Ubuntu"
-      - ansible_facts.distribution_version is version("22.04", "==")
-    fail_msg: "This role supports Ubuntu 22.04 only."
+      - ansible_facts.distribution_version is version("22.04", ">=")
+    fail_msg: "This role supports Ubuntu 22.04 or later."
 
 - name: Validate required variables
   ansible.builtin.assert:
@@ -17,4 +17,4 @@
       - eclipse_install_dir | length > 0
       - eclipse_tarball_url is string
       - eclipse_tarball_url | length > 0
-    fail_msg: "Invalid configuration for eclipse_ide_ubuntu2204 role."
+    fail_msg: "Invalid configuration for the eclipse role."

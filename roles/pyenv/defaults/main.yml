@@ -14,7 +14,7 @@ pyenv_virtualenv_version: "latest"
 # pyenv_version: "v2.4.0"
 # pyenv_virtualenv_version: "v1.2.4"
 
-# Ubuntu 22.04에서 Python 빌드까지 고려하면 true 권장
+# Python 빌드까지 고려하면 true 권장
 pyenv_install_build_deps: true
 
 # bash init 파일 경로 (bash 전용)

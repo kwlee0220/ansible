@@ -1,5 +1,5 @@
 ---
-- name: Install required packages for Poetry installer on Ubuntu 22.04
+- name: Install required packages for Poetry installer on Ubuntu
   ansible.builtin.apt:
     name:
       - curl

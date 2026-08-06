@@ -8,27 +8,25 @@
       - xrdp
     state: latest
 
-- name: xrdp 포트 번호 설정 (WSL2인 경우)
-  become: true
-  lineinfile:
-    dest: /etc/xrdp/xrdp.ini
-    regexp: "^port=3389"
-    line: "port=3390"
-    state: present
-  when: ansible_virtualization_type == 'wsl' and xrdp_port == 3389
+- name: 적용할 xrdp 포트 결정 (WSL2에서 기본값이면 3390 사용)
+  set_fact:
+    xrdp_effective_port: "{{ 3390 if (ansible_virtualization_type | default('') == 'wsl' and xrdp_port == 3389) else xrdp_port }}"
 
-- name: xrdp 포트 번호 설정 (3389가 아닌 경우)
+# xrdp.ini 에는 'port=' 로 시작하는 줄이 여럿 있다 (port=-1, port=ask3389 등).
+# lineinfile 은 마지막 매칭을 바꾸므로 [Globals] 의 숫자 포트만 정확히 잡도록 '^port=[0-9]+$' 를 쓴다.
+# 값이 바뀐 뒤에도 이 정규식은 자기 자신을 다시 매칭하므로 포트를 재변경해도 동작한다.
+- name: xrdp 포트 번호 설정
   become: true
   lineinfile:
     dest: /etc/xrdp/xrdp.ini
-    regexp: "^port=3389"
-    line: "port={{ xrdp_port }}"
+    regexp: '^port=[0-9]+$'
+    line: "port={{ xrdp_effective_port }}"
     state: present
-  when: xrdp_port != 3389
+  notify: restart xrdp
 
 - name: xrdp에 SSL 인증서 접근 권한 추가
   become: true
-  user: name=xrdp group=ssl-cert
+  user: name=xrdp group=xrdp groups=ssl-cert append=yes
   notify: restart xrdp
 
 - name: xrdp 설정 변경 (접속시 검은 화면만 보이는 문제 해결)
@@ -53,12 +51,35 @@
     line: 'WaylandEnable=false'
     state: present
 
-- name: Login 과정에서 password 입력 후 멈추는 문제 해결 1/2
+- name: 현재 기본 부팅 타겟 확인
   become: true
-  command: systemctl set-default graphical
-- name: Login 과정에서 password 입력 후 멈추는 문제 해결 2/2
+  command: systemctl get-default
+  register: xrdp_default_target
+  changed_when: false
+  check_mode: false
+
+- name: Login 과정에서 password 입력 후 멈추는 문제 해결 (기본 부팅 타겟을 graphical로)
   become: true
-  command: systemctl isolate graphical
+  command: systemctl set-default graphical.target
+  when: xrdp_default_target.stdout | trim != 'graphical.target'
+
+# 실행 중인 시스템을 즉시 graphical로 전환한다. 디스플레이 매니저가 재시작되면서
+# 접속 중인 세션(RDP/콘솔)이 끊기므로 기본값은 false이고, 평소에는 재부팅으로 반영된다.
+- name: graphical 타겟으로 즉시 전환 (xrdp_isolate_graphical_now=true 인 경우에만)
+  become: true
+  command: systemctl isolate graphical.target
+  when:
+    - xrdp_isolate_graphical_now | bool
+    - xrdp_default_target.stdout | trim != 'graphical.target'
+
+# Ubuntu 24.04의 polkit 124는 .pkla(local authority) 형식을 기본 지원하지 않는다.
+# 호환 패키지가 없으면 아래 두 파일이 조용히 무시된다. 22.04의 polkit 0.105는 네이티브 지원.
+- name: polkit .pkla 호환 패키지 설치 (Ubuntu 24.04 이상)
+  become: true
+  package: name=polkitd-pkla state=present
+  when:
+    - ansible_distribution == 'Ubuntu'
+    - ansible_distribution_version is version('24.04', '>=')
 
 - name: Create polkit directory
   file:
@@ -78,7 +99,7 @@
       ResultAny=yes
       ResultInactive=yes
       ResultActive=yes
-    mode: 0755
+    mode: '0644'
   notify: restart xrdp
 
 - name: xrdp 접속 중 Password를 지속적으로 물어보는 현상 해결 (2/2)
@@ -99,7 +120,7 @@
       ResultAny=no
       ResultInactive=no
       ResultActive=yes
-    mode: 0755
+    mode: '0644'
   notify: restart xrdp
 
 - name: xsessionrc 파일 생성
@@ -111,5 +132,5 @@
       export XDG_CONFIG_DIRS=/etc/xdg/xdg-ubuntu:/etc/xdg
       export XDG_DATA_DIRS=/usr/share/ubuntu:/usr/local/share:/usr/share:/var/lib/snapd/desktop
       export WAYLAND_DISPLAY=
-    mode: 0644
+    mode: '0644'
   notify: restart xrdp

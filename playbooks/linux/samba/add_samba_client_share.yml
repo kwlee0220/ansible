@@ -4,22 +4,37 @@
 
   vars:
     samba_client: "{{ ansible_user_id }}"
-    samba_client_passwd: "{{ ansible_password }}"
+    samba_client_passwd: "{{ samba_password | default(ansible_password | default('')) }}"
     share_name: home
     share_path: "/home/{{ ansible_user_id }}"
+
+  pre_tasks:
+    - name: Samba 비밀번호가 지정되었는지 확인
+      assert:
+        that: samba_client_passwd | length > 0
+        fail_msg: >-
+          samba_password 변수가 필요합니다.
+          -e samba_password=... 또는 vault 파일로 지정하세요.
+        quiet: true
 
   tasks:
     - name: Install samba
       package: name=samba state=present
       become: true
 
+    - name: check whether the samba user already exists
+      command: "pdbedit -L -u {{ samba_client }}"
+      register: samba_user_check
+      changed_when: false
+      failed_when: false
+      become: true
+
     - name: create a samba user
-      command: "smbpasswd -a {{ samba_client }}"
+      command: "smbpasswd -s -a {{ samba_client }}"
       args:
         stdin: "{{ samba_client_passwd }}\n{{ samba_client_passwd }}"
-      register: smbpasswd_output
-      ignore_errors: true
-      notify: restart samba
+      when: samba_user_check.rc != 0
+      # no_log: true
       become: true
 
     - name: add a share

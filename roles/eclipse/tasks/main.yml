@@ -2,8 +2,9 @@
 - name: Validate inputs / OS
   ansible.builtin.include_tasks: validate.yml
 
-- name: Install dependencies (Ubuntu 22.04)
-  ansible.builtin.include_tasks: deps_ubuntu2204.yml
+- name: Install dependencies (Ubuntu)
+  # 설치 대상은 ca-certificates / curl / default-jre-headless 뿐이라 22.04, 24.04 공통이다.
+  ansible.builtin.include_tasks: deps_ubuntu.yml
 
 - name: Install Eclipse (user-local)
   ansible.builtin.include_tasks: install.yml
