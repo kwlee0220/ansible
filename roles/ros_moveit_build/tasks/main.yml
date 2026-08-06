@@ -37,13 +37,13 @@
 - name: rosdep을 이용한 의존성 패키지 설치
   become: yes
   shell: |
-    rosdep install -r --from-paths src --ignore-src --rosdistro {{ ros_distro }} -y
+    rosdep install -r --from-paths src --ignore-src --rosdistro {{ ros2_distro }} -y
   args:
     chdir: "{{ ws_path }}"
 
 - name: MoveIt 2 빌드 실행 (메모리 고려하여 worker 제한)
   shell: |
-    . /opt/ros/{{ ros_distro }}/setup.sh && \
+    . /opt/ros/{{ ros2_distro }}/setup.sh && \
     colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --parallel-workers {{ max_parallel_workers }}
   args:
     chdir: "{{ ws_path }}"

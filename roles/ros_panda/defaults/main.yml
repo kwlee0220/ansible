@@ -1,0 +1,8 @@
+---
+# ros_panda role 기본 변수
+#
+# 패키지는 "ros-<distro>-" 접두어 없이 관리한다. 접두어(ros2_pkg_prefix)와
+# 배포판(ros2_distro)은 의존 role 인 ros2 가 제공한다.
+
+ros_panda_packages:
+  - franka-description

@@ -1,0 +1,7 @@
+---
+# ROS 2 Humble (Ubuntu 22.04 jammy) 전용 변수
+#
+# 공통 목록(defaults/main.yml 의 ros2_packages)과 이름이 같은 패키지는 여기
+# 적을 필요가 없다. Humble 에만 존재하거나 이름이 다른 패키지만 나열한다.
+
+ros2_packages_extra: []

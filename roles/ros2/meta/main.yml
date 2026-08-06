@@ -2,7 +2,7 @@
 dependencies: []
 galaxy_info:
   author: kwlee
-  description: Install ROS2 Humble and configure environment
+  description: Install ROS 2 (Humble / Jazzy) and configure environment
   company: ''
   license: MIT
   min_ansible_version: 2.9
@@ -10,8 +10,10 @@ galaxy_info:
     - name: Ubuntu
       versions:
         - jammy
+        - noble
   galaxy_tags:
     - ros2
     - robotics
     - humble
-    - desktop 
+    - jazzy
+    - desktop

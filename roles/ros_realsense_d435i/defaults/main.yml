@@ -1,0 +1,18 @@
+---
+# ros_realsense_d435i role 기본 변수
+
+# librealsense 소스 빌드에 필요한 시스템 패키지 (배포판 접두어 없음)
+ros_realsense_build_packages:
+  - git
+  - libssl-dev
+  - libusb-1.0-0-dev
+  - pkg-config
+  - libgtk-3-dev
+  - libglfw3-dev
+  - libgl1-mesa-dev
+  - libglu1-mesa-dev
+
+# "ros-<distro>-" 접두어를 붙여 설치할 패키지.
+# 접두어(ros2_pkg_prefix)와 배포판(ros2_distro)은 의존 role 인 ros2 가 제공한다.
+ros_realsense_packages:
+  - realsense2-camera

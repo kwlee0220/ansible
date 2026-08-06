@@ -10,28 +10,9 @@
       when: install_ros2 | default(false) | bool
 
     # - name: Build ROS 2 MoveIt from Github
-    #   role: ros-humble-moveit-build
+    #   role: ros_moveit_build
     #   when: install_ros2 | default(false) | bool
       
     # - name: Install ROS 2 Panda
-    #   role: ros-humble-panda
+    #   role: ros_panda
     #   when: install_ros2 | default(false) | bool
-
-  tasks:
-    - name: Configure ROS in bashrc
-      blockinfile:
-        path: "{{ user_home_dir }}/.bashrc"
-        prepend_newline: yes
-        append_newline: yes
-        insertbefore: "#THIS MUST BE AT THE END OF THE FILE"
-        marker: "# ROS: {mark}"
-        block: |
-          source /opt/ros/humble/setup.bash
-          source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
-
-          alias cc='colcon'
-
-          export RCUTILS_COLORIZED_OUTPUT=1
-          export ROS_DOMAIN_ID=30
-          export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-          export LD_LIBRARY_PATH=/opt/ros/humble/lib:$LD_LIBRARY_PATH

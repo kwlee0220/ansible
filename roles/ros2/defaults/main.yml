@@ -2,4 +2,56 @@
 # ROS2 role 기본 변수
 
 user_home_dir: "{{ ansible_env.HOME }}"
-ros2_domain_id: 30
+ros2_domain_id: 31
+
+# 설치할 ROS 2 배포판. 기본값은 타깃 Ubuntu 릴리즈에서 유도한다.
+# (jammy -> humble, noble -> jazzy. 매핑은 vars/main.yml 참조)
+ros2_distro: "{{ _ros2_distro_by_ubuntu[ansible_distribution_release] | default('humble') }}"
+
+# 설치 전 운영체제 의존성(Ubuntu 여부 / 배포판별 요구 버전) 검사 여부.
+# Ubuntu 파생 배포판(Pop!_OS 등)에 강제로 설치할 때만 false 로 둔다.
+ros2_os_check: true
+
+# "ros-{{ ros2_distro }}-" 접두어를 붙여 설치할 패키지들
+ros2_packages:
+  - desktop
+  - topic-tools
+  - rosbag2-storage-mcap            # ros2 bag MCAP 포맷 지원
+  - rmw-cyclonedds-cpp
+
+  - robot-state-publisher
+  - joint-state-publisher-gui
+  - rviz2
+  - xacro
+
+  - ros2-control
+  - controller-manager
+  - ros2-controllers
+  - tf-transformations
+
+  - cv-bridge
+  - image-transport
+  - compressed-image-transport
+
+  - rqt
+  - rqt-common-plugins
+  - rqt-graph
+  - rqt-plot
+
+  - rosbridge-suite
+
+# 배포판별 추가 패키지. vars/<distro>.yml 에서 덮어쓴다.
+ros2_packages_extra: []
+
+# 배포판 접두어가 붙지 않는 공통 패키지
+ros2_packages_unversioned:
+  - ros-dev-tools
+
+# ROS 2 도구 체인용 python 패키지
+ros2_python_packages:
+  - python3-pip
+  - python3-colcon-common-extensions
+  - python3-rosdep
+  - python3-catkin-pkg
+  - python3-argcomplete
+  - python3-transforms3d            # tf-transformations 의존성

@@ -1,0 +1,21 @@
+---
+# ros_moveit role 기본 변수
+#
+# 패키지는 "ros-<distro>-" 접두어 없이 관리한다. 접두어(ros2_pkg_prefix)와
+# 배포판(ros2_distro)은 의존 role 인 ros2 가 제공한다.
+
+ros_moveit_packages:
+  - moveit
+  - moveit-servo                          # moveit 메타에 미포함, 별도 필요
+  - moveit-resources-panda-moveit-config
+  - moveit-resources-panda-description
+
+# apt 로 제공되지 않는 배포판이 있어 실패해도 무시하는 패키지
+ros_moveit_optional_packages:
+  - moveit-py
+
+# MoveIt 사용에 필요한 부가 패키지
+ros_moveit_extra_packages:
+  # Joystick 관련
+  - joy
+  - joy-teleop

@@ -10,7 +10,7 @@
     model_dir: "{{ mdt_home_dir }}/models"
 
   roles:
-    - role: ros-humble-panda
+    - role: ros_panda
 
   tasks:
     - name: Copy 'panda' model

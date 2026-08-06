@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 # rdfp 데이터셋 파이프라인 실행에 필요한 시스템 라이브러리(apt)와
 # Python 패키지(pip)를 설치한다. ROS 2 / MoveIt 기본 설치는 ros2 role 및
-# ros-humble-moveit role 에서 담당하므로 여기에는 포함하지 않는다.
+# ros_moveit role 에서 담당하므로 여기에는 포함하지 않는다.
 #
 # 실행:
 #   ansible-playbook -i inventory.ini playbooks/rdfp/rdfp_setup.yml -K

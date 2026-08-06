@@ -1,0 +1,21 @@
+---
+# ROS2 role 내부 변수 (사용자가 재정의할 대상이 아님)
+
+# ROS 2 배포판별 운영체제 요구사항.
+# apt 설치 기준으로 ROS 2 배포판과 Ubuntu 릴리즈는 1:1 로 대응한다.
+_ros2_supported_ubuntu:
+  humble:
+    version: "22.04"
+    release: jammy
+  jazzy:
+    version: "24.04"
+    release: noble
+
+# 위 표의 역방향 매핑 (ros2_distro 기본값 유도용).
+# 새 배포판을 추가할 때는 _ros2_supported_ubuntu 와 함께 갱신한다.
+_ros2_distro_by_ubuntu:
+  jammy: humble
+  noble: jazzy
+
+# 배포판별 패키지 이름 접두어 (예: "ros-humble-")
+ros2_pkg_prefix: "ros-{{ ros2_distro }}-"
