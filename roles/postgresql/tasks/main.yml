@@ -31,6 +31,19 @@
     state: present
   become: true
 
+- name: Look up the port of the target PostgreSQL cluster
+  #   같은 호스트에 다른 메이저 버전 클러스터가 이미 있으면 새 클러스터는 5432 가 아닌
+  #   비어 있는 포트(5433 등)에 만들어진다. 이후 태스크가 엉뚱한 클러스터에 붙지 않도록
+  #   실제 포트를 조회해 둔다.
+  command: pg_lsclusters -h {{ postgres_version }} main
+  register: pg_lsclusters_result
+  changed_when: false
+  become: true
+
+- name: Set the target PostgreSQL cluster port
+  set_fact:
+    postgres_port: "{{ pg_lsclusters_result.stdout.split()[2] }}"
+
 - name: Ensure PostgreSQL is listening on all addresses
   lineinfile:
     dest: /etc/postgresql/{{ postgres_version }}/main/postgresql.conf
@@ -54,7 +67,7 @@
   become: true
 
 - name: Wait for PostgreSQL to accept connections
-  command: pg_isready -q
+  command: pg_isready -q -p {{ postgres_port }}
   register: pg_isready_result
   until: pg_isready_result.rc == 0
   retries: 30
@@ -69,16 +82,15 @@
     password: "{{ postgres_root_password }}"
     role_attr_flags: CREATEDB,SUPERUSER,CREATEROLE
     encrypted: yes
+    port: "{{ postgres_port }}"
     state: present
   become: true
   become_user: postgres
 
 - name: Create a new PostgreSQL database with PostGIS extension
   shell: |
-    # psql -c "CREATE DATABASE {{ postgres_gis_db }};"
-    # psql -d {{ postgres_gis_db }} -c "CREATE EXTENSION postgis;"
-    psql -c "CREATE DATABASE {{ postgres_gis_db }};" 2>/dev/null || echo "Database already exists"
-    psql -d {{ postgres_gis_db }} -c "CREATE EXTENSION postgis;" 2>/dev/null || echo "Extension already exists"
+    psql -p {{ postgres_port }} -c "CREATE DATABASE {{ postgres_gis_db }};" 2>/dev/null || echo "Database already exists"
+    psql -p {{ postgres_port }} -d {{ postgres_gis_db }} -c "CREATE EXTENSION postgis;" 2>/dev/null || echo "Extension already exists"
   args:
     executable: /bin/bash
   become: true

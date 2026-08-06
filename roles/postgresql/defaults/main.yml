@@ -10,10 +10,12 @@ pgdg_repo: "deb [arch=amd64] http://apt.postgresql.org/pub/repos/apt/ {{ ansible
 pgdg_key_path: /etc/apt/trusted.gpg.d/postgresql.asc
 
 # PostgreSQL 패키지 목록
+#   contrib 모듈(hstore, pg_stat_statements, uuid-ossp 등)은 PostgreSQL 10 부터
+#   postgresql-<version> 본체 패키지에 포함되어 있다.
+#   별도의 postgresql-contrib-<version> 패키지는 9.6 이 마지막이므로 나열하지 않는다.
 postgres_packages:
   - "postgresql-{{ postgres_version }}"
   - "postgresql-client-{{ postgres_version }}"
-  - "postgresql-contrib-{{ postgres_version }}"
   - "postgresql-{{ postgres_version }}-postgis-3"
   - "postgresql-{{ postgres_version }}-postgis-3-scripts"
   - libpq-dev
