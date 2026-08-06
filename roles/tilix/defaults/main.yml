@@ -1,3 +1,7 @@
 ---
 user_id: "{{ ansible_user_id }}"
 user_home_dir: "{{ ansible_env.HOME }}"
+
+# GNOME 의 'Hide all normal windows' 단축키. Ctrl+D 가 여기에 걸려 있으면
+# 터미널의 EOF 입력을 데스크톱이 가로채므로 role 에서 해제한다.
+gnome_show_desktop_key: "/org/gnome/desktop/wm/keybindings/show-desktop"

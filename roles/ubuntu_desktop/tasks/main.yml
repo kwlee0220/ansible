@@ -8,11 +8,15 @@
 # gsettings 는 D-Bus 세션 버스가 있어야 값이 저장된다. SSH 비대화형 세션에는 버스가 없어
 # 그대로 실행하면 쓰기가 조용히 무시되므로 dbus-run-session 으로 감싼다.
 # 스크립트는 stdin 으로 넘겨서 값에 섞인 작은따옴표가 셸 인용에 깨지지 않게 한다.
+#
+# set -e 가 없으면 bash -s 의 종료 코드가 마지막 명령의 것만 반영되어, 중간에
+# 스키마가 없어 실패한 gsettings 가 ok 로 묻힌다.
 - name: Set desktop interface settings
   shell: dbus-run-session -- bash -s
   args:
     executable: /bin/bash
     stdin: |
+      set -e
       gsettings set org.gnome.desktop.interface font-name "Nanum Gothic 11"
       gsettings set org.gnome.desktop.interface document-font-name "Nanum Gothic 11"
       gsettings set org.gnome.desktop.interface monospace-font-name "D2Coding 12"
@@ -25,7 +29,7 @@
       gsettings set org.gnome.shell.extensions.dash-to-dock dock-position "'LEFT'"
       gsettings set org.gnome.shell.extensions.dash-to-dock show-trash "false"
 
-      gsettings set org.gnome.shell favorite-apps "['google-chrome.desktop', 'eclipse.desktop', 'cursor.desktop', 'code.desktop', 'com.gexperts.Tilix.desktop', 'org.gnome.Terminal.desktop', 'pcmanfm.desktop', 'snap-store_ubuntu-software.desktop', 'gnome-control-center.desktop']"
+      gsettings set org.gnome.shell favorite-apps '{{ gnome_favorite_apps | to_json }}'
   become: false
 
 - name: Install Nautilus-share (Nautilus에서 Samba를 이용한 공유를 위한 플러그인)

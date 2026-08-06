@@ -7,12 +7,16 @@
     state: present
   become: true
 
+# -x 는 XIM 서버를 띄우므로 DISPLAY 가 필요하다. SSH 세션에는 DISPLAY 가 없어
+# 실행하면 실패하고, 어차피 데스크톱 로그인 시 세션이 ibus 를 자동 기동하므로
+# 그래픽 세션이 있을 때만 시도한다.
 - name: Start ibus daemon
   shell: |
     ibus-daemon -drx
   args:
     executable: /bin/bash
   become: false
+  when: ansible_env.DISPLAY is defined
 
 - name: Set Korean locale
   lineinfile:

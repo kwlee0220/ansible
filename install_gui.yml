@@ -20,9 +20,9 @@
       become: true
 
   roles:
-    - name: Adapt Ubuntu Desktop
-      role: ubuntu_desktop
-      when: ansible_virtualization_type | default('') != 'wsl'
+    # - name: Adapt Ubuntu Desktop
+    #   role: ubuntu_desktop
+    #   when: ansible_virtualization_type | default('') != 'wsl'
 
     - name: Install gnome-terminal
       role: gnome-terminal

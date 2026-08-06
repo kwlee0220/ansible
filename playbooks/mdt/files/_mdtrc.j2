@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# MDTPlatform 빌드
+export MDT_BUILD_VERSION={{ mdt_build_version }}
+
+# MDTPlatform 공용
+export MDT_HOST={{ platform_host }}
+export MDT_HOME={{ user_home_dir }}/mdt
+
+# MDT Manager
+export MDT_URL=http://$MDT_HOST:12985
+export MDT_WORKFLOW_ENDPOINT=http://$MDT_HOST:12989
+export PATH=$PATH:$MDT_HOME/mdt-manager/sbin
+
+# Database 접속 주소 (mdt-manager, mdt-workflow 등)
+# PostgreSQL 은 같은 호스트에 설치되고 pg_hba 가 로컬과 서버 서브넷만 허용하므로
+# 외부에서 포워딩되는 MDT_HOST 대신 localhost 로 붙는다.
+export POSTGRES_URL=jdbc:postgresql://localhost:5432
+
+# Workflow 관리자용
+export AIRFLOW_URL=http://localhost:8080
+
+# (Deprecated: Argo 기반 워크플로우 서버를 사용하지 않음)
+# export ARGO_ENDPOINT=http://localhost:2746
+
+# MDT Instance 설정용
+export MDT_GLOBAL_CONFIG_FILE=$MDT_HOME/mdt-manager/config/mdt_global_config.json
+export MDT_KEY_STORE_FILE=$MDT_HOME/mdt-manager/config/mdt_cert.p12
+export MDT_KEY_STORE_PASSWORD=mdt2024^^
+
+# MDT Client
+export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
+# MDT Client 가 아직 배포되지 않은 상태에서도 새 셸이 에러를 뱉지 않도록 존재할 때만 읽는다.
+[ -f "$MDT_CLIENT_HOME/sbin/completion/mdt_completion" ] && \
+    source "$MDT_CLIENT_HOME/sbin/completion/mdt_completion"
+export PATH=$PATH:$MDT_CLIENT_HOME/sbin

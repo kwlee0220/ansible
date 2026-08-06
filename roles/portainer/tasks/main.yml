@@ -17,6 +17,9 @@
     name: "{{ portainer_data_volume_name }}"
     state: present
 
+# Docker Hub 의 blob CDN(production.cloudfront.docker.com)은 여러 IP 로 분산되는데,
+# 그중 하나가 죽어 있으면 docker 는 다른 IP 로 재시도하지 않고 그대로 실패한다
+# ("connection reset by peer"). 재시도하면 대개 정상 엣지를 잡으므로 여기서 감싼다.
 - name: Ensure Portainer container is running
   become: true
   community.docker.docker_container:
@@ -39,6 +42,9 @@
       - "{{ portainer_data_volume_name }}:/data"
     command: "{{ portainer_command if portainer_command | length > 0 else omit }}"
   register: portainer_container_result
+  until: portainer_container_result is succeeded
+  retries: "{{ portainer_pull_retries }}"
+  delay: "{{ portainer_pull_retry_delay }}"
 
 - name: Gather Portainer container info
   become: true

@@ -1,4 +1,5 @@
 ---
+# X 서버를 매 실행 최신으로 끌어올리면 GUI 호스트가 예기치 않게 바뀔 수 있어 present 를 쓴다.
 - name: xrdp 및 dependent 모듈 설치
   become: true
   package:
@@ -6,7 +7,7 @@
       - xserver-xorg-core
       - xserver-xorg-input-all
       - xrdp
-    state: latest
+    state: present
 
 - name: 적용할 xrdp 포트 결정 (WSL2에서 기본값이면 3390 사용)
   set_fact:
@@ -102,10 +103,13 @@
     mode: '0644'
   notify: restart xrdp
 
+# .pkla 는 localauthority 바로 아래가 아니라 그 안의 *.d 디렉터리에서만 읽힌다
+# (pkla-check-authorization(8): "read from all directories located inside").
+# 예전에는 localauthority/45-allow-colord.pkla 에 두어 이 규칙 전체가 무시되고 있었다.
 - name: xrdp 접속 중 Password를 지속적으로 물어보는 현상 해결 (2/2)
   become: true
   copy:
-    dest: /etc/polkit-1/localauthority/45-allow-colord.pkla
+    dest: /etc/polkit-1/localauthority/50-local.d/45-allow-colord.pkla
     content: |
       [Allow Colord all Users]
       Identity=unix-user:*

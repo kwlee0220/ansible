@@ -27,8 +27,25 @@
 - name: copy tilix configuration
   copy: src=files/tilix.dconf dest={{ user_home_dir }}/.config/tilix/tilix.dconf
 
+# dconf 는 D-Bus 세션 버스가 있어야 쓰기가 반영된다. SSH 비대화형 세션에 버스가
+# 없으면 autolaunch 를 시도하다 DISPLAY 가 없어 실패하므로 dbus-run-session 으로 감싼다
+# (ubuntu_desktop / hangul 롤의 gsettings 와 같은 이유).
 - name: load tilix configuration
-  shell: "dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf"
+  shell: dbus-run-session -- dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf
+  args:
+    executable: /bin/bash
+
+# GNOME 의 Navigation > 'Hide all normal windows' 에 Ctrl+D 가 걸려 있으면
+# 데스크톱이 먼저 가로채서 터미널로 EOF 가 전달되지 않는다.
+# 빈 목록(@as [])을 넣어 단축키를 해제한다.
+#   schema  : org.gnome.desktop.wm.keybindings   (50-mutter-navigation.xml)
+#   key     : show-desktop  =  "Hide all normal windows"
+- name: Disable the GNOME 'Hide all normal windows' shortcut (Ctrl+D 가로채기 방지)
+  become: false
+  dconf:
+    key: "{{ gnome_show_desktop_key }}"
+    value: "@as []"
+    state: present
 
 - name: Add alias for WSL2
   lineinfile:

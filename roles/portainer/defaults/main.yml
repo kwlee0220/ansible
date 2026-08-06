@@ -30,6 +30,11 @@ portainer_command: ""
 # Pull behavior
 portainer_pull: true
 
+# Docker Hub blob CDN 의 특정 엣지가 죽어 있으면 pull 이 연결 초기화로 실패한다.
+# docker 는 다른 IP 로 스스로 재시도하지 않으므로 태스크 수준에서 재시도한다.
+portainer_pull_retries: 3
+portainer_pull_retry_delay: 10
+
 # TLS/HTTP exposure hints
 portainer_admin_url_scheme: "https"
 portainer_admin_url_port: "9443"

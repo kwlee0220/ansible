@@ -1,26 +1,41 @@
 ---
 
+# force: 중단된 실행이 남긴 /tmp 사본이 그대로 재사용되지 않도록 매번 다시 받는다.
 - name: Download Google Chrome GPG key
   become: true
   ansible.builtin.get_url:
     url: "{{ chrome_apt_key_url }}"
     dest: /tmp/google-chrome.pub
     mode: '0644'
+    force: yes
 
-- name: Add Google Chrome GPG key to keyring
+# 임시 파일로 먼저 dearmor 한다. 키링에 바로 리다이렉트하면 gpg 가 실패해도 셸이
+# 이미 빈 파일을 만들어 두고, creates: 가 그 빈 파일을 보고 이후 실행을 영구히
+# 건너뛰어 깨진 키링이 그대로 남는다.
+- name: Convert Google Chrome GPG key to keyring format
   become: true
-  ansible.builtin.shell: |
-    gpg --dearmor < /tmp/google-chrome.pub > /usr/share/keyrings/google-chrome.gpg
-  args:
-    creates: /usr/share/keyrings/google-chrome.gpg
+  ansible.builtin.command:
+    cmd: gpg --batch --yes --dearmor --output /tmp/google-chrome.gpg /tmp/google-chrome.pub
+  changed_when: false
 
-- name: Set correct permissions for keyring
+- name: Install Google Chrome keyring
   become: true
-  ansible.builtin.file:
-    path: /usr/share/keyrings/google-chrome.gpg
+  ansible.builtin.copy:
+    src: /tmp/google-chrome.gpg
+    dest: /usr/share/keyrings/google-chrome.gpg
+    remote_src: yes
     mode: '0644'
     owner: root
     group: root
+
+- name: Remove temporary GPG key files
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/google-chrome.pub
+    - /tmp/google-chrome.gpg
 
 - name: Add repository into sources list
   become: true
