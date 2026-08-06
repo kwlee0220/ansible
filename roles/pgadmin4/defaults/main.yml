@@ -2,5 +2,7 @@
 # Default variables for pgAdmin4 installation
 pgadmin4_version: latest
 pgadmin4_web_mode: true
+# Placeholders only -- override these per host/group (ideally from a vault)
+# before using this role for anything reachable off the machine.
 pgadmin4_email: "admin@example.com"
-pgadmin4_password: "admin123" 
+pgadmin4_password: "admin123"

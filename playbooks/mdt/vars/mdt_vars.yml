@@ -13,6 +13,9 @@ mdt_postgres_user: mdt
 mdt_postgres_password: mdt2025
 mdt_postgres_db: mdt
 
+mdt_pgadmin_email: admin@mdt.local
+mdt_pgadmin_password: mdt2025
+
 install_postgresql: true
 install_mosquitto: true
 install_nodejs: true

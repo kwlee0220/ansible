@@ -41,6 +41,9 @@
 
     - name: Install pgAdmin4
       role: pgadmin4
+      vars:
+        pgadmin4_email: "{{ mdt_pgadmin_email }}"
+        pgadmin4_password: "{{ mdt_pgadmin_password }}"
       when: install_postgresql | default(true) | bool
 
     - name: Install Mosquitto
