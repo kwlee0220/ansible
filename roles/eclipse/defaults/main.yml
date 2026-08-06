@@ -6,7 +6,8 @@ eclipse_user: "{{ ansible_user_id }}"
 eclipse_user_home: "/home/{{ eclipse_user }}"
 
 # Eclipse 버전/아키텍처/패키지
-eclipse_version: "2025-12"
+# eclipse_version: "2025-12"
+eclipse_version: "2026-06"
 eclipse_arch: "linux-gtk-x86_64"
 eclipse_package: "eclipse-java"
 
