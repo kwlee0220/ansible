@@ -29,7 +29,7 @@
 
 # dconf 는 D-Bus 세션 버스가 있어야 쓰기가 반영된다. SSH 비대화형 세션에 버스가
 # 없으면 autolaunch 를 시도하다 DISPLAY 가 없어 실패하므로 dbus-run-session 으로 감싼다
-# (ubuntu_desktop / hangul 롤의 gsettings 와 같은 이유).
+# (hangul 롤과 install_gui.yml 의 gsettings 와 같은 이유).
 - name: load tilix configuration
   shell: dbus-run-session -- dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf
   args:

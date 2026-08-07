@@ -33,7 +33,8 @@
     executable: /bin/bash
   become: false
 
-# gsettings 는 D-Bus 세션 버스 없이는 쓰기가 조용히 무시된다 (ubuntu_desktop 롤과 동일한 이유).
+# gsettings 는 D-Bus 세션 버스 없이는 쓰기가 조용히 무시된다
+# (install_gui.yml 의 'Set desktop interface settings' 와 동일한 이유).
 - name: Add Korean input source for ibus
   shell: dbus-run-session -- bash -s
   args:
