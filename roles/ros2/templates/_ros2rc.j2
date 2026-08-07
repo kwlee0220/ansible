@@ -1,0 +1,18 @@
+#!/bin/bash
+# ROS 2 {{ ros2_distro }} 환경설정. roles/ros2 가 생성하며 .bashrc 에서 source 한다.
+# 직접 수정하지 말 것 (ansible 재실행 시 덮어써짐).
+
+source /opt/ros/{{ ros2_distro }}/setup.bash
+source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
+
+alias cc='colcon'
+
+export RCUTILS_COLORIZED_OUTPUT=1
+export ROS_DOMAIN_ID={{ ros2_domain_id }}
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+
+# 이 파일을 여러 번 source 해도 경로가 중복해서 쌓이지 않도록 검사 후 추가한다.
+case ":${LD_LIBRARY_PATH}:" in
+    *":/opt/ros/{{ ros2_distro }}/lib:"*) ;;
+    *) export LD_LIBRARY_PATH="/opt/ros/{{ ros2_distro }}/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" ;;
+esac
