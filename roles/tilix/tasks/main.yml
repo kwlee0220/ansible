@@ -28,10 +28,26 @@
   copy: src=files/tilix.dconf dest={{ user_home_dir }}/.config/tilix/tilix.dconf
 
 # dconf 는 D-Bus 세션 버스가 있어야 쓰기가 반영된다. SSH 비대화형 세션에 버스가
-# 없으면 autolaunch 를 시도하다 DISPLAY 가 없어 실패하므로 dbus-run-session 으로 감싼다
-# (hangul 롤과 install_gui.yml 의 gsettings 와 같은 이유).
+# 없으면 autolaunch 를 시도하다 DISPLAY 가 없어 실패하므로 버스를 마련해 줘야 한다.
+#
+# 다만 데스크톱 세션이 떠 있는 호스트에서 dbus-run-session 을 쓰면 안 된다.
+# 그러면 일회용 버스에 두 번째 dconf-service 가 떠서 ~/.config/dconf/user 를
+# 직접 쓰는데, 세션의 dconf-service 는 그 변경을 모른다. 이후 그 서비스가 아무
+# 키나 쓰는 순간 자기 메모리 상태로 파일 전체를 다시 써서 여기서 넣은 값이
+# 통째로 사라진다. 읽기는 DB 파일을 직접 보므로 덮어쓰기 전까지는 정상으로
+# 보이고, 그래서 원인을 찾기 어렵다.
+#
+# 따라서 세션 버스가 있으면 그 버스를 쓰고, 없을 때만 dbus-run-session 으로 넘긴다.
 - name: load tilix configuration
-  shell: dbus-run-session -- dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf
+  shell: |
+    bus="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/bus"
+    if [ -S "$bus" ]; then
+        DBUS_SESSION_BUS_ADDRESS="unix:path=$bus" \
+            dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf
+    else
+        dbus-run-session -- \
+            dconf load /com/gexperts/Tilix/ < {{ user_home_dir }}/.config/tilix/tilix.dconf
+    fi
   args:
     executable: /bin/bash
 
