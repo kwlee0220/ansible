@@ -1,0 +1,46 @@
+---
+# DBeaver CE 를 공식 apt 저장소에서 설치한다.
+# 패키지가 JRE 를 번들하므로 별도 자바 의존성은 없다.
+
+- name: Install required packages
+  ansible.builtin.package:
+    name:
+      - apt-transport-https
+      - ca-certificates
+    state: present
+    update_cache: true
+  become: true
+
+- name: Create keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Download DBeaver GPG key
+  ansible.builtin.get_url:
+    url: "{{ dbeaver_gpg_url }}"
+    dest: "{{ dbeaver_keyring }}"
+    mode: '0644'
+    owner: root
+    group: root
+  become: true
+
+- name: Add DBeaver repository
+  ansible.builtin.apt_repository:
+    repo: "{{ dbeaver_repo }}"
+    state: present
+    filename: dbeaver
+    update_cache: true
+  become: true
+
+# state: latest 는 vscode role 과 같은 이유다. 벤더 저장소에서 롤링으로 배포되는
+# 데스크톱 앱이고, 수동으로 .deb 를 받아 설치해 둔 호스트가 있으면 present 로는
+# 그 오래된 버전이 그대로 남아 저장소 관리 대상으로 넘어오지 않는다.
+- name: Install DBeaver Community
+  ansible.builtin.package:
+    name: "{{ dbeaver_package }}"
+    state: latest
+    update_cache: true
+  become: true

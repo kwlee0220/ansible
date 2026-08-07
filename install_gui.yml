@@ -20,6 +20,7 @@
       - com.gexperts.Tilix.desktop
       - org.gnome.Terminal.desktop
       - pcmanfm.desktop
+      - dbeaver-ce.desktop
       - "{{ snap_store_desktop_id }}"
       - gnome-control-center.desktop
 

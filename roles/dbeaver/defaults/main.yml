@@ -1,0 +1,15 @@
+---
+# DBeaver Community Edition 설치용 변수
+
+dbeaver_package: dbeaver-ce
+
+# 공식 저장소의 서명 키. ASCII armored 라 dearmor 없이 .asc 로 바로 저장한다.
+dbeaver_gpg_url: https://dbeaver.io/debs/dbeaver.gpg.key
+dbeaver_keyring: /etc/apt/keyrings/dbeaver.asc
+
+# dbeaver.io 는 dists/ 계층이 없는 flat repository 라 배포판/컴포넌트 대신
+# 경로 뒤에 ' /' 를 붙여야 한다. 이걸 빼면 apt 가 dists/... 를 찾다 404 로 실패한다.
+#
+# arch= 는 지정하지 않는다. 저장소가 amd64 와 arm64 를 모두 제공하므로
+# apt 가 호스트 아키텍처에 맞는 것을 고른다.
+dbeaver_repo: "deb [signed-by={{ dbeaver_keyring }}] https://dbeaver.io/debs/dbeaver-ce /"

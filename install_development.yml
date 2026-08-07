@@ -19,6 +19,9 @@
     - role: vscode
       when: "ansible_virtualization_type | default('') != 'wsl'"
 
+    - role: dbeaver
+      when: "ansible_virtualization_type | default('') != 'wsl'"
+
     - role: docker
 
     - role: portainer
