@@ -2,6 +2,27 @@
 - name: Install gui package
   hosts: all
 
+  vars:
+    # Snap Store 의 desktop entry id 는 22.04 와 24.04 가 다르다.
+    #   22.04: snap-store_ubuntu-software.desktop
+    #   24.04: snap-store_snap-store.desktop  (App Center)
+    # 존재하지 않는 id 를 favorites 에 넣으면 독에 빈 칸으로 남는다.
+    snap_store_desktop_id: >-
+      {{ 'snap-store_snap-store.desktop'
+      if ansible_distribution_version is version('24.04', '>=')
+      else 'snap-store_ubuntu-software.desktop' }}
+
+    gnome_favorite_apps:
+      - google-chrome.desktop
+      - eclipse.desktop
+      - cursor.desktop
+      - code.desktop
+      - com.gexperts.Tilix.desktop
+      - org.gnome.Terminal.desktop
+      - pcmanfm.desktop
+      - "{{ snap_store_desktop_id }}"
+      - gnome-control-center.desktop
+
   pre_tasks:
     - name: Install dconf-cli, dconf editor
       package:
@@ -41,8 +62,44 @@
       role: xrdp
       
   tasks:
-    - name: Install PCManFM 
+    - name: Install PCManFM
       package:
         name:
           - pcmanfm
       become: true
+
+    - name: Install Nautilus-share (Nautilus에서 Samba를 이용한 공유를 위한 플러그인)
+      package:
+        name:
+          - nautilus-share
+      become: true
+
+    # favorites 에 올릴 앱들이 모두 설치된 뒤에 실행해야 독에 빈 칸이 남지 않으므로
+    # roles 와 위의 설치 task 들이 끝난 마지막에 둔다.
+    #
+    # gsettings 는 D-Bus 세션 버스가 있어야 값이 저장된다. SSH 비대화형 세션에는 버스가 없어
+    # 그대로 실행하면 쓰기가 조용히 무시되므로 dbus-run-session 으로 감싼다.
+    # 스크립트는 stdin 으로 넘겨서 값에 섞인 작은따옴표가 셸 인용에 깨지지 않게 한다.
+    #
+    # set -e 가 없으면 bash -s 의 종료 코드가 마지막 명령의 것만 반영되어, 중간에
+    # 스키마가 없어 실패한 gsettings 가 ok 로 묻힌다.
+    - name: Set desktop interface settings
+      shell: dbus-run-session -- bash -s
+      args:
+        executable: /bin/bash
+        stdin: |
+          set -e
+          gsettings set org.gnome.desktop.interface font-name "Nanum Gothic 11"
+          gsettings set org.gnome.desktop.interface document-font-name "Nanum Gothic 11"
+          gsettings set org.gnome.desktop.interface monospace-font-name "D2Coding 12"
+          gsettings set org.gnome.desktop.interface color-scheme "prefer-light"
+          gsettings set org.gnome.desktop.interface font-hinting "slight"
+          gsettings set org.gnome.desktop.wm.preferences titlebar-font "Nanum Gothic Bold 11"
+
+          gsettings set org.gnome.shell.extensions.dash-to-dock click-action "'minimize'"
+          gsettings set org.gnome.shell.extensions.dash-to-dock dash-max-icon-size "48"
+          gsettings set org.gnome.shell.extensions.dash-to-dock dock-position "'LEFT'"
+          gsettings set org.gnome.shell.extensions.dash-to-dock show-trash "false"
+
+          gsettings set org.gnome.shell favorite-apps '{{ gnome_favorite_apps | to_json }}'
+      become: false
