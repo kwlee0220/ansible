@@ -1,0 +1,159 @@
+---
+# =============================================================================
+# rdfp — [runtime] 시스템 런타임 의존성 + venv 기반 pip 의존성 설치 playbook
+#        (ROS 2 Jazzy / Ubuntu 24.04 noble 전용)
+# -----------------------------------------------------------------------------
+# Humble(Ubuntu 22.04 jammy) 용은 rdfp_setup.yml 을 사용한다.
+# ROS 2 / MoveIt 기본 설치는 ros2 role 및 ros_moveit role 에서 담당하므로
+# 여기에는 포함하지 않는다.
+#
+# Jazzy 를 별도 playbook 으로 분리한 이유:
+#
+#   Ubuntu 24.04 의 pip(24.0) 은 PEP 668 에 따라 시스템 전역 설치를 거부한다
+#   (error: externally-managed-environment). jammy 의 pip 22.0.2 에는 이 제약이
+#   없어 rdfp_setup.yml 의 시스템 전역 pip 설치가 통했지만 noble 에서는 실패한다.
+#   따라서 pip 전용 의존성은 venv 에 설치한다. venv 를 쓰면 noble 의 apt
+#   python3-pydantic(1.10) 을 pydantic 2 로 덮어쓰는 문제도 함께 사라진다.
+#
+# venv 는 반드시 --system-site-packages 로 만든다:
+#   - ROS 2 는 setup.bash 의 PYTHONPATH 로 붙으므로 맨 venv 에서도 rclpy 자체는
+#     import 된다.
+#   - 하지만 apt 로 설치된 numpy / opencv / colcon 등은 /usr/lib/python3/dist-packages
+#     에 있어 맨 venv 에서는 보이지 않고, 그 결과 sensor_msgs.msg 조차
+#     "No module named 'numpy'" 로 실패한다.
+#
+# 실행:
+#   ansible-playbook -i inventory.ini playbooks/rdfp/rdfp_setup_jazzy.yml -K
+# =============================================================================
+
+- name: Install rdfp runtime dependencies (ROS 2 Jazzy)
+  hosts: all
+
+  vars:
+    user_home_dir: "{{ ansible_env.HOME }}"
+
+    # pip 전용 의존성을 담을 venv. ros2 run / launch 가 별도 권한 없이 쓰도록
+    # 사용자 홈에 만든다.
+    rdfp_venv_dir: "{{ user_home_dir }}/.venvs/rdfp"
+
+    # 로그인 셸에서 venv 를 자동 활성화할지 여부. false 로 두면 사용자가 직접
+    # activate 해야 하며, 이 경우 ros2 run 은 venv 의 pip 패키지를 보지 못한다.
+    rdfp_venv_autoactivate: true
+
+    # 설치 전 운영체제 검사 여부. Ubuntu 파생 배포판(Pop!_OS 등)에 강제로
+    # 설치할 때만 false 로 둔다. (roles/ros2 의 ros2_os_check 와 같은 취지)
+    rdfp_os_check: true
+
+  tasks:
+    # ---------------------------------------------------------------------
+    # 운영체제 검사: 이 playbook 의 venv 전략은 noble 전제다.
+    # ---------------------------------------------------------------------
+    - name: Assert that the target OS is Ubuntu 24.04 (noble)
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == 'Ubuntu'
+          - ansible_distribution_release == 'noble'
+        fail_msg: >-
+          이 playbook 은 ROS 2 Jazzy / Ubuntu 24.04(noble) 전용입니다.
+          현재 타깃은 {{ ansible_distribution }} {{ ansible_distribution_version }}
+          ({{ ansible_distribution_release }}) 입니다.
+          Ubuntu 22.04(jammy) / Humble 에는 rdfp_setup.yml 을 사용하세요.
+          Ubuntu 파생 배포판에 강제로 설치하려면 rdfp_os_check=false 로 실행하세요.
+        quiet: true
+      when: rdfp_os_check | bool
+      tags: [always]
+
+    # ---------------------------------------------------------------------
+    # [runtime] 시스템 런타임 의존성
+    # ---------------------------------------------------------------------
+    - name: Install system runtime dependencies
+      ansible.builtin.apt:
+        name:
+          - python3-venv          # venv 생성 (ensurepip 포함)
+          - python3-pip
+          - ffmpeg                # recorder MP4 sink
+          - python3-opencv        # camera / dataset
+          - python3-yaml
+          # cv_bridge 등 ROS 확장 모듈이 이 numpy(1.26) ABI 로 빌드되어 있다.
+          # 아래 venv 의 "numpy<2" 제약이 이 버전을 그대로 재사용하게 만든다.
+          - python3-numpy
+          - libturbojpeg0-dev     # PyTurboJPEG 런타임 라이브러리
+        state: present
+        update_cache: true
+      become: true
+      tags: [runtime]
+
+    # ---------------------------------------------------------------------
+    # [runtime] venv 생성 + pip 전용 의존성
+    # ---------------------------------------------------------------------
+    - name: Install pip-only Python dependencies into the rdfp venv
+      ansible.builtin.pip:
+        name:
+          - mcap
+          - mcap-ros2-support
+          - "pydantic>=2"
+          - "psycopg[binary]>=3"
+          - PyTurboJPEG
+          # PyTurboJPEG 은 numpy 를 버전 제한 없이 요구한다. 위 apt task 가
+          # python3-numpy(1.26.4) 를 먼저 설치하고 venv 가 --system-site-packages
+          # 이므로 보통은 pip 이 "already satisfied" 로 넘어가지만, apt numpy 가
+          # 없거나 나중에 --upgrade 로 재실행하면 numpy 2.x 가 venv 에 들어온다
+          # (실측: 제약 없이 해석하면 numpy 2.2.6 이 선택된다).
+          # venv site-packages 는 apt dist-packages 보다 우선하므로 그 numpy 2 가
+          # apt numpy 1.26 을 가려버리고, numpy 1.x ABI 로 빌드된 cv_bridge /
+          # tf_transformations 가 런타임에 깨진다. 이 제약으로 결과를 고정한다.
+          - "numpy<2"
+        state: present
+        virtualenv: "{{ rdfp_venv_dir }}"
+        # ROS 2 apt 패키지(numpy, opencv, colcon 등)가 venv 안에서도 보이도록 한다.
+        virtualenv_site_packages: true
+        # /opt/ros/jazzy 의 확장 모듈은 cpython-312 ABI 태그를 달고 있으므로
+        # venv 도 반드시 시스템 python3.12 로 만들어야 한다.
+        # (conda / pyenv 의 다른 마이너 버전으로 만들면 rclpy import 가 실패한다)
+        virtualenv_command: /usr/bin/python3 -m venv
+      become: false
+      tags: [runtime]
+
+    - name: Verify that the venv resolves both ROS and pip dependencies
+      ansible.builtin.command:
+        cmd: >-
+          {{ rdfp_venv_dir }}/bin/python -c
+          "import numpy, cv2, yaml, mcap, mcap_ros2, pydantic, psycopg, turbojpeg;
+          assert numpy.__version__.startswith('1.'), numpy.__version__;
+          assert pydantic.VERSION.startswith('2.'), pydantic.VERSION"
+      become: false
+      changed_when: false
+      tags: [runtime]
+
+    # ---------------------------------------------------------------------
+    # [shell] venv 를 로그인 셸에 연결
+    #
+    # ROS 2 환경은 roles/ros2 가 만드는 ~/.ros2rc 가 담당한다. 그 파일은 role
+    # 재실행 시 덮어써지므로 건드리지 않고, rdfp 몫은 ~/.rdfprc 로 분리한다.
+    # blockinfile 이 같은 앵커 앞에 삽입하므로 .bashrc 에서 .ros2rc 다음에
+    # .rdfprc 가 오게 되며, 이는 "ROS setup 이후 venv 활성화" 순서와 같다.
+    # ---------------------------------------------------------------------
+    # 주의: ~/.rdfprc 는 사용자가 직접 관리하는 파일이다(워크스페이스의
+    # .rdfprc 로 향하는 symlink 이며 RDFP_HOME / DSN 등이 들어 있다).
+    # 그 파일을 건드리지 않도록 venv 활성화는 .rdfp-venvrc 로 분리한다.
+    - name: Create rdfp venv activation file
+      ansible.builtin.template:
+        src: files/_rdfp_venvrc.j2
+        dest: "{{ user_home_dir }}/.rdfp-venvrc"
+        mode: '0644'
+      become: false
+      when: rdfp_venv_autoactivate | bool
+      tags: [shell]
+
+    - name: Configure rdfp venv in bashrc
+      ansible.builtin.blockinfile:
+        path: "{{ user_home_dir }}/.bashrc"
+        prepend_newline: true
+        append_newline: true
+        insertbefore: "#THIS MUST BE AT THE END OF THE FILE"
+        marker: "# RDFP-VENV: {mark}"
+        block: |
+          source $HOME/.rdfp-venvrc
+      become: false
+      when: rdfp_venv_autoactivate | bool
+      tags: [shell]

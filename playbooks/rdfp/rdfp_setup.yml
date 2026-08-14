@@ -1,10 +1,15 @@
 ---
 # =============================================================================
 # rdfp — [runtime] 시스템 런타임 의존성 + pip 전용 의존성 설치 playbook
+#        (ROS 2 Humble / Ubuntu 22.04 jammy 전용)
 # -----------------------------------------------------------------------------
 # rdfp 데이터셋 파이프라인 실행에 필요한 시스템 라이브러리(apt)와
 # Python 패키지(pip)를 설치한다. ROS 2 / MoveIt 기본 설치는 ros2 role 및
 # ros_moveit role 에서 담당하므로 여기에는 포함하지 않는다.
+#
+# 아래 pip task 는 시스템 전역에 설치하므로 jammy(pip 22.0.2) 에서만 통한다.
+# Ubuntu 24.04(noble) 의 pip 24.0 은 PEP 668 로 이를 거부하므로
+# ROS 2 Jazzy 에는 venv 기반의 rdfp_setup_jazzy.yml 을 사용한다.
 #
 # 실행:
 #   ansible-playbook -i inventory.ini playbooks/rdfp/rdfp_setup.yml -K
@@ -14,7 +19,28 @@
   hosts: all
   become: true
 
+  vars:
+    # Ubuntu 파생 배포판(Pop!_OS 등)에 강제로 설치할 때만 false 로 둔다.
+    rdfp_os_check: true
+
   tasks:
+    # 아래 pip task 가 noble 에서 externally-managed-environment 로 실패하기
+    # 전에, 어느 playbook 을 써야 하는지 알려주고 멈춘다.
+    - name: Assert that the target OS is Ubuntu 22.04 (jammy)
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == 'Ubuntu'
+          - ansible_distribution_release == 'jammy'
+        fail_msg: >-
+          이 playbook 은 ROS 2 Humble / Ubuntu 22.04(jammy) 전용입니다.
+          현재 타깃은 {{ ansible_distribution }} {{ ansible_distribution_version }}
+          ({{ ansible_distribution_release }}) 입니다.
+          Ubuntu 24.04(noble) / Jazzy 에는 rdfp_setup_jazzy.yml 을 사용하세요.
+          Ubuntu 파생 배포판에 강제로 설치하려면 rdfp_os_check=false 로 실행하세요.
+        quiet: true
+      when: rdfp_os_check | bool
+      tags: [always]
+
     # ---------------------------------------------------------------------
     # [runtime] 시스템 런타임 의존성 + pip 전용 의존성
     # ---------------------------------------------------------------------

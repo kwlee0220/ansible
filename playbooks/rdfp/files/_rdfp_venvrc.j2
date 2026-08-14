@@ -1,0 +1,22 @@
+#!/bin/bash
+# rdfp 런타임 환경설정 (ROS 2 Jazzy).
+# playbooks/rdfp/rdfp_setup_jazzy.yml 이 생성하며 .bashrc 에서 source 한다.
+# 직접 수정하지 말 것 (ansible 재실행 시 덮어써짐).
+
+# pip 전용 의존성(mcap, mcap-ros2-support, pydantic 2, psycopg 3, PyTurboJPEG)이
+# 설치된 venv. Ubuntu 24.04 의 pip 은 PEP 668 에 따라 시스템 전역 설치를 거부하므로
+# (error: externally-managed-environment) 이들을 venv 에 격리한다.
+#
+# ROS 2 는 setup.bash 가 설정하는 PYTHONPATH 로 붙기 때문에 venv 를 활성화해도
+# rclpy 는 그대로 import 된다. sys.path 우선순위는
+#   PYTHONPATH(/opt/ros/jazzy) > venv site-packages > /usr/lib/python3/dist-packages
+# 이므로 ROS 패키지가 최우선이고, venv 의 pip 패키지가 apt 패키지를 덮는다.
+RDFP_VENV="{{ rdfp_venv_dir }}"
+
+# venv 가 항상 켜져 있으므로 프롬프트의 (rdfp) 접두어는 정보가 되지 않는다.
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
+# venv 가 아직 만들어지지 않은 상태에서도 새 셸이 에러를 뱉지 않도록 존재할 때만 읽는다.
+# activate 는 시작할 때 'deactivate nondestructive' 로 이전 상태를 되돌리므로
+# 이 파일을 여러 번 source 해도 PATH 가 중복해서 쌓이지 않는다.
+[ -f "$RDFP_VENV/bin/activate" ] && source "$RDFP_VENV/bin/activate"
