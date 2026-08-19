@@ -1,0 +1,65 @@
+---
+# =============================================================================
+# WSL 타깃용 GUI 관련 설치
+# -----------------------------------------------------------------------------
+# install_gui.yml 은 GNOME 데스크톱 세션이 있는 호스트를 전제한다. WSL 에서는
+# WSLg 가 개별 GUI 앱만 띄우고 GNOME Shell 이 없어서 그 playbook 의 대부분이
+# 의미가 없고, 마지막 gsettings 태스크는 org.gnome.shell / dash-to-dock 스키마가
+# 없어 "No such schema" 로 실제로 실패한다.
+#
+# 그래서 WSL 에서 의미가 남는 것만 따로 모은다:
+#   tilix    WSLg 에서 동작하는 터미널. role 에 WSL 분기(vte.sh, alias)가 있다.
+#   hangul   locale / language-pack-ko / 한글 폰트. WSL 분기에서 fcitx5 를 깐다.
+#
+# install_gui.yml 에서 가져오지 않은 것과 이유:
+#   xrdp             내보낼 데스크톱 세션이 없다. mirrored 네트워킹에서는 3389 가
+#                    Windows RDP 와 겹치기도 한다.
+#   google-chrome    Windows 쪽 브라우저를 쓴다 (install_gui.yml 도 WSL 은 제외).
+#   pcmanfm          Windows 탐색기가 \\wsl$ 로 접근하는 편이 낫다.
+#   nautilus-share   nautilus 가 없고, samba 공유도 WSL 에서는 만들지 않는다.
+#   gnome-terminal   WSLg 로 뜨긴 하지만 Windows Terminal 과 중복이다.
+#   gnome-tweaks     GNOME Shell 설정 도구인데 GNOME Shell 이 없다.
+#   dconf-editor
+#   gsettings 튜닝   위에 적은 대로 스키마가 없어 실패한다.
+#
+# 실행:
+#   ansible-playbook -i hosts install_wsl_gui.yml --limit wsl2 -K
+# =============================================================================
+
+- name: Install GUI packages for WSL
+  hosts: all
+
+  vars:
+    # 한글 입력기(fcitx5)까지 설치할지 여부. WSLg 로 리눅스 GUI 앱을 쓰지 않으면
+    # false 로 둘 수 있으나, locale 과 한글 폰트 설정도 이 role 이 함께 한다.
+    install_hangul: true
+
+  pre_tasks:
+    - name: Assert that the target is WSL
+      ansible.builtin.assert:
+        that:
+          - is_wsl | bool
+        fail_msg: >-
+          이 playbook 은 WSL 타깃 전용입니다.
+          현재 타깃의 커널은 '{{ ansible_kernel }}' 입니다.
+          데스크톱 호스트에는 install_gui.yml 을 사용하세요.
+        quiet: true
+
+    # tilix role 의 dconf 태스크는 community.general.dconf 를 쓰는데, 이 모듈은
+    # 타깃에 psutil 을 요구한다. 없으면 "Failed to import the required Python
+    # library (psutil)" 로 실패한다. install_gui.yml 이 같은 이유로 깔던 것이다.
+    # (dconf-cli / dconf-editor / dbus-x11 은 tilix role 이 직접 설치한다)
+    - name: Install psutil for the dconf module
+      ansible.builtin.apt:
+        name: python3-psutil
+        state: present
+        update_cache: true
+      become: true
+
+  roles:
+    - name: Install Tilix
+      role: tilix
+
+    - name: Install Hangul input
+      role: hangul
+      when: install_hangul | bool
