@@ -24,6 +24,9 @@
     - name: Install ROS2
       role: ros2
 
+    - name: Install MoveIt 2
+      role: ros_moveit
+
     # - name: Build ROS 2 MoveIt from Github
     #   role: ros_moveit_build
 
