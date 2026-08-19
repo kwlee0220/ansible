@@ -12,7 +12,9 @@
   roles:
     # - role: temurin_jdk
 
+    # eclipse 는 GUI IDE 라 vscode/dbeaver 와 같은 기준으로 WSL 에서는 제외한다.
     - role: eclipse
+      when: not (is_wsl | bool)
 
     - role: uv
 
@@ -24,7 +26,9 @@
 
     - role: docker
 
+    # WSL 에서는 portainer 를 올리지 않는다.
     - role: portainer
+      when: not (is_wsl | bool)
       vars:
         portainer_additional_ports:
           - "9000:9000"

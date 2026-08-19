@@ -87,8 +87,13 @@
   become: yes
   notify: start docker
 
+# WSL2 는 /etc/wsl.conf 에서 systemd 를 켜지 않으면 systemd 가 PID 1 이 아니다.
+# 그 상태에서 systemd 모듈은 "Service is in unknown state" 로 실패한다.
+# service 모듈은 ansible_service_mgr 에 따라 systemd 와 sysvinit 로 갈라지고,
+# docker-ce 는 /etc/init.d/docker 를 함께 제공하므로 양쪽 모두에서 동작한다.
+# (systemd 호스트에서는 service 모듈이 그대로 systemd 로 위임하므로 동작 동일)
 - name: Ensure Docker service is started and enabled
-  systemd:
+  ansible.builtin.service:
     name: docker
     state: started
     enabled: yes
