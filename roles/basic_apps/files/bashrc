@@ -138,4 +138,5 @@ alias aj='autojump'
 [[ -s ~/development/.devrc ]] && source ~/development/.devrc
 
 # MDT
-[[ -s ~/development/mdt/.mdtrc ]] && source ~/development/mdt/.mdtrc
+MDT_RC=$HOME/mdt/.mdtrc
+[[ -s $MDT_RC ]] && source $MDT_RC
