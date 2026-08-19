@@ -17,4 +17,4 @@
     line: 'alias gnome-terminal="dbus-launch /usr/bin/gnome-terminal"'
     state: present
   become: false
-  when: ansible_virtualization_type == 'wsl'
+  when: is_wsl | bool

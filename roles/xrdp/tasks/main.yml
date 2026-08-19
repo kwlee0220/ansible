@@ -11,7 +11,7 @@
 
 - name: 적용할 xrdp 포트 결정 (WSL2에서 기본값이면 3390 사용)
   set_fact:
-    xrdp_effective_port: "{{ 3390 if (ansible_virtualization_type | default('') == 'wsl' and xrdp_port == 3389) else xrdp_port }}"
+    xrdp_effective_port: "{{ 3390 if (is_wsl | bool and xrdp_port == 3389) else xrdp_port }}"
 
 # xrdp.ini 에는 'port=' 로 시작하는 줄이 여럿 있다 (port=-1, port=ask3389 등).
 # lineinfile 은 마지막 매칭을 바꾸므로 [Globals] 의 숫자 포트만 정확히 잡도록 '^port=[0-9]+$' 를 쓴다.

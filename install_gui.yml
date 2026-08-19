@@ -53,7 +53,7 @@
 
     - name: Install google-chrome
       role: google-chrome
-      when: ansible_virtualization_type | default('') != 'wsl'
+      when: not (is_wsl | bool)
 
     - name: Install xrdp
       role: xrdp

@@ -1,0 +1,20 @@
+---
+# 모든 호스트에 적용되는 공통 변수.
+
+# 타깃이 WSL(WSL1/WSL2) 위에서 도는지 여부.
+#
+# 예전에는 ansible_virtualization_type == 'wsl' 로 판별했으나, ansible-core 에는
+# WSL 감지 코드가 없어서 이 값이 'wsl' 이 되는 경로가 아예 없다 (2.17.14 기준으로
+# facts 모듈 전체에 'wsl' 문자열이 존재하지 않는다). WSL2 는 sys_vendor 가
+# 'Microsoft Corporation' 이라 'VirtualPC' 로 잡히거나 hypervisor 플래그 때문에
+# 'kvm' 으로 잡힌다. 그래서 그 조건은 언제나 거짓이었고, 결과적으로 WSL 전용
+# 분기는 한 번도 실행되지 않았고 WSL 에서 빼려던 role 들은 그대로 설치되었다.
+#
+# 대신 커널 릴리스로 판별한다. ansible_kernel 은 uname -r 이며
+#   WSL2 : 5.15.167.4-microsoft-standard-WSL2
+#   WSL1 : 4.4.0-19041-Microsoft
+# 처럼 항상 microsoft 를 포함한다. 대소문자가 다르므로 lower 를 거친다.
+#
+# 사용할 때는 문자열이 아닌 bool 로 다루기 위해 항상 '| bool' 을 붙인다.
+#   when: is_wsl | bool          / when: not (is_wsl | bool)
+is_wsl: "{{ 'microsoft' in (ansible_kernel | default('') | lower) }}"

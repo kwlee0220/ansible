@@ -46,8 +46,8 @@
       
 - name: Install Hangul for Ubuntu
   include_tasks: "ubuntu.yml"
-  when: ansible_virtualization_type != 'wsl'
+  when: not (is_wsl | bool)
 
 - name: Install Hangul for WSL2
   include_tasks: "wsl2.yml"
-  when: ansible_virtualization_type == 'wsl'
+  when: is_wsl | bool

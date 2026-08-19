@@ -5,3 +5,7 @@ user_home_dir: "{{ ansible_env.HOME }}"
 # GNOME 의 'Hide all normal windows' 단축키. Ctrl+D 가 여기에 걸려 있으면
 # 터미널의 EOF 입력을 데스크톱이 가로채므로 role 에서 해제한다.
 gnome_show_desktop_key: "/org/gnome/desktop/wm/keybindings/show-desktop"
+
+# role 을 단독 실행할 때를 위한 fallback. 판별 근거는 group_vars/all.yml 참조.
+# group_vars 가 로드되면 그쪽 값이 우선한다(inventory 변수 > role defaults).
+is_wsl: "{{ 'microsoft' in (ansible_kernel | default('') | lower) }}"

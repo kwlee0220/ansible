@@ -20,7 +20,7 @@
   shell: source /etc/profile.d/vte-2.91.sh
   args:
     executable: /bin/bash
-  when: ansible_virtualization_type == 'wsl'
+  when: is_wsl | bool
 
 - name: ensure tilix configuration directory
   file: path={{ user_home_dir }}/.config/tilix state=directory
@@ -68,4 +68,4 @@
     path: "{{ user_home_dir }}/.bashrc"
     regexp: '^alias tilix='
     line: 'alias tilix="/usr/bin/tilix &> /dev/null &"'
-  when: ansible_virtualization_type == 'wsl'
+  when: is_wsl | bool

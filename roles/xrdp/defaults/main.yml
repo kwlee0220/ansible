@@ -5,3 +5,7 @@ user_home_dir: "{{ ansible_env.HOME }}"
 # true 로 두면 플레이 도중 'systemctl isolate graphical' 을 수행한다.
 # 접속 중인 세션이 끊길 수 있어 기본값은 false (재부팅 시 반영).
 xrdp_isolate_graphical_now: false
+
+# role 을 단독 실행할 때를 위한 fallback. 판별 근거는 group_vars/all.yml 참조.
+# group_vars 가 로드되면 그쪽 값이 우선한다(inventory 변수 > role defaults).
+is_wsl: "{{ 'microsoft' in (ansible_kernel | default('') | lower) }}"
