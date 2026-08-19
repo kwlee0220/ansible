@@ -64,6 +64,8 @@
           - "pydantic>=2"
           - "psycopg[binary]>=3"
           - PyTurboJPEG
+          - fastapi               # REST API 서버
+          - uvicorn               # fastapi 를 구동하는 ASGI 서버
         state: present
         executable: pip3
       tags: [runtime]

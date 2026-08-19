@@ -103,6 +103,8 @@
           # apt numpy 1.26 을 가려버리고, numpy 1.x ABI 로 빌드된 cv_bridge /
           # tf_transformations 가 런타임에 깨진다. 이 제약으로 결과를 고정한다.
           - "numpy<2"
+          - fastapi               # REST API 서버
+          - uvicorn               # fastapi 를 구동하는 ASGI 서버
         state: present
         virtualenv: "{{ rdfp_venv_dir }}"
         # ROS 2 apt 패키지(numpy, opencv, colcon 등)가 venv 안에서도 보이도록 한다.
@@ -118,7 +120,8 @@
       ansible.builtin.command:
         cmd: >-
           {{ rdfp_venv_dir }}/bin/python -c
-          "import numpy, cv2, yaml, mcap, mcap_ros2, pydantic, psycopg, turbojpeg;
+          "import numpy, cv2, yaml, mcap, mcap_ros2, pydantic, psycopg,
+          turbojpeg, fastapi, uvicorn;
           assert numpy.__version__.startswith('1.'), numpy.__version__;
           assert pydantic.VERSION.startswith('2.'), pydantic.VERSION"
       become: false
