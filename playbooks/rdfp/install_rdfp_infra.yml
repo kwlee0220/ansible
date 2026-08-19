@@ -1,0 +1,31 @@
+---
+# =============================================================================
+# rdfp — [infra] ROS 2 기반 인프라 설치 playbook
+# -----------------------------------------------------------------------------
+# playbooks/mdt/install_mdt_infra_ros.yml 에서 옮겨왔다. MDT 플랫폼 전용이 아니라
+# rdfp 워크스페이스가 쓰는 ROS 2 설치를 담당하므로 위치와 이름을 함께 바꿨다.
+#
+# 옮기면서 vars/mdt_vars.yml 의존을 걷어냈다. 그 파일에서 이 playbook 이 쓰던 값은
+# install_ros2 하나뿐이었고 나머지는 MDT 전용(postgres 계정, mdt_home_dir 등)이다.
+# ROS 2 설치가 이 playbook 의 목적 자체이므로 그 스위치도 두지 않는다.
+# ros2 role 이 필요로 하는 user_home_dir 은 role 자체 defaults 에 있다.
+#
+# 설치할 ROS 2 배포판은 ros2 role 이 타깃 Ubuntu 릴리즈에서 유도한다
+# (jammy -> humble, noble -> jazzy). 강제하려면 -e ros2_distro=... 로 넘긴다.
+#
+# 실행:
+#   ansible-playbook -i hosts playbooks/rdfp/install_rdfp_infra.yml -K
+# =============================================================================
+
+- name: Install ROS 2 infrastructure for rdfp
+  hosts: all
+
+  roles:
+    - name: Install ROS2
+      role: ros2
+
+    # - name: Build ROS 2 MoveIt from Github
+    #   role: ros_moveit_build
+
+    # - name: Install ROS 2 Panda
+    #   role: ros_panda
