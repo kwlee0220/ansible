@@ -1,8 +1,10 @@
 ---
 # ROS2 role 기본 변수
 
-user_home_dir: "{{ ansible_env.HOME }}"
-ros2_domain_id: 31
+# 셸 환경설정(.bashrc / .ros2rc)은 이 role 이 하지 않는다. ROS 환경을 모든 셸에
+# 자동으로 적용하면 /opt/ros 의 PYTHONPATH 가 venv 의 site-packages 보다 우선해
+# ROS 와 무관한 프로젝트까지 오염되므로, 켜는 시점은 사용자 셸 설정에 맡긴다.
+# 이 때문에 user_home_dir / ros2_domain_id 도 더는 쓰지 않는다.
 
 # 설치할 ROS 2 배포판. 기본값은 타깃 Ubuntu 릴리즈에서 유도한다.
 # (jammy -> humble, noble -> jazzy. 매핑은 vars/main.yml 참조)

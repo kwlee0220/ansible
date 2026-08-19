@@ -134,6 +134,3 @@
   ansible.builtin.command: rosdep update
   become: false
   changed_when: false
-
-- name: ROS2 환경설정 및 bashrc 설정
-  include_tasks: configure.yml
