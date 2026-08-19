@@ -12,6 +12,8 @@
     fcitx_autostart_cmd: "{{ 'fcitx5 -d' if fcitx_version | int == 5 else 'fcitx-autostart' }}"
     fcitx_daemon_cmd: "{{ 'fcitx5 -d' if fcitx_version | int == 5 else 'fcitx' }}"
     fcitx_config_file: "{{ user_home_dir }}/.config/{{ 'fcitx5' if fcitx_version | int == 5 else 'fcitx' }}/config"
+    fcitx_profile_file: "{{ user_home_dir }}/.config/fcitx5/profile"
+    fcitx_proc_name: "{{ 'fcitx5' if fcitx_version | int == 5 else 'fcitx' }}"
 
 - name: Install Hangul input
   package:
@@ -39,22 +41,134 @@
           export XMODIFIERS=@im=fcitx
           export DefaultIMModule=fcitx
           # export LC_CTYPE=ko_KR.UTF-8
-          {{ fcitx_autostart_cmd }} &>/dev/null
 
-- name: Run fcitx daemon
-  # fcitx4: 'fcitx-autostart' 가 더 낫지만 시간이 오래 걸려 'fcitx' 를 쓴다.
-  # fcitx5: '-d' 로 데몬화되어 즉시 반환된다.
-  shell: "{{ fcitx_daemon_cmd }} &>/dev/null"
-  args:
-    executable: /bin/bash
+          # WSLg 는 보통 셸에 DISPLAY 를 넣어주지만, 그러지 않은 경로로 뜬 셸에서도
+          # 입력기가 붙도록 X 소켓이 있으면 채워 준다.
+          [ -z "$DISPLAY" ] && [ -e /tmp/.X11-unix/X0 ] && export DISPLAY=:0
 
-- name: Check fcitx configuration file
+          # 붙을 디스플레이가 없으면(예: SSH 세션) {{ fcitx_proc_name }} 는 애드온만
+          # 읽고 곧바로 죽는다. 그런 셸에서는 아예 띄우지 않는다. 이미 떠 있으면
+          # 새 셸을 열 때마다 다시 띄우지 않는다.
+          if [ -n "${DISPLAY}${WAYLAND_DISPLAY}" ] \
+             && ! pgrep -x {{ fcitx_proc_name }} >/dev/null 2>&1; then
+              {{ fcitx_autostart_cmd }} >/dev/null 2>&1
+          fi
+
+# fcitx5 는 종료할 때 profile 과 config 를 자기 메모리 상태로 다시 쓴다. 데몬이
+# 떠 있는 동안 파일을 고치면 다음 종료 시 통째로 덮어써져 설정이 사라지므로,
+# 반드시 멈춘 뒤에 고치고 마지막에 다시 띄운다.
+- name: Stop the fcitx daemon before editing its configuration
+  ansible.builtin.command: "pkill -x {{ 'fcitx5' if fcitx_version | int == 5 else 'fcitx' }}"
+  register: fcitx_stopped
+  changed_when: fcitx_stopped.rc == 0
+  failed_when: fcitx_stopped.rc not in [0, 1]    # rc=1 은 '실행 중인 프로세스 없음'
+  become: false
+
+# ---------------------------------------------------------------------------
+# fcitx5: 한글 입력기를 활성 그룹에 등록한다.
+#
+# fcitx5-hangul 을 설치해도 입력기 그룹에는 자동으로 들어가지 않는다. 갓 만들어진
+# profile 에는 keyboard-us 하나뿐이라 전환할 대상이 없고, 그 상태에서는 단축키를
+# 아무리 눌러도 영문/한글이 바뀌지 않는다.
+# ---------------------------------------------------------------------------
+- name: Read the current fcitx5 profile
+  ansible.builtin.slurp:
+    src: "{{ fcitx_profile_file }}"
+  register: fcitx_profile_raw
+  failed_when: false
+  become: false
+  when: fcitx_version | int == 5
+
+- name: Work out whether the Hangul engine still needs registering
+  set_fact:
+    fcitx_profile_text: "{{ fcitx_profile_raw.content | default('') | b64decode }}"
+  when: fcitx_version | int == 5
+
+- name: Count the input methods already in the fcitx5 group
+  set_fact:
+    fcitx_profile_items: "{{ fcitx_profile_text | regex_findall('\\[Groups/0/Items/[0-9]+\\]') | length }}"
+  when: fcitx_version | int == 5
+
+- name: Ensure the fcitx5 configuration directory exists
+  ansible.builtin.file:
+    path: "{{ fcitx_profile_file | dirname }}"
+    state: directory
+    mode: '0700'
+  become: false
+  when: fcitx_version | int == 5
+
+# fcitx5 가 한 번도 뜬 적이 없는 호스트에는 profile 이 없다. 그 상태에서 hangul 만
+# 끼워 넣으면 Items/0 을 차지해 keyboard-us 가 등록되지 않고, 전환 대상이 하나뿐이라
+# 단축키를 눌러도 영문/한글이 바뀌지 않는다. 그래서 골격째로 만들어 준다.
+- name: Create a baseline fcitx5 profile when the host has none
+  ansible.builtin.copy:
+    dest: "{{ fcitx_profile_file }}"
+    mode: '0600'
+    content: |
+      [Groups/0]
+      Name=Default
+      Default Layout=us
+      DefaultIM={{ fcitx_default_im }}
+
+      [Groups/0/Items/0]
+      Name=keyboard-us
+      Layout=
+
+      [Groups/0/Items/1]
+      Name=hangul
+      Layout=
+
+      [GroupOrder]
+      0=Default
+  become: false
+  when:
+    - fcitx_version | int == 5
+    - fcitx_profile_items | int == 0
+
+# 이미 입력기가 등록된 profile 이면 기존 항목을 건드리지 않고 뒤에 덧붙인다.
+- name: Register the Hangul engine in the fcitx5 input method group
+  community.general.ini_file:
+    path: "{{ fcitx_profile_file }}"
+    section: "Groups/0/Items/{{ fcitx_profile_items }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    no_extra_spaces: true
+    create: true
+    mode: '0600'
+  loop:
+    - { option: 'Name', value: 'hangul' }
+    - { option: 'Layout', value: '' }
+  become: false
+  when:
+    - fcitx_version | int == 5
+    - fcitx_profile_items | int > 0
+    - "'Name=hangul' not in fcitx_profile_text"
+
+# 시작 시 활성화될 입력기. fcitx5 는 새 입력기가 등록되면 그것을 DefaultIM 으로
+# 바꿔버리는 경우가 있어(설치 직후 한글 모드로 시작한다), 원하는 값을 못 박는다.
+- name: Set the default input method for the fcitx5 group
+  community.general.ini_file:
+    path: "{{ fcitx_profile_file }}"
+    section: "Groups/0"
+    option: DefaultIM
+    value: "{{ fcitx_default_im }}"
+    no_extra_spaces: true
+    create: true
+    mode: '0600'
+  become: false
+  when: fcitx_version | int == 5
+
+# ---------------------------------------------------------------------------
+# 영문/한글 전환 단축키
+# ---------------------------------------------------------------------------
+# fcitx4 는 'TriggerKey=' 한 줄로 트리거 키를 지정한다.
+- name: Check fcitx4 configuration file
   stat:
     path: "{{ fcitx_config_file }}"
   register: fcitx_config
   become: false
+  when: fcitx_version | int == 4
 
-# fcitx4 는 'TriggerKey=' 한 줄로 트리거 키를 지정한다.
 - name: Update fcitx4 configuration file to change the default input method
   lineinfile:
     path: "{{ fcitx_config_file }}"
@@ -67,6 +181,11 @@
   become: false
 
 # fcitx5 는 [Hotkey/TriggerKeys] 섹션에 0, 1, ... 번호별 항목으로 지정한다.
+#
+# 예전에는 config 파일이 있을 때만 실행했는데, fcitx5 는 기동만으로는 config 를
+# 만들지 않는다(설정이 바뀌거나 정상 종료될 때 쓴다). 그래서 새로 설치한 호스트에서는
+# 이 태스크가 조용히 건너뛰어지고 단축키가 설정되지 않았다. fcitx5 는 부분 config 를
+# 기본값과 병합하므로 파일이 없으면 만들어도 된다.
 - name: Update fcitx5 configuration file to change the default input method
   community.general.ini_file:
     path: "{{ fcitx_config_file }}"
@@ -74,11 +193,23 @@
     option: "{{ item.slot }}"
     value: "{{ item.combo }}"
     no_extra_spaces: true
+    create: true
+    mode: '0600'
   loop:
     # 'keys' 같은 이름은 dict 내장 메서드와 충돌하므로 쓰지 않는다.
     - { slot: '0', combo: 'Shift+space' }
     - { slot: '1', combo: 'Control+space' }
-  when:
-    - fcitx_version | int == 5
-    - fcitx_config.stat.exists
+  when: fcitx_version | int == 5
   become: false
+
+# 디스플레이가 없는 SSH 세션에서 띄우면 fcitx5 가 곧바로 죽으면서 profile 을
+# 자기 상태로 다시 써버려 위에서 넣은 설정이 흐트러진다. WSLg 세션에서는 .bashrc
+# 의 autostart 가 대신 띄우므로, 붙을 디스플레이가 있을 때만 여기서 기동한다.
+- name: Run fcitx daemon
+  # fcitx4: 'fcitx-autostart' 가 더 낫지만 시간이 오래 걸려 'fcitx' 를 쓴다.
+  # fcitx5: '-d' 로 데몬화되어 즉시 반환된다.
+  shell: "{{ fcitx_daemon_cmd }} &>/dev/null"
+  args:
+    executable: /bin/bash
+  become: false
+  when: (ansible_env.DISPLAY is defined) or (ansible_env.WAYLAND_DISPLAY is defined)

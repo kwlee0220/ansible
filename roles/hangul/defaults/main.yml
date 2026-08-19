@@ -6,6 +6,9 @@ user_home_dir: "{{ ansible_env.HOME }}"
 # 배포판에 관계없이 동일하게 동작한다. 기존 fcitx4 환경을 유지하려면 4 로 지정한다.
 fcitx_version: 5
 
+# fcitx5 시작 시 활성화될 입력기. 한글 모드로 시작하려면 hangul 로 바꾼다.
+fcitx_default_im: keyboard-us
+
 # role 을 단독 실행할 때를 위한 fallback. 판별 근거는 group_vars/all.yml 참조.
 # group_vars 가 로드되면 그쪽 값이 우선한다(inventory 변수 > role defaults).
 is_wsl: "{{ 'microsoft' in (ansible_kernel | default('') | lower) }}"
