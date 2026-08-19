@@ -124,6 +124,15 @@ fi
 alias bat='/usr/bin/batcat'
 alias fd='/bin/fdfind'
 alias gdu='/usr/local/bin/gdu_linux_amd64'
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
-[[ -s /usr/share/autojump/autojump.sh ]] && source /usr/share/autojump/autojump.sh
 
+PATH=$PATH:$HOME/.local/bin
+
+# fzf
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+# autojump
+[[ -s /usr/share/autojump/autojump.sh ]] && source /usr/share/autojump/autojump.sh
+alias aj='autojump'
+
+# development setup
+[[ -s ~/development/.devrc ]] && source ~/development/.devrc
