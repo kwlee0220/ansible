@@ -67,5 +67,5 @@
   lineinfile:
     path: "{{ user_home_dir }}/.bashrc"
     regexp: '^alias tilix='
-    line: 'alias tilix="/usr/bin/tilix &> /dev/null &"'
+    line: 'alias tilix="GDK_BACKEND=x11 /usr/bin/tilix &> /dev/null &"'
   when: is_wsl | bool
