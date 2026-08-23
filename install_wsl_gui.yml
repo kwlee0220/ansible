@@ -10,12 +10,12 @@
 # 그래서 WSL 에서 의미가 남는 것만 따로 모은다:
 #   tilix    WSLg 에서 동작하는 터미널. role 에 WSL 분기(vte.sh, alias)가 있다.
 #   hangul   locale / language-pack-ko / 한글 폰트. WSL 분기에서 fcitx5 를 깐다.
+#   pcmanfm  WSLg 로 뜨는 가벼운 파일 관리자. nautilus 없이 쓸 수 있다.
 #
 # install_gui.yml 에서 가져오지 않은 것과 이유:
 #   xrdp             내보낼 데스크톱 세션이 없다. mirrored 네트워킹에서는 3389 가
 #                    Windows RDP 와 겹치기도 한다.
 #   google-chrome    Windows 쪽 브라우저를 쓴다 (install_gui.yml 도 WSL 은 제외).
-#   pcmanfm          Windows 탐색기가 \\wsl$ 로 접근하는 편이 낫다.
 #   nautilus-share   nautilus 가 없고, samba 공유도 WSL 에서는 만들지 않는다.
 #   gnome-terminal   WSLg 로 뜨긴 하지만 Windows Terminal 과 중복이다.
 #   gnome-tweaks     GNOME Shell 설정 도구인데 GNOME Shell 이 없다.
@@ -63,3 +63,11 @@
     - name: Install Hangul input
       role: hangul
       when: install_hangul | bool
+
+  tasks:
+    - name: Install PCManFM
+      ansible.builtin.package:
+        name:
+          - pcmanfm
+        state: present
+      become: true
