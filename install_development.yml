@@ -12,9 +12,9 @@
   roles:
     # - role: temurin_jdk
 
-    # eclipse 는 GUI IDE 라 vscode/dbeaver 와 같은 기준으로 WSL 에서는 제외한다.
+    # eclipse 는 WSL 에서도 설치한다. WSLg 로 창이 뜨고, 이 role 은 사용자 홈에
+    # 풀어 넣는 user-local 설치라 데스크톱 세션에 의존하지 않는다.
     - role: eclipse
-      when: not (is_wsl | bool)
 
     - role: uv
 
