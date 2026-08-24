@@ -1,0 +1,30 @@
+---
+# nvidia_driver role 내부 변수 (사용자가 재정의할 대상이 아님)
+
+_nvidia_driver_variant: "{{ '-open' if nvidia_driver_open | bool else '' }}"
+
+# 드라이버 메타패키지 (userspace: libnvidia-*, nvidia-utils, Xorg 드라이버)
+_nvidia_driver_package: "nvidia-driver-{{ nvidia_driver_branch }}{{ _nvidia_driver_variant }}"
+
+# 사전 서명 커널 모듈 메타패키지.
+# 이름 끝의 flavour 는 설치된 커널 메타패키지에 따라 달라지므로
+# tasks/detect.yml 에서 _nvidia_driver_kernel_flavour 를 정한 뒤 조립한다.
+#   HWE 커널 : linux-modules-nvidia-595-generic-hwe-22.04
+#   GA  커널 : linux-modules-nvidia-595-generic
+_nvidia_driver_modules_package: >-
+  linux-modules-nvidia-{{ nvidia_driver_branch }}{{ _nvidia_driver_variant }}-{{ _nvidia_driver_kernel_flavour }}
+
+_nvidia_driver_packages: >-
+  {{ ([_nvidia_driver_modules_package] if nvidia_driver_use_prebuilt_modules | bool else [])
+     + [_nvidia_driver_package] }}
+
+# apt / apt-cache 출력을 파싱하므로 로케일을 고정한다.
+# (한국어 로케일에서는 'Candidate:' 가 '후보:' 로 나와 파싱이 깨진다.)
+_nvidia_driver_c_locale:
+  LC_ALL: C
+  LANG: C
+
+_nvidia_driver_prime_modes:
+  - nvidia
+  - on-demand
+  - intel

@@ -1,0 +1,24 @@
+---
+# =============================================================================
+# NVIDIA 드라이버 업그레이드 playbook
+# -----------------------------------------------------------------------------
+# Ubuntu 저장소의 사전 서명된 커널 모듈(linux-modules-nvidia-*)을 함께 설치해
+# Secure Boot 가 켜진 상태에서도 그대로 동작하도록 한다. 자세한 배경은
+# roles/nvidia_driver/README.md 참조.
+#
+# 실행:
+#   ansible-playbook -i hosts_local playbooks/linux/upgrade_nvidia_driver.yml -K
+#
+# Isaac Sim 요구치를 함께 검사하고 PRIME 을 nvidia 로 고정하려면:
+#   ... -e nvidia_driver_min_version=595.58.03 -e nvidia_driver_prime_mode=nvidia
+#
+# 드라이버는 재부팅해야 적용된다. role 이 직접 재부팅하게 하려면:
+#   ... -e nvidia_driver_reboot=true
+# =============================================================================
+
+- name: Upgrade the NVIDIA driver
+  hosts: all
+
+  roles:
+    - name: Upgrade NVIDIA driver
+      role: nvidia_driver

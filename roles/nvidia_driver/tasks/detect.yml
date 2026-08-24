@@ -1,0 +1,58 @@
+---
+- name: Update the apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+
+# 커널 모듈 메타패키지 이름의 flavour 부분을 정한다.
+# linux-image-generic-hwe-<release> 가 깔려 있으면 HWE 커널을 따라가야 한다.
+# (이 메타패키지를 쓰면 앞으로 커널이 올라가도 맞는 서명 모듈이 자동으로 따라온다.)
+- name: Check whether the HWE kernel metapackage is installed
+  ansible.builtin.command: >-
+    dpkg-query -W -f=${Status} linux-image-generic-hwe-{{ ansible_distribution_version }}
+  register: nvidia_driver_hwe_query
+  changed_when: false
+  failed_when: false
+
+- name: Set the kernel flavour used in the module package name
+  ansible.builtin.set_fact:
+    _nvidia_driver_kernel_flavour: >-
+      {{ 'generic-hwe-' ~ ansible_distribution_version
+         if 'install ok installed' in (nvidia_driver_hwe_query.stdout | default(''))
+         else 'generic' }}
+
+- name: Check the Secure Boot state
+  ansible.builtin.command: mokutil --sb-state
+  register: nvidia_driver_sb
+  changed_when: false
+  failed_when: false
+  environment: "{{ _nvidia_driver_c_locale }}"
+
+# mokutil 이 없거나 실패하면 '켜져 있다'고 보수적으로 가정한다.
+# 잘못 짚어도 사전 서명 모듈을 쓰게 될 뿐이라 손해가 없다.
+- name: Record whether Secure Boot is enabled
+  ansible.builtin.set_fact:
+    nvidia_driver_secure_boot: >-
+      {{ 'SecureBoot disabled' not in (nvidia_driver_sb.stdout | default('')) }}
+
+- name: Query the running driver version
+  ansible.builtin.command: nvidia-smi --query-gpu=driver_version --format=csv,noheader
+  register: nvidia_driver_running
+  changed_when: false
+  failed_when: false
+
+- name: Record the running driver version
+  ansible.builtin.set_fact:
+    nvidia_driver_running_version: >-
+      {{ (nvidia_driver_running.stdout_lines[0] | trim)
+         if nvidia_driver_running.rc == 0 and nvidia_driver_running.stdout_lines | length > 0
+         else '' }}
+
+- name: Report the detected state
+  ansible.builtin.debug:
+    msg:
+      - "kernel flavour : {{ _nvidia_driver_kernel_flavour }}"
+      - "Secure Boot    : {{ 'enabled' if nvidia_driver_secure_boot | bool else 'disabled' }}"
+      - "running driver : {{ nvidia_driver_running_version | default('(none)', true) }}"
+      - "target packages: {{ _nvidia_driver_packages | join(', ') }}"

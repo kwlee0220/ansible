@@ -1,0 +1,39 @@
+---
+# Intel 내장 GPU 와 함께 있는 하이브리드 구성에서 어느 GPU 가 화면을 담당할지 정한다.
+# on-demand 모드에서는 Omniverse Kit(Isaac Sim) 이 NVIDIA GPU 를 잡지 못하는 경우가 있어
+# nvidia 모드로 고정하는 편이 확실하다. 모드 변경은 재부팅해야 적용된다.
+
+- name: Assert that the requested PRIME mode is valid
+  ansible.builtin.assert:
+    that:
+      - nvidia_driver_prime_mode in _nvidia_driver_prime_modes
+    fail_msg: >-
+      nvidia_driver_prime_mode 는 {{ _nvidia_driver_prime_modes | join(' / ') }}
+      중 하나여야 합니다 (받은 값: '{{ nvidia_driver_prime_mode }}').
+    quiet: true
+
+- name: Install nvidia-prime
+  ansible.builtin.apt:
+    name: nvidia-prime
+    state: present
+  become: true
+
+- name: Query the current PRIME mode
+  ansible.builtin.command: prime-select query
+  register: nvidia_driver_prime_query
+  changed_when: false
+  failed_when: false
+  environment: "{{ _nvidia_driver_c_locale }}"
+
+- name: Switch the PRIME mode
+  ansible.builtin.command: "prime-select {{ nvidia_driver_prime_mode }}"
+  become: true
+  when: nvidia_driver_prime_query.stdout | trim != nvidia_driver_prime_mode
+  register: nvidia_driver_prime_switch
+
+- name: Report the PRIME mode change
+  ansible.builtin.debug:
+    msg: >-
+      PRIME 모드를 '{{ nvidia_driver_prime_query.stdout | trim }}' 에서
+      '{{ nvidia_driver_prime_mode }}' 로 바꿨다. 재부팅해야 적용된다.
+  when: nvidia_driver_prime_switch is changed

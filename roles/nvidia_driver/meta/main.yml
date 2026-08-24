@@ -1,0 +1,18 @@
+---
+dependencies: []
+galaxy_info:
+  author: kwlee
+  description: Upgrade the NVIDIA driver from the Ubuntu archive using signed prebuilt kernel modules
+  company: ''
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - nvidia
+    - driver
+    - gpu
+    - secureboot

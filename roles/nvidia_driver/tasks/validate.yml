@@ -1,0 +1,121 @@
+---
+- name: Verify OS dependency
+  when: nvidia_driver_os_check | bool
+  block:
+    - name: Assert that the target OS is Ubuntu
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution is defined
+          - ansible_distribution == 'Ubuntu'
+        fail_msg: >-
+          이 role 은 Ubuntu 저장소(restricted)의 드라이버 패키지를 쓰므로 Ubuntu 전용입니다.
+          현재 타깃은 {{ ansible_distribution | default('unknown') }} 입니다.
+        quiet: true
+
+    - name: Assert that the target is not running under WSL
+      ansible.builtin.assert:
+        that:
+          - not (is_wsl | default(false) | bool)
+        fail_msg: >-
+          WSL 에서는 게스트에 드라이버를 설치하지 않습니다.
+          Windows 호스트의 드라이버가 /usr/lib/wsl 로 그대로 노출됩니다.
+        quiet: true
+
+- name: Verify that an NVIDIA GPU is present
+  when: nvidia_driver_gpu_check | bool
+  block:
+    - name: Look for an NVIDIA display controller
+      ansible.builtin.shell:
+        cmd: "lspci -nn | grep -iE 'vga|3d|display' | grep -ic nvidia || true"
+      register: nvidia_driver_lspci
+      changed_when: false
+      environment: "{{ _nvidia_driver_c_locale }}"
+
+    - name: Assert that an NVIDIA GPU was found
+      ansible.builtin.assert:
+        that:
+          - nvidia_driver_lspci.stdout | trim | int > 0
+        fail_msg: >-
+          NVIDIA GPU 를 찾지 못했습니다(lspci). 검사를 건너뛰려면
+          nvidia_driver_gpu_check=false 로 실행하세요.
+        quiet: true
+
+- name: Check that the requested packages exist in the archive
+  ansible.builtin.command: "apt-cache policy {{ item }}"
+  loop: "{{ _nvidia_driver_packages }}"
+  register: nvidia_driver_policy
+  changed_when: false
+  environment: "{{ _nvidia_driver_c_locale }}"
+
+- name: Assert that every requested package has an install candidate
+  ansible.builtin.assert:
+    that:
+      - item.stdout | regex_search('Candidate:\s*(\S+)', '\1') | default([], true) | length > 0
+      - "'Candidate: (none)' not in item.stdout"
+    fail_msg: >-
+      '{{ item.item }}' 패키지를 저장소에서 찾을 수 없습니다.
+      사용 가능한 브랜치는 `apt-cache search --names-only '^nvidia-driver-[0-9]+$'` 로,
+      이 GPU 에 맞는 브랜치는 `ubuntu-drivers devices` 로 확인하세요.
+    quiet: true
+  loop: "{{ nvidia_driver_policy.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Determine the candidate version of the driver package
+  ansible.builtin.set_fact:
+    # 595.84-0ubuntu0.22.04.1 -> 595.84
+    nvidia_driver_candidate_version: >-
+      {{ (nvidia_driver_policy.results
+          | selectattr('item', 'equalto', _nvidia_driver_package) | first).stdout
+         | regex_search('Candidate:\s*(\S+)', '\1') | first | regex_replace('-.*$', '') }}
+
+- name: Assert that the candidate satisfies the required minimum version
+  ansible.builtin.assert:
+    that:
+      - nvidia_driver_candidate_version is version(nvidia_driver_min_version, '>=')
+    fail_msg: >-
+      요구 최소 버전은 {{ nvidia_driver_min_version }} 인데
+      '{{ _nvidia_driver_package }}' 의 저장소 후보는
+      {{ nvidia_driver_candidate_version }} 입니다.
+      nvidia_driver_branch 를 더 높은 브랜치로 올리세요.
+    quiet: true
+  when: nvidia_driver_min_version | length > 0
+
+# Secure Boot 가 켜져 있는데 DKMS 로 빌드하면, 서명되지 않은 모듈이라 부팅 후
+# 커널이 로드를 거부한다. 재부팅해서야 화면이 안 나오는 것으로 알게 되므로
+# 설치 전에 시뮬레이션으로 확인한다.
+- name: Assert that prebuilt signed modules are used under Secure Boot
+  ansible.builtin.assert:
+    that:
+      - nvidia_driver_use_prebuilt_modules | bool
+    fail_msg: >-
+      Secure Boot 가 켜져 있는데 nvidia_driver_use_prebuilt_modules=false 입니다.
+      이 조합은 DKMS 로 서명되지 않은 커널 모듈을 만들어 부팅 후 GPU 가 뜨지 않습니다.
+      true 로 두거나(권장), 펌웨어에서 Secure Boot 를 끄고 진행하세요.
+    quiet: true
+  when: nvidia_driver_secure_boot | bool
+
+- name: Simulate the installation
+  ansible.builtin.command: "apt-get install -s {{ _nvidia_driver_packages | join(' ') }}"
+  register: nvidia_driver_simulation
+  changed_when: false
+  environment: "{{ _nvidia_driver_c_locale }}"
+  become: true
+
+- name: Assert that the transaction pulls in no DKMS package
+  ansible.builtin.assert:
+    that:
+      - nvidia_driver_simulation.stdout is not search('(?m)^Inst nvidia-dkms')
+    fail_msg: >-
+      설치 시뮬레이션에 nvidia-dkms 가 포함돼 있습니다. Secure Boot 환경에서는
+      서명되지 않은 모듈이 만들어져 부팅 후 GPU 가 뜨지 않습니다.
+      linux-modules-nvidia-* 패키지가 현재 커널을 지원하는지 확인하세요
+      (감지된 flavour: {{ _nvidia_driver_kernel_flavour }}).
+    quiet: true
+  when:
+    - nvidia_driver_assert_no_dkms | bool
+    - nvidia_driver_secure_boot | bool
+
+- name: Show which packages will be replaced
+  ansible.builtin.debug:
+    msg: "{{ nvidia_driver_simulation.stdout_lines | select('match', '^(Inst|Remv) ') | list }}"

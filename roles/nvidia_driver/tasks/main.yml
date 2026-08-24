@@ -1,0 +1,17 @@
+---
+- name: Detect kernel flavour / Secure Boot / current driver
+  ansible.builtin.include_tasks: detect.yml
+  tags: [nvidia_driver, detect]
+
+- name: Validate the requested driver branch
+  ansible.builtin.include_tasks: validate.yml
+  tags: [nvidia_driver, validate]
+
+- name: Install the NVIDIA driver
+  ansible.builtin.include_tasks: install.yml
+  tags: [nvidia_driver, install]
+
+- name: Configure the PRIME mode
+  ansible.builtin.include_tasks: prime.yml
+  when: nvidia_driver_prime_mode | length > 0
+  tags: [nvidia_driver, prime]
