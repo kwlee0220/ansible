@@ -55,6 +55,15 @@
       when: install_nodejs | default(true) | bool
 
   tasks:
+    - name: Create mdt-related directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ mdt_home_dir }}"
+        - "{{ src_root_dir }}"
+
     - name: Create MDT environment file
       template:
         src: files/_mdtrc.j2
@@ -69,12 +78,3 @@
         marker: "# MDT: {mark}"
         block: |
           [ -f {{ mdt_home_dir }}/.mdtrc ] && source {{ mdt_home_dir }}/.mdtrc
-
-    - name: Create mdt-related directories
-      file:
-        path: "{{ item }}"
-        state: directory
-        mode: '0755'
-      loop:
-        - "{{ mdt_home_dir }}"
-        - "{{ src_root_dir }}"
