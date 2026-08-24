@@ -1,0 +1,60 @@
+---
+# isaac_ros2_messages 등 Isaac Sim 전용 메시지와 예제 노드가 들어있는 워크스페이스.
+# 저장소 하나에 humble_ws / jazzy_ws 가 함께 들어있으므로 배포판에 맞는 쪽만 빌드한다.
+
+- name: Install git
+  ansible.builtin.apt:
+    name: git
+    state: present
+  become: true
+
+- name: Clone the Isaac Sim ROS 2 workspace repository
+  ansible.builtin.git:
+    repo: "{{ isaac_sim_ros_workspace_repo }}"
+    dest: "{{ isaac_sim_ros_workspace_dir }}"
+    version: "{{ isaac_sim_ros_workspace_version }}"
+    # 이미 빌드해 둔 워크스페이스를 매 실행마다 되돌리지 않는다.
+    update: false
+  become: true
+  become_user: "{{ isaac_sim_user }}"
+
+# rosdep 캐시는 사용자 홈(~/.ros/rosdep) 에 쌓인다. ros2 role 이 이미 한 번
+# 돌렸더라도, 이 role 만 따로 적용하는 경우를 위해 여기서도 보장한다.
+# (root 로 실행하면 rosdep 이 거부하므로 반드시 일반 사용자로 돌린다.)
+- name: Update the rosdep cache
+  ansible.builtin.command: rosdep update
+  become: true
+  become_user: "{{ isaac_sim_user }}"
+  environment:
+    HOME: "{{ isaac_sim_user_home }}"
+  changed_when: false
+
+# rosdep install 은 내부에서 apt 를 부른다. 일반 사용자로 돌리면 rosdep 이
+# 'sudo -H apt-get ...' 을 실행하면서 비밀번호 프롬프트에 걸려 멈추므로 root 로
+# 돌린다. 다만 캐시를 찾도록 HOME 은 대상 사용자 홈으로 맞춘다.
+- name: Resolve workspace dependencies with rosdep
+  ansible.builtin.shell:
+    cmd: >-
+      source {{ isaac_sim_ros_setup }} &&
+      rosdep install --from-paths src --ignore-src
+      --rosdistro {{ isaac_sim_ros_distro }} -y
+    chdir: "{{ isaac_sim_ros_workspace_dir }}/{{ isaac_sim_ros_distro }}_ws"
+    executable: /bin/bash
+  become: true
+  environment:
+    HOME: "{{ isaac_sim_user_home }}"
+  register: isaac_sim_rosdep
+  changed_when: "'executing command' in isaac_sim_rosdep.stdout"
+
+- name: Build the workspace with colcon
+  ansible.builtin.shell:
+    cmd: >-
+      source {{ isaac_sim_ros_setup }} &&
+      colcon build --symlink-install
+    chdir: "{{ isaac_sim_ros_workspace_dir }}/{{ isaac_sim_ros_distro }}_ws"
+    creates: "{{ isaac_sim_ros_workspace_dir }}/{{ isaac_sim_ros_distro }}_ws/install/local_setup.bash"
+    executable: /bin/bash
+  become: true
+  become_user: "{{ isaac_sim_user }}"
+  environment:
+    HOME: "{{ isaac_sim_user_home }}"

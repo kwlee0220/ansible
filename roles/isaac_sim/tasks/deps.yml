@@ -1,0 +1,22 @@
+---
+- name: Install Isaac Sim runtime dependencies
+  ansible.builtin.apt:
+    name: "{{ _isaac_sim_runtime_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+
+# Kit 은 확장 캐시를 파일 디스크립터로 물고 있어 기본 1024 로는 모자란다.
+# pam_limits 를 거치는 로그인 세션에만 적용되므로, 적용하려면 재로그인이 필요하다.
+- name: Raise the open file limit for Isaac Sim
+  community.general.pam_limits:
+    domain: "{{ isaac_sim_user }}"
+    limit_type: "{{ item }}"
+    limit_item: nofile
+    value: "{{ isaac_sim_nofile_limit }}"
+  loop:
+    - soft
+    - hard
+  become: true
+  when: isaac_sim_set_nofile_limit | bool

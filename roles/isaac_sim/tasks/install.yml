@@ -1,0 +1,86 @@
+---
+- name: Create Isaac Sim directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ isaac_sim_user }}"
+    group: "{{ isaac_sim_user }}"
+    mode: "0755"
+  loop:
+    - "{{ isaac_sim_download_dir }}"
+    - "{{ isaac_sim_install_dir }}"
+  become: true
+
+# 압축 파일이 13GiB 라서, 이미 풀려 있으면 다운로드/해제를 통째로 건너뛴다.
+# (isaac-sim.sh 는 압축을 푼 최상위에 놓이는 실행 스크립트다.)
+- name: Check whether Isaac Sim is already installed
+  ansible.builtin.stat:
+    path: "{{ isaac_sim_install_dir }}/isaac-sim.sh"
+  register: isaac_sim_installed
+
+- name: Download the Isaac Sim standalone package
+  ansible.builtin.get_url:
+    url: "{{ isaac_sim_zip_url }}"
+    dest: "{{ isaac_sim_download_dir }}/{{ isaac_sim_zip }}"
+    checksum: "{{ isaac_sim_zip_checksum if isaac_sim_zip_checksum else omit }}"
+    mode: "0644"
+    timeout: 60
+  become: true
+  become_user: "{{ isaac_sim_user }}"
+  when: not isaac_sim_installed.stat.exists
+
+# 이 zip 은 최상위 디렉터리 없이 내용물이 바로 들어있다(공식 문서의 unzip -d ~/isaacsim).
+# 따라서 strip-components 없이 install_dir 에 그대로 푼다.
+- name: Extract the Isaac Sim package
+  ansible.builtin.unarchive:
+    src: "{{ isaac_sim_download_dir }}/{{ isaac_sim_zip }}"
+    dest: "{{ isaac_sim_install_dir }}"
+    remote_src: true
+    owner: "{{ isaac_sim_user }}"
+    group: "{{ isaac_sim_user }}"
+    creates: "{{ isaac_sim_install_dir }}/isaac-sim.sh"
+  become: true
+  become_user: "{{ isaac_sim_user }}"
+  when: not isaac_sim_installed.stat.exists
+  register: isaac_sim_extracted
+
+- name: Ensure the Isaac Sim entry scripts are executable
+  ansible.builtin.file:
+    path: "{{ isaac_sim_install_dir }}/{{ item }}"
+    mode: "0755"
+  loop:
+    - isaac-sim.sh
+    - post_install.sh
+    - python.sh
+  become: true
+  become_user: "{{ isaac_sim_user }}"
+  failed_when: false
+
+# post_install.sh 는 예제 확장 심볼릭 링크를 만든다. 압축을 새로 푼 경우에만 돌린다.
+- name: Run post_install.sh
+  ansible.builtin.command: ./post_install.sh
+  args:
+    chdir: "{{ isaac_sim_install_dir }}"
+    creates: "{{ isaac_sim_install_dir }}/.ansible_post_install_done"
+  become: true
+  become_user: "{{ isaac_sim_user }}"
+  environment:
+    HOME: "{{ isaac_sim_user_home }}"
+
+- name: Mark post_install.sh as done
+  ansible.builtin.file:
+    path: "{{ isaac_sim_install_dir }}/.ansible_post_install_done"
+    state: touch
+    owner: "{{ isaac_sim_user }}"
+    group: "{{ isaac_sim_user }}"
+    mode: "0644"
+    modification_time: preserve
+    access_time: preserve
+  become: true
+
+- name: Remove the downloaded archive
+  ansible.builtin.file:
+    path: "{{ isaac_sim_download_dir }}/{{ isaac_sim_zip }}"
+    state: absent
+  become: true
+  when: not (isaac_sim_keep_archive | bool)

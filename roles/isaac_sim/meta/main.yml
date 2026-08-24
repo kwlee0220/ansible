@@ -1,0 +1,24 @@
+---
+# ROS 2 설치는 ros2 role 이 담당한다. 여기서 의존으로 걸면 Isaac Sim 만
+# 다시 깔고 싶을 때도 ROS 2 전체 task 가 매번 도므로 걸지 않고,
+# tasks/validate.yml 에서 설치 여부만 확인한다.
+dependencies: []
+galaxy_info:
+  author: kwlee
+  description: Install NVIDIA Isaac Sim (standalone) and wire it up with ROS 2 Humble
+  company: ''
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+  galaxy_tags:
+    - isaacsim
+    - nvidia
+    - omniverse
+    - ros2
+    - humble
+    - simulation
+    - robotics

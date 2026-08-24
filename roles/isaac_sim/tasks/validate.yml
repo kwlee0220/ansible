@@ -1,0 +1,113 @@
+---
+# Isaac Sim 은 13GiB 를 내려받고 첫 실행에서 셰이더 캐시를 굽는다.
+# 조건이 안 맞으면 그 뒤에 실패하므로, 시작 전에 전부 확인한다.
+
+- name: Verify OS dependency for Isaac Sim
+  when: isaac_sim_os_check | bool
+  block:
+    - name: Assert that facts are available
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution is defined
+          - ansible_distribution_release is defined
+        fail_msg: >-
+          운영체제 정보를 확인할 수 없습니다. 이 role 은 fact 수집이 필요하므로
+          play 에 gather_facts: true 를 설정하세요.
+        quiet: true
+
+    - name: Assert that the target OS is a supported Ubuntu release
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == 'Ubuntu'
+          - ansible_distribution_release in _isaac_sim_supported_ubuntu
+        fail_msg: >-
+          Isaac Sim {{ isaac_sim_version }} 은 Ubuntu
+          {{ _isaac_sim_supported_ubuntu | join(' / ') }} 만 지원합니다.
+          현재 타깃은 {{ ansible_distribution }} {{ ansible_distribution_version }}
+          ({{ ansible_distribution_release }}) 입니다.
+          강제로 설치하려면 isaac_sim_os_check=false 로 실행하세요.
+        quiet: true
+
+    - name: Assert that the target is not running under WSL
+      ansible.builtin.assert:
+        that:
+          - not (is_wsl | default(false) | bool)
+        fail_msg: >-
+          WSL 에서는 RTX 레이트레이싱 경로가 제대로 동작하지 않아 이 role 을
+          적용하지 않습니다. 네이티브 Ubuntu 에서 실행하세요.
+        quiet: true
+
+- name: Verify NVIDIA driver
+  when: isaac_sim_driver_check | bool
+  block:
+    - name: Query the installed NVIDIA driver version
+      ansible.builtin.command: nvidia-smi --query-gpu=driver_version --format=csv,noheader
+      register: isaac_sim_nvidia_smi
+      changed_when: false
+      failed_when: false
+
+    - name: Assert that an NVIDIA RTX GPU driver is available
+      ansible.builtin.assert:
+        that:
+          - isaac_sim_nvidia_smi.rc == 0
+          - isaac_sim_nvidia_smi.stdout_lines | length > 0
+        fail_msg: >-
+          nvidia-smi 를 실행할 수 없습니다. Isaac Sim 은 RT 코어가 있는
+          NVIDIA RTX GPU 와 독점 드라이버가 필요합니다.
+          (RT 코어가 없는 A100/H100 은 지원되지 않습니다.)
+          드라이버 검사를 건너뛰려면 isaac_sim_driver_check=false 로 실행하세요.
+        quiet: true
+
+    - name: Assert that the NVIDIA driver is new enough
+      ansible.builtin.assert:
+        that:
+          - isaac_sim_nvidia_smi.stdout_lines[0] | trim
+            is version(isaac_sim_required_driver_version, '>=')
+        fail_msg: >-
+          Isaac Sim {{ isaac_sim_version }} 은 NVIDIA 드라이버
+          {{ isaac_sim_required_driver_version }} 이상이 필요합니다.
+          현재 설치된 버전은 {{ isaac_sim_nvidia_smi.stdout_lines[0] | trim }} 입니다.
+          드라이버를 올린 뒤(재부팅 필요) 다시 실행하세요.
+        quiet: true
+
+- name: Verify that ROS 2 is already installed
+  when:
+    - isaac_sim_ros_check | bool
+    - not (isaac_sim_use_internal_ros2 | bool)
+  block:
+    - name: Check for the ROS 2 setup script
+      ansible.builtin.stat:
+        path: "{{ isaac_sim_ros_setup }}"
+      register: isaac_sim_ros_setup_stat
+
+    - name: Assert that ROS 2 is installed
+      ansible.builtin.assert:
+        that:
+          - isaac_sim_ros_setup_stat.stat.exists
+        fail_msg: >-
+          ROS 2 {{ isaac_sim_ros_distro }} 를 찾을 수 없습니다
+          ({{ isaac_sim_ros_setup }}). 먼저 ros2 role 로 설치하세요.
+          Isaac Sim 내장 ROS 2 라이브러리를 쓰려면
+          isaac_sim_use_internal_ros2=true 로 실행하세요.
+        quiet: true
+
+- name: Verify free disk space
+  when: isaac_sim_disk_check | bool
+  block:
+    # 설치 경로가 아직 없을 수 있으므로 존재하는 상위 경로(홈)를 기준으로 잰다.
+    - name: Measure available space on the install filesystem
+      ansible.builtin.command: "df -BG --output=avail {{ isaac_sim_user_home }}"
+      register: isaac_sim_df
+      changed_when: false
+
+    - name: Assert that there is enough free space
+      ansible.builtin.assert:
+        that:
+          - isaac_sim_df.stdout_lines[1] | regex_replace('[^0-9]', '') | int
+            >= isaac_sim_required_disk_gib | int
+        fail_msg: >-
+          {{ isaac_sim_user_home }} 에 여유 공간이 부족합니다.
+          압축 파일 약 13GiB 와 설치본을 합쳐 최소
+          {{ isaac_sim_required_disk_gib }}GiB 가 필요합니다
+          (현재 {{ isaac_sim_df.stdout_lines[1] | trim }}).
+        quiet: true

@@ -1,0 +1,25 @@
+---
+- name: Validate OS / GPU / ROS 2 prerequisites
+  ansible.builtin.include_tasks: validate.yml
+  tags: [isaac_sim, validate]
+
+- name: Install runtime dependencies
+  ansible.builtin.include_tasks: deps.yml
+  tags: [isaac_sim, deps]
+
+- name: Install Isaac Sim (user-local)
+  ansible.builtin.include_tasks: install.yml
+  tags: [isaac_sim, install]
+
+- name: Configure ROS 2 bridge environment
+  ansible.builtin.include_tasks: ros2_bridge.yml
+  tags: [isaac_sim, ros2]
+
+- name: Build Isaac Sim ROS 2 workspace
+  ansible.builtin.include_tasks: ros2_workspace.yml
+  when: isaac_sim_build_ros_workspace | bool
+  tags: [isaac_sim, ros2, workspace]
+
+- name: Create launcher and desktop entry
+  ansible.builtin.include_tasks: launcher.yml
+  tags: [isaac_sim, launcher]

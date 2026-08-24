@@ -1,0 +1,111 @@
+---
+# isaac_sim role 기본 변수
+#
+# NVIDIA Isaac Sim(standalone 배포판)을 사용자 홈에 설치하고,
+# 시스템에 설치된 ROS 2 Humble 과 연동할 수 있는 실행 래퍼를 만든다.
+
+# ---------------------------------------------------------------------------
+# 대상 사용자
+# ---------------------------------------------------------------------------
+# Isaac Sim 은 GUI 애플리케이션이고 셰이더 캐시/설정을 홈 아래에 쌓으므로
+# 시스템 전역(/opt)이 아니라 사용자 홈에 설치한다. (eclipse role 과 같은 방식)
+isaac_sim_user: "{{ ansible_user_id }}"
+isaac_sim_user_home: "/home/{{ isaac_sim_user }}"
+
+# ---------------------------------------------------------------------------
+# 설치할 Isaac Sim 버전 / 다운로드
+# ---------------------------------------------------------------------------
+# 버전 목록과 URL: https://docs.isaacsim.omniverse.nvidia.com/latest/installation/download.html
+isaac_sim_version: "6.0.1"
+isaac_sim_arch: "linux-x86_64"
+
+isaac_sim_download_base: "https://downloads.isaacsim.nvidia.com"
+isaac_sim_zip: "isaac-sim-standalone-{{ isaac_sim_version }}-{{ isaac_sim_arch }}.zip"
+isaac_sim_zip_url: "{{ isaac_sim_download_base }}/{{ isaac_sim_zip }}"
+
+# 다운로드 검증용 체크섬. 아래 값은 6.0.1 linux-x86_64 전용이므로
+# isaac_sim_version 을 바꾸면 반드시 갱신하거나 "" 로 비워 검증을 끈다.
+isaac_sim_zip_checksum: "md5:65e2c2e83e2461ce0f33b0732d0ee4a3"
+
+# 압축 파일(약 13GiB)을 받아둘 위치와, 압축 해제 후 남길지 여부.
+isaac_sim_download_dir: "{{ isaac_sim_user_home }}/Downloads"
+isaac_sim_keep_archive: false
+
+# 압축을 풀 위치. 공식 문서 권장 경로는 ~/isaacsim 이다.
+isaac_sim_install_dir: "{{ isaac_sim_user_home }}/isaacsim"
+
+# ---------------------------------------------------------------------------
+# 사전 검사
+# ---------------------------------------------------------------------------
+# Ubuntu 22.04(jammy)/24.04(noble) 여부 검사. 파생 배포판에 강제 설치할 때만 false.
+isaac_sim_os_check: true
+
+# nvidia-smi 로 드라이버 버전을 확인한다. RTX 코어가 없는 GPU(A100/H100)나
+# 낮은 드라이버에서는 Kit 이 Vulkan 초기화 단계에서 죽으므로 미리 막는다.
+isaac_sim_driver_check: true
+isaac_sim_required_driver_version: "595.58.03"   # 6.0.x Linux 최소 요구 버전
+
+# 다운로드 13GiB + 설치본을 감안한 여유 공간(GiB) 검사.
+isaac_sim_disk_check: true
+isaac_sim_required_disk_gib: 60
+
+# ---------------------------------------------------------------------------
+# ROS 2 연동
+# ---------------------------------------------------------------------------
+isaac_sim_ros_distro: humble
+isaac_sim_ros_setup: "/opt/ros/{{ isaac_sim_ros_distro }}/setup.bash"
+
+# ROS 2 를 시스템(/opt/ros/humble)에 이미 설치했는지 검사한다.
+# 이 role 은 ROS 2 자체를 설치하지 않는다(ros2 role 담당).
+isaac_sim_ros_check: true
+
+# true 로 두면 시스템 ROS 2 를 source 하지 않고 Isaac Sim 이 내장한 ROS 2
+# 라이브러리를 쓴다(LD_LIBRARY_PATH 에 내장 lib 경로를 추가).
+# 시스템 Humble 이 있는 환경에서는 라이브러리 충돌(rviz2 등이 안 뜸)을 피하려
+# false 로 두고 시스템 ROS 2 를 쓰는 쪽이 안전하다.
+isaac_sim_use_internal_ros2: false
+
+# Isaac Sim 의 ROS 2 브리지는 Fast DDS 기준으로 검증돼 있다.
+# 시뮬레이터와 통신할 모든 ROS 2 노드가 같은 RMW 를 써야 한다.
+# (ros2 role 이 rmw-cyclonedds-cpp 도 깔지만, 여기서 섞으면 토픽이 안 보인다.)
+isaac_sim_rmw_implementation: rmw_fastrtps_cpp
+
+isaac_sim_ros_domain_id: 0
+
+# Fast DDS 공유메모리 전송 대신 UDP 만 쓰게 하는 프로파일.
+# 도커/멀티 머신 조합에서 discovery 가 안 되는 문제를 막는 공식 권장 설정이다.
+isaac_sim_install_fastdds_profile: true
+isaac_sim_fastdds_profile_path: "{{ isaac_sim_user_home }}/.ros/fastdds.xml"
+
+# 브리지가 쓰는 선택 메시지 패키지 ("ros-<distro>-" 접두어는 자동으로 붙는다)
+#   vision-msgs    : Detection2DArray / Detection3DArray 퍼블리셔
+#   ackermann-msgs : AckermannDriveStamped 구독자
+isaac_sim_ros_packages:
+  - vision-msgs
+  - ackermann-msgs
+
+# Isaac Sim 전용 메시지/예제가 든 ROS 2 워크스페이스를 받아서 빌드할지 여부.
+isaac_sim_build_ros_workspace: true
+isaac_sim_ros_workspace_repo: "https://github.com/isaac-sim/IsaacSim-ros_workspaces.git"
+isaac_sim_ros_workspace_version: main
+isaac_sim_ros_workspace_dir: "{{ isaac_sim_user_home }}/isaacsim_ros_ws"
+
+# ---------------------------------------------------------------------------
+# 실행 래퍼 / 데스크톱 항목
+# ---------------------------------------------------------------------------
+# ROS 2 환경변수는 .bashrc 에 넣지 않는다. LD_LIBRARY_PATH 를 전역에 걸면
+# rviz2 등 시스템 ROS 2 도구가 Isaac Sim 내장 라이브러리를 집어 실행에 실패한다.
+# 그래서 "이 스크립트로 실행할 때만" 환경이 잡히도록 래퍼를 만든다.
+isaac_sim_create_launcher: true
+isaac_sim_launcher_dir: "{{ isaac_sim_user_home }}/.local/bin"
+isaac_sim_launcher_name: "isaac-sim-ros2.sh"
+
+isaac_sim_create_desktop_entry: true
+isaac_sim_desktop_dir: "{{ isaac_sim_user_home }}/.local/share/applications"
+# 아이콘 파일 경로. 비워두면 Icon 항목 없이 생성한다.
+isaac_sim_desktop_icon: ""
+
+# Omniverse Kit 은 확장/셰이더 캐시로 파일 디스크립터를 많이 연다.
+# 기본값 1024 로는 "Too many open files" 로 죽는 경우가 있어 상향한다.
+isaac_sim_set_nofile_limit: true
+isaac_sim_nofile_limit: 65535

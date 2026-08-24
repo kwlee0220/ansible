@@ -1,0 +1,51 @@
+---
+- name: Create the local bin directory
+  ansible.builtin.file:
+    path: "{{ isaac_sim_launcher_dir }}"
+    state: directory
+    owner: "{{ isaac_sim_user }}"
+    group: "{{ isaac_sim_user }}"
+    mode: "0755"
+  become: true
+  when: isaac_sim_create_launcher | bool
+
+# ROS 2 환경변수를 .bashrc 에 넣지 않고 이 래퍼 안에서만 설정한다.
+# (LD_LIBRARY_PATH 를 전역에 걸면 rviz2 등 시스템 ROS 2 도구가 Isaac Sim 내장
+#  라이브러리를 먼저 잡아 실행에 실패한다 — NVIDIA 문서의 명시적 경고.)
+- name: Install the ROS 2-aware Isaac Sim launcher
+  ansible.builtin.template:
+    src: isaac-sim-ros2.sh.j2
+    dest: "{{ _isaac_sim_launcher_path }}"
+    owner: "{{ isaac_sim_user }}"
+    group: "{{ isaac_sim_user }}"
+    mode: "0755"
+  become: true
+  when: isaac_sim_create_launcher | bool
+
+- name: Create the desktop entry directory
+  ansible.builtin.file:
+    path: "{{ isaac_sim_desktop_dir }}"
+    state: directory
+    owner: "{{ isaac_sim_user }}"
+    group: "{{ isaac_sim_user }}"
+    mode: "0755"
+  become: true
+  when: isaac_sim_create_desktop_entry | bool
+
+- name: Install the Isaac Sim desktop entry
+  ansible.builtin.template:
+    src: isaac-sim.desktop.j2
+    dest: "{{ isaac_sim_desktop_dir }}/isaac-sim.desktop"
+    owner: "{{ isaac_sim_user }}"
+    group: "{{ isaac_sim_user }}"
+    mode: "0644"
+  become: true
+  when: isaac_sim_create_desktop_entry | bool
+
+- name: Show how to launch Isaac Sim
+  ansible.builtin.debug:
+    msg:
+      - "Isaac Sim {{ isaac_sim_version }} installed at {{ isaac_sim_install_dir }}"
+      - "ROS 2 연동 실행: {{ _isaac_sim_launcher_path }}"
+      - "ROS 2 없이 실행:  {{ isaac_sim_install_dir }}/isaac-sim.sh"
+      - "첫 실행은 셰이더 캐시를 굽느라 5~10분 걸리고 창이 늦게 뜬다."

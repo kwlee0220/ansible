@@ -1,0 +1,38 @@
+---
+# isaac_sim role 내부 변수 (사용자가 재정의할 대상이 아님)
+
+# Isaac Sim 이 지원하는 Ubuntu 릴리즈. 6.0 기준으로 20.04 는 빠졌다.
+_isaac_sim_supported_ubuntu:
+  - jammy      # 22.04 — ROS 2 Humble
+  - noble      # 24.04 — ROS 2 Jazzy (Humble 도 가능)
+
+# ROS 2 브리지가 내장 라이브러리를 두는 위치.
+# 확장 이름은 5.0 에서 omni.isaac.ros2_bridge -> isaacsim.ros2.bridge 로 바뀌었고
+# 실제 .so 는 isaacsim.ros2.core 아래에 배포판별로 들어있다.
+_isaac_sim_internal_ros2_lib: >-
+  {{ isaac_sim_install_dir }}/exts/isaacsim.ros2.core/{{ isaac_sim_ros_distro }}/lib
+
+# Kit 애플리케이션 실행에 필요한 런타임 라이브러리.
+# 없으면 첫 실행에서 Vulkan/X11 심볼을 못 찾고 조용히 종료된다.
+_isaac_sim_runtime_packages:
+  - unzip
+  - ca-certificates
+  - libatomic1
+  - libgomp1
+  - libglu1-mesa
+  - libgl1
+  - libglib2.0-0
+  - libsm6
+  - libice6
+  - libxi6
+  - libxrandr2
+  - libxinerama1
+  - libxcursor1
+  - libxkbcommon-x11-0
+  - libfontconfig1
+  - libfreetype6
+  - libvulkan1
+  - vulkan-tools
+  - mesa-vulkan-drivers
+
+_isaac_sim_launcher_path: "{{ isaac_sim_launcher_dir }}/{{ isaac_sim_launcher_name }}"

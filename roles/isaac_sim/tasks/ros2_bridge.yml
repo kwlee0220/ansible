@@ -1,0 +1,49 @@
+---
+# ROS 2 브리지 확장(isaacsim.ros2.bridge)은 별도로 설치하지 않는다.
+# Isaac Sim 패키지에 포함돼 있고, ROS 2 환경이 잡힌 터미널에서 실행하면
+# 자동으로 활성화된다. 여기서는 그 "환경"만 준비한다.
+
+- name: Install optional ROS 2 message packages used by the bridge
+  ansible.builtin.apt:
+    name: >-
+      {{ isaac_sim_ros_packages
+         | map('regex_replace', '^', 'ros-' ~ isaac_sim_ros_distro ~ '-')
+         | list }}
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: not (isaac_sim_use_internal_ros2 | bool)
+
+- name: Install colcon / rosdep build tools
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - python3-rosdep
+      - python3-colcon-common-extensions
+    state: present
+  become: true
+  when: isaac_sim_build_ros_workspace | bool
+
+- name: Create the ROS user configuration directory
+  ansible.builtin.file:
+    path: "{{ isaac_sim_fastdds_profile_path | dirname }}"
+    state: directory
+    owner: "{{ isaac_sim_user }}"
+    group: "{{ isaac_sim_user }}"
+    mode: "0755"
+  become: true
+  when: isaac_sim_install_fastdds_profile | bool
+
+# 공유메모리 전송을 끄고 UDPv4 만 쓰게 하는 Fast DDS 프로파일.
+# Isaac Sim 과 ROS 2 노드가 서로 다른 컨테이너/머신에 있을 때 discovery 가
+# 실패하는 문제를 막는다. 같은 호스트에서만 쓸 거라면 꺼도 된다.
+- name: Deploy the Fast DDS UDP transport profile
+  ansible.builtin.template:
+    src: fastdds.xml.j2
+    dest: "{{ isaac_sim_fastdds_profile_path }}"
+    owner: "{{ isaac_sim_user }}"
+    group: "{{ isaac_sim_user }}"
+    mode: "0644"
+  become: true
+  when: isaac_sim_install_fastdds_profile | bool

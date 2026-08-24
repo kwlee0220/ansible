@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  {{ ansible_managed }}
+
+  Fast DDS 를 UDPv4 전송만 쓰도록 강제하는 프로파일.
+  기본값인 공유메모리(SHM) 전송은 Isaac Sim 과 ROS 2 노드가 서로 다른
+  컨테이너/머신/사용자 네임스페이스에 있을 때 discovery 에 실패한다.
+
+  이 파일을 쓰려면 FASTRTPS_DEFAULT_PROFILES_FILE 이 이 경로를 가리켜야 한다
+  (isaac_sim role 이 만드는 실행 래퍼가 자동으로 설정한다).
+-->
+<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles" >
+    <transport_descriptors>
+        <transport_descriptor>
+            <transport_id>UdpTransport</transport_id>
+            <type>UDPv4</type>
+        </transport_descriptor>
+    </transport_descriptors>
+
+    <participant profile_name="udp_transport_profile" is_default_profile="true">
+        <rtps>
+            <userTransports>
+                <transport_id>UdpTransport</transport_id>
+            </userTransports>
+            <useBuiltinTransports>false</useBuiltinTransports>
+        </rtps>
+    </participant>
+</profiles>

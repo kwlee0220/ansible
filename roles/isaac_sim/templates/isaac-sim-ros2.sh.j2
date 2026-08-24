@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+#
+# ROS 2 {{ isaac_sim_ros_distro }} 환경을 잡은 뒤 Isaac Sim 을 실행하는 래퍼.
+#
+# 이 환경변수들을 ~/.bashrc 에 넣으면 안 된다. 특히 LD_LIBRARY_PATH 에 Isaac Sim
+# 내장 ROS 2 라이브러리를 전역으로 걸면 rviz2 같은 시스템 ROS 2 도구가 그 라이브러리를
+# 먼저 잡아 실행에 실패한다. 그래서 이 스크립트로 띄울 때만 환경이 적용되게 한다.
+#
+# 사용법:
+#   {{ _isaac_sim_launcher_path }}                 # GUI 실행
+#   {{ _isaac_sim_launcher_path }} --no-window     # headless 실행
+#   (인자는 그대로 isaac-sim.sh 에 전달된다)
+#
+# set -u 는 쓰지 않는다. ROS 2 의 setup.bash / local_setup.bash 는 내부에서
+# 초기화되지 않은 변수를 참조하는 곳이 있어 -u 상태로 source 하면 그 자리에서 죽는다.
+set -eo pipefail
+
+ISAAC_SIM_PATH="{{ isaac_sim_install_dir }}"
+
+{% if isaac_sim_use_internal_ros2 | bool %}
+# --- Isaac Sim 내장 ROS 2 라이브러리 사용 ---------------------------------
+# 시스템 ROS 2 를 source 하지 않는다. 두 쪽을 섞으면 심볼 충돌이 난다.
+export ROS_DISTRO="{{ isaac_sim_ros_distro }}"
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}:{{ _isaac_sim_internal_ros2_lib }}"
+{% else %}
+# --- 시스템 설치 ROS 2 사용 ------------------------------------------------
+source "{{ isaac_sim_ros_setup }}"
+
+{% if isaac_sim_build_ros_workspace | bool %}
+# Isaac Sim 전용 메시지(isaac_ros2_messages 등) 오버레이
+ISAAC_ROS_WS_SETUP="{{ isaac_sim_ros_workspace_dir }}/{{ isaac_sim_ros_distro }}_ws/install/local_setup.bash"
+if [[ -f "${ISAAC_ROS_WS_SETUP}" ]]; then
+    source "${ISAAC_ROS_WS_SETUP}"
+fi
+{% endif %}
+{% endif %}
+
+# 시뮬레이터와 통신할 모든 ROS 2 노드가 같은 RMW / DOMAIN_ID 를 써야 한다.
+export RMW_IMPLEMENTATION="{{ isaac_sim_rmw_implementation }}"
+export ROS_DOMAIN_ID="{{ isaac_sim_ros_domain_id }}"
+{% if isaac_sim_install_fastdds_profile | bool %}
+export FASTRTPS_DEFAULT_PROFILES_FILE="{{ isaac_sim_fastdds_profile_path }}"
+{% endif %}
+
+exec "${ISAAC_SIM_PATH}/isaac-sim.sh" "$@"

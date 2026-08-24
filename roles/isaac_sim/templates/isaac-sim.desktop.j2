@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Isaac Sim ({{ isaac_sim_version }})
+Comment=NVIDIA Isaac Sim with ROS 2 {{ isaac_sim_ros_distro }} bridge
+Exec={{ _isaac_sim_launcher_path if isaac_sim_create_launcher | bool else isaac_sim_install_dir ~ '/isaac-sim.sh' }}
+Path={{ isaac_sim_install_dir }}
+{% if isaac_sim_desktop_icon %}
+Icon={{ isaac_sim_desktop_icon }}
+{% endif %}
+Terminal=false
+Categories=Development;Science;Engineering;
+StartupNotify=true
