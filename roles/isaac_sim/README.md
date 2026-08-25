@@ -138,10 +138,16 @@ cat ~/isaacsim/VERSION
   경로를 `LD_LIBRARY_PATH` 에 전역으로 걸면 `rviz2` 등 시스템 ROS 2 도구가
   그 라이브러리를 먼저 잡아 실행에 실패한다. 그래서 이 role 은 `.bashrc` 를
   건드리지 않고 실행 래퍼 안에서만 환경을 설정한다.
-- **RMW 를 통일할 것.** Isaac Sim 의 ROS 2 브리지는 Fast DDS(`rmw_fastrtps_cpp`)
-  기준으로 검증돼 있다. `ros2` role 이 `rmw-cyclonedds-cpp` 도 설치하므로,
-  다른 터미널에서 `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` 를 쓰면 토픽이
-  서로 보이지 않는다. `ROS_DOMAIN_ID` 도 맞춰야 한다.
+- **RMW 를 통일할 것.** 브리지는 CycloneDDS 도 지원하지만(2024년부터), 이 role 은
+  Fast DDS(`rmw_fastrtps_cpp`)를 기본으로 쓴다. `ros2` role 이 `rmw-cyclonedds-cpp`
+  도 설치하므로, 다른 터미널에서 `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` 를 쓰면
+  토픽이 **에러 없이** 서로 보이지 않는다. `ROS_DOMAIN_ID` 도 맞춰야 한다.
+  선택 근거와 실측 비교는 [dds-middleware.md](dds-middleware.md) 참조.
+- **`isaac_sim_install_fastdds_profile=false` 로 둘 것.** 이 프로파일은 공유메모리
+  전송을 끄고 UDP 만 쓰게 하는데, **같은 호스트의 다른 컨테이너**와 통신할 때만
+  필요한 설정이다. 그냥 켜 두면 같은 호스트에서 카메라 토픽 전송량이 약 1,200배로
+  늘어난다(46 MB 기준 40 KB → 48.6 MB, 실측). 노드가 **다른 머신**에 있는 것은
+  이 프로파일을 켤 이유가 아니다 — SHM 을 켜 둬도 원격과는 자동으로 UDP 를 쓴다.
 - **브리지 확장은 따로 설치하지 않는다.** `isaacsim.ros2.bridge` 는 패키지에
   포함돼 있고, ROS 2 환경이 잡힌 터미널에서 실행하면 자동으로 활성화된다.
 
@@ -173,6 +179,7 @@ cat ~/isaacsim/VERSION
 
 ## 참고
 
+- [dds-middleware.md](dds-middleware.md) — Fast DDS vs CycloneDDS 비교, SHM 설정, 실측
 - [Isaac Sim — Linux 설치](https://docs.isaacsim.omniverse.nvidia.com/latest/installation/install_workstation.html)
 - [Isaac Sim — 다운로드](https://docs.isaacsim.omniverse.nvidia.com/latest/installation/download.html)
 - [Isaac Sim — ROS 2 설치/연동](https://docs.isaacsim.omniverse.nvidia.com/6.0.0/installation/install_ros.html)
