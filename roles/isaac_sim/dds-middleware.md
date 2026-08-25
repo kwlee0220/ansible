@@ -12,16 +12,18 @@ Isaac Sim 의 ROS 2 브리지에서 어느 RMW 를 쓸지, 공유메모리(SHM)�
 
 둘 다 Ubuntu 22.04.5 + ROS 2 Humble, 같은 서브넷.
 
-**결론부터: Fast DDS 를 쓰고, `isaac_sim_install_fastdds_profile` 을 끈다.**
+**결론부터: Fast DDS 를 쓴다. UDP 전용 프로파일은 켜지 않는다.**
+둘 다 role 기본값이므로 도메인만 맞추면 된다.
 
 ```bash
 ansible-playbook -i hosts_local playbooks/rdfp/install_isaac_sim.yml -K \
-  -e isaac_sim_install_fastdds_profile=false \
   -e isaac_sim_ros_domain_id=<맞출 도메인>
 ```
 
-이유는 [9장](#9-무엇을-고를-것인가). 가장 큰 이유는 role 기본값인 `fastdds.xml`
-프로파일이 같은 호스트에서 **전송량을 1,200배로 늘린다**는 점이다([4장](#4-성능-실측)).
+이유는 [9장](#9-무엇을-고를-것인가). 가장 큰 이유는 `fastdds.xml` 프로파일이
+같은 호스트에서 **전송량을 1,200배로 늘린다**는 점이다([4장](#4-성능-실측)).
+이 측정 때문에 `isaac_sim_install_fastdds_profile` 기본값을 `true` 에서 `false` 로
+바꿨다.
 
 ---
 
@@ -386,17 +388,31 @@ export ROS_DOMAIN_ID=<맞출 도메인>
 ros2 topic list
 ```
 
-### 8.2 role 의 알려진 구멍 — Cyclone 을 고르면 프로파일이 어긋난다
+### 8.2 프로파일은 Fast DDS 일 때만 적용된다
 
-`isaac_sim_rmw_implementation` 을 `rmw_cyclonedds_cpp` 로 바꿔도, [tasks/ros2_bridge.yml](tasks/ros2_bridge.yml) 은 여전히 `~/.ros/fastdds.xml` 을 배치하고 래퍼는 `FASTRTPS_DEFAULT_PROFILES_FILE` 을 export 한다. **CycloneDDS 는 이 환경변수를 읽지 않으므로 조용히 무시된다.**
+UDP 전용 프로파일(`~/.ros/fastdds.xml`)은 **Fast DDS 전용**이다. CycloneDDS 는
+`FASTRTPS_DEFAULT_PROFILES_FILE` 을 읽지 않는다.
 
-즉 Cyclone 으로 전환하면 그 프로파일이 막아주던 도커/멀티머신 discovery 문제가 아무 경고 없이 되돌아온다. Cyclone 의 대응물은 `CYCLONEDDS_URI` 다.
-
-고치려면 프로파일 배치·export 양쪽에 조건을 걸고, Cyclone 용 XML 을 따로 둬야 한다.
+예전에는 role 이 RMW 와 무관하게 프로파일을 배치하고 래퍼가 export 해서, Cyclone 으로
+바꾸면 설정이 **조용히 무시**됐다. 지금은 두 조건을 모두 만족할 때만 동작한다.
 
 ```yaml
-when: isaac_sim_rmw_implementation == 'rmw_fastrtps_cpp'
+# vars/main.yml
+_isaac_sim_uses_fastdds: "{{ isaac_sim_rmw_implementation is match('rmw_fastrtps') }}"
+_isaac_sim_fastdds_profile_active: >-
+  {{ (isaac_sim_install_fastdds_profile | bool) and (_isaac_sim_uses_fastdds | bool) }}
 ```
+
+[tasks/ros2_bridge.yml](tasks/ros2_bridge.yml) 의 배치 태스크와
+[래퍼 템플릿](templates/isaac-sim-ros2.sh.j2) 의 export 가 함께 이 값을 본다.
+`rmw_fastrtps_dynamic_cpp` 도 Fast DDS 로 인식한다.
+
+`isaac_sim_install_fastdds_profile=true` 인데 RMW 가 Fast DDS 가 아니면
+[tasks/validate.yml](tasks/validate.yml) 이 경고를 띄운다 — 무시되는 설정을
+켜 놓고 적용됐다고 착각하는 일을 막기 위해서다.
+
+**CycloneDDS 에서 같은 목적(컨테이너 간 discovery)을 달성하려면 `CYCLONEDDS_URI` 로
+따로 설정해야 한다.** role 은 Cyclone 용 프로파일을 제공하지 않는다.
 
 ### 8.3 Isaac Sim 내장 ROS 2 를 쓸 때
 
@@ -437,10 +453,10 @@ Isaac Sim 은 시뮬레이션 토픽을 대량으로 발행한다. 실 로봇 �
 
 | 상황 | 설정 |
 | --- | --- |
-| Isaac Sim + ROS 2 노드가 **같은 호스트** | Fast DDS, `isaac_sim_install_fastdds_profile=false` |
-| 노드가 **다른 머신** | Fast DDS, 프로파일은 그대로 **끈다**. SHM 은 로컬끼리만 쓰이고 원격은 자동으로 UDP 다([6장](#6-shm-과-네트워크는-공존한다--크로스머신-실측)). 추가로 인터페이스 화이트리스트를 거는 편이 좋다([6.3](#63-대응--실제-ip-만-announce-하게-한다)) |
-| 노드가 **같은 호스트의 다른 컨테이너** | 프로파일 `true` 유지. 컨테이너의 `/dev/shm` 크기·IPC 네임스페이스 제약을 피한다 (SHM 포기) |
-| 스택이 이미 Cyclone | 전부 Cyclone 으로 통일 + 8.2 의 구멍 수정 |
+| Isaac Sim + ROS 2 노드가 **같은 호스트** | Fast DDS. 기본값 그대로 (프로파일 `false`) |
+| 노드가 **다른 머신** | Fast DDS. 기본값 그대로 — SHM 은 로컬끼리만 쓰이고 원격은 자동으로 UDP 다([6장](#6-shm-과-네트워크는-공존한다--크로스머신-실측)). 추가로 인터페이스 화이트리스트를 거는 편이 좋다([6.3](#63-대응--실제-ip-만-announce-하게-한다)) |
+| 노드가 **같은 호스트의 다른 컨테이너** | `isaac_sim_install_fastdds_profile=true`. 컨테이너의 `/dev/shm` 크기·IPC 네임스페이스 제약을 피한다 (SHM 포기) |
+| 스택이 이미 Cyclone | 전부 Cyclone 으로 통일. 프로파일은 자동으로 비활성이므로([8.2](#82-프로파일은-fast-dds-일-때만-적용된다)) `CYCLONEDDS_URI` 를 직접 준비해야 한다 |
 
 "다른 머신"과 "다른 컨테이너"를 한 줄로 묶으면 안 된다. 머신이 다르면 SHM 은 애초에
 시도조차 되지 않으므로 켜 둬도 손해가 없다. 프로파일이 필요한 것은 컨테이너 쪽이다.

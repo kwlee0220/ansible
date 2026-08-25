@@ -39,7 +39,7 @@ fi
 # 시뮬레이터와 통신할 모든 ROS 2 노드가 같은 RMW / DOMAIN_ID 를 써야 한다.
 export RMW_IMPLEMENTATION="{{ isaac_sim_rmw_implementation }}"
 export ROS_DOMAIN_ID="{{ isaac_sim_ros_domain_id }}"
-{% if isaac_sim_install_fastdds_profile | bool %}
+{% if _isaac_sim_fastdds_profile_active | bool %}
 export FASTRTPS_DEFAULT_PROFILES_FILE="{{ isaac_sim_fastdds_profile_path }}"
 {% endif %}
 

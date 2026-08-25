@@ -111,3 +111,18 @@
           {{ isaac_sim_required_disk_gib }}GiB 가 필요합니다
           (현재 {{ isaac_sim_df.stdout_lines[1] | trim }}).
         quiet: true
+
+# CycloneDDS 는 FASTRTPS_DEFAULT_PROFILES_FILE 을 읽지 않는다. 두 설정을 같이 주면
+# 프로파일이 조용히 무시되므로, 사용자가 기대한 UDP 전용 동작이 적용되지 않는다.
+# (그 상태로 컨테이너 구성에 들어가면 discovery 실패의 원인을 찾기 어렵다.)
+- name: Warn that the Fast DDS profile is ignored under a non-Fast DDS RMW
+  ansible.builtin.debug:
+    msg: >-
+      isaac_sim_install_fastdds_profile=true 이지만 RMW 가
+      '{{ isaac_sim_rmw_implementation }}' 이라 이 프로파일은 적용되지 않습니다.
+      UDP 전용 프로파일은 Fast DDS 전용입니다. CycloneDDS 에서 같은 목적을 달성하려면
+      CYCLONEDDS_URI 로 별도 설정을 주어야 합니다. 자세한 내용은
+      roles/isaac_sim/dds-middleware.md 8.2 절을 참조하세요.
+  when:
+    - isaac_sim_install_fastdds_profile | bool
+    - not (_isaac_sim_uses_fastdds | bool)

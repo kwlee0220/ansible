@@ -12,7 +12,8 @@ Ubuntu 22.04(jammy)에 NVIDIA Isaac Sim standalone 배포판을 설치하고,
 3. **Isaac Sim 설치** — standalone zip 을 받아 `~/isaacsim` 에 풀고
    `post_install.sh` 를 실행한다. 이미 설치돼 있으면 통째로 건너뛴다.
 4. **ROS 2 브리지 환경** — `ros-humble-vision-msgs` / `ros-humble-ackermann-msgs`
-   설치, `~/.ros/fastdds.xml`(UDP 전용 프로파일) 배치.
+   설치. UDP 전용 Fast DDS 프로파일은 기본으로 배치하지 않는다
+   (`isaac_sim_install_fastdds_profile`, 아래 참조).
 5. **ROS 2 워크스페이스** — `IsaacSim-ros_workspaces` 의 `humble_ws` 를
    `rosdep` + `colcon` 으로 빌드한다.
 6. **실행 래퍼** — `~/.local/bin/isaac-sim-ros2.sh` 와 데스크톱 항목 생성.
@@ -143,11 +144,12 @@ cat ~/isaacsim/VERSION
   도 설치하므로, 다른 터미널에서 `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` 를 쓰면
   토픽이 **에러 없이** 서로 보이지 않는다. `ROS_DOMAIN_ID` 도 맞춰야 한다.
   선택 근거와 실측 비교는 [dds-middleware.md](dds-middleware.md) 참조.
-- **`isaac_sim_install_fastdds_profile=false` 로 둘 것.** 이 프로파일은 공유메모리
-  전송을 끄고 UDP 만 쓰게 하는데, **같은 호스트의 다른 컨테이너**와 통신할 때만
-  필요한 설정이다. 그냥 켜 두면 같은 호스트에서 카메라 토픽 전송량이 약 1,200배로
-  늘어난다(46 MB 기준 40 KB → 48.6 MB, 실측). 노드가 **다른 머신**에 있는 것은
-  이 프로파일을 켤 이유가 아니다 — SHM 을 켜 둬도 원격과는 자동으로 UDP 를 쓴다.
+- **`isaac_sim_install_fastdds_profile` 은 기본 `false` 다.** 이 프로파일은 공유메모리
+  전송을 끄고 UDP 만 쓰게 하는데, 켜면 같은 호스트에서 카메라 토픽 전송량이 약
+  1,200배로 늘어난다(46 MB 기준 40 KB → 48.6 MB, 실측). `true` 로 둘 상황은
+  Isaac Sim 과 노드가 **같은 호스트의 서로 다른 컨테이너**에 있을 때뿐이다.
+  노드가 **다른 머신**에 있는 것은 켤 이유가 아니다 — SHM 을 켜 둬도 원격과는
+  자동으로 UDP 를 쓴다. RMW 가 Fast DDS 가 아니면 이 프로파일은 적용되지 않는다.
 - **브리지 확장은 따로 설치하지 않는다.** `isaacsim.ros2.bridge` 는 패키지에
   포함돼 있고, ROS 2 환경이 잡힌 터미널에서 실행하면 자동으로 활성화된다.
 
@@ -161,6 +163,7 @@ cat ~/isaacsim/VERSION
 | `isaac_sim_ros_distro` | `humble` | 연동할 ROS 2 배포판 |
 | `isaac_sim_use_internal_ros2` | `false` | 시스템 ROS 2 대신 내장 ROS 2 라이브러리 사용 |
 | `isaac_sim_rmw_implementation` | `rmw_fastrtps_cpp` | 래퍼가 설정하는 RMW |
+| `isaac_sim_install_fastdds_profile` | `false` | UDP 전용 Fast DDS 프로파일 배치. 컨테이너 구성일 때만 `true` ([dds-middleware.md](dds-middleware.md)) |
 | `isaac_sim_ros_domain_id` | `0` | 래퍼가 설정하는 도메인 ID |
 | `isaac_sim_build_ros_workspace` | `true` | `humble_ws` 빌드 여부 |
 | `isaac_sim_driver_check` | `true` | `nvidia-smi` 드라이버 버전 검사 |

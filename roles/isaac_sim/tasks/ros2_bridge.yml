@@ -33,11 +33,14 @@
     group: "{{ isaac_sim_user }}"
     mode: "0755"
   become: true
-  when: isaac_sim_install_fastdds_profile | bool
+  when: _isaac_sim_fastdds_profile_active | bool
 
-# 공유메모리 전송을 끄고 UDPv4 만 쓰게 하는 Fast DDS 프로파일.
-# Isaac Sim 과 ROS 2 노드가 서로 다른 컨테이너/머신에 있을 때 discovery 가
-# 실패하는 문제를 막는다. 같은 호스트에서만 쓸 거라면 꺼도 된다.
+# 공유메모리 전송을 끄고 UDPv4 만 쓰게 하는 Fast DDS 프로파일. 기본은 끔.
+# Isaac Sim 과 ROS 2 노드가 **같은 호스트의 서로 다른 컨테이너**에 있을 때
+# discovery 가 실패하는 문제를 막는 용도다.
+# 노드가 다른 머신에 있는 것은 켤 이유가 아니다 — 호스트가 다르면 SHM 은 애초에
+# 시도되지 않고, 로컬 피어끼리는 SHM 을 계속 쓴다. 켜면 같은 호스트 전송량이
+# 1,200배로 늘어난다 (dds-middleware.md 4장·6장).
 - name: Deploy the Fast DDS UDP transport profile
   ansible.builtin.template:
     src: fastdds.xml.j2
@@ -46,4 +49,4 @@
     group: "{{ isaac_sim_user }}"
     mode: "0644"
   become: true
-  when: isaac_sim_install_fastdds_profile | bool
+  when: _isaac_sim_fastdds_profile_active | bool

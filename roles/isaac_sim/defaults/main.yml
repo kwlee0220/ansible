@@ -72,9 +72,23 @@ isaac_sim_rmw_implementation: rmw_fastrtps_cpp
 
 isaac_sim_ros_domain_id: 0
 
-# Fast DDS 공유메모리 전송 대신 UDP 만 쓰게 하는 프로파일.
-# 도커/멀티 머신 조합에서 discovery 가 안 되는 문제를 막는 공식 권장 설정이다.
-isaac_sim_install_fastdds_profile: true
+# Fast DDS 가 공유메모리(SHM) 전송을 쓰지 않고 UDPv4 만 쓰게 하는 프로파일.
+#
+# 기본값이 false 인 이유: 같은 호스트에서 카메라 토픽을 주고받을 때 SHM 을 끄면
+# 전송량이 약 1,200배로 늘어난다 (46 MB 기준 40 KB -> 48.6 MB, 실측).
+# 자세한 수치는 dds-middleware.md 참조.
+#
+# true 로 둘 상황은 하나뿐이다 — Isaac Sim 과 ROS 2 노드가 **같은 호스트의 서로 다른
+# 컨테이너**에 있을 때. 컨테이너의 /dev/shm 크기 제한·IPC 네임스페이스 분리 때문에
+# SHM 로케이터를 받아든 쪽이 이를 쓰려다 실패한다.
+#
+# 노드가 **다른 머신**에 있는 것은 true 로 둘 이유가 아니다. 호스트가 다르면 SHM 은
+# 애초에 시도되지 않고 자동으로 UDP 가 쓰인다 (로컬 피어끼리는 SHM 을 계속 쓴다).
+#
+# isaac_sim_rmw_implementation 이 Fast DDS 가 아니면 이 프로파일은 의미가 없으므로
+# 배치도 export 도 하지 않는다 (CycloneDDS 는 FASTRTPS_DEFAULT_PROFILES_FILE 을
+# 읽지 않는다). 그 조합은 validate.yml 에서 경고한다.
+isaac_sim_install_fastdds_profile: false
 isaac_sim_fastdds_profile_path: "{{ isaac_sim_user_home }}/.ros/fastdds.xml"
 
 # 브리지가 쓰는 선택 메시지 패키지 ("ros-<distro>-" 접두어는 자동으로 붙는다)

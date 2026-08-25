@@ -35,4 +35,13 @@ _isaac_sim_runtime_packages:
   - vulkan-tools
   - mesa-vulkan-drivers
 
+# Fast DDS 계열인지 (rmw_fastrtps_cpp / rmw_fastrtps_dynamic_cpp).
+# CycloneDDS 는 FASTRTPS_DEFAULT_PROFILES_FILE 을 읽지 않으므로,
+# UDP 전용 프로파일은 Fast DDS 일 때만 의미가 있다.
+_isaac_sim_uses_fastdds: "{{ isaac_sim_rmw_implementation is match('rmw_fastrtps') }}"
+
+# 프로파일을 실제로 배치·export 할지. 사용자 스위치와 RMW 종류를 모두 만족해야 한다.
+_isaac_sim_fastdds_profile_active: >-
+  {{ (isaac_sim_install_fastdds_profile | bool) and (_isaac_sim_uses_fastdds | bool) }}
+
 _isaac_sim_launcher_path: "{{ isaac_sim_launcher_dir }}/{{ isaac_sim_launcher_name }}"
