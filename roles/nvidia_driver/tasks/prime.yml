@@ -22,14 +22,29 @@
   ansible.builtin.command: prime-select query
   register: nvidia_driver_prime_query
   changed_when: false
+  check_mode: false
   failed_when: false
   environment: "{{ _nvidia_driver_c_locale }}"
+
+# prime-select 는 하이브리드(내장 GPU + NVIDIA) 구성이 아니면 실패한다.
+# 그 상태로 전환을 시도하면 알아보기 어려운 에러가 나므로 먼저 걸러낸다.
+- name: Assert that prime-select works on this machine
+  ansible.builtin.assert:
+    that:
+      - nvidia_driver_prime_query.rc == 0
+    fail_msg: >-
+      prime-select 조회에 실패했습니다
+      ('{{ nvidia_driver_prime_query.stderr | default('', true) | trim }}').
+      하이브리드 그래픽 구성이 아닐 수 있습니다. PRIME 설정을 건너뛰려면
+      nvidia_driver_prime_mode 를 비워두고 실행하세요.
+    quiet: true
 
 - name: Switch the PRIME mode
   ansible.builtin.command: "prime-select {{ nvidia_driver_prime_mode }}"
   become: true
   when: nvidia_driver_prime_query.stdout | trim != nvidia_driver_prime_mode
   register: nvidia_driver_prime_switch
+  changed_when: nvidia_driver_prime_switch.rc == 0
 
 - name: Report the PRIME mode change
   ansible.builtin.debug:

@@ -10,32 +10,83 @@
   become: true
   register: nvidia_driver_apt
 
-- name: Remove leftover packages from the previous branch
-  ansible.builtin.apt:
-    autoremove: true
-    purge: false
-  become: true
+# apt 의 autoremove 는 시스템 전역이라, 드라이버와 무관한 고아 패키지까지 지운다.
+# (실측: 이 저장소를 쓰는 머신에서 ros-humble-hpp-fcl, libfwupd2 등이 함께 지워졌다.)
+# 그래서 시뮬레이션으로 후보를 뽑은 뒤 NVIDIA 관련만 골라서 제거한다.
+- name: Clean up leftovers from the previous branch
   when:
     - nvidia_driver_autoremove | bool
     - nvidia_driver_apt is changed
+  block:
+    - name: Determine what a full autoremove would drop
+      ansible.builtin.command: apt-get -s autoremove
+      register: nvidia_driver_autoremove_sim
+      changed_when: false
+      check_mode: false
+      environment: "{{ _nvidia_driver_c_locale }}"
+      become: true
+
+    - name: Split the candidates into NVIDIA leftovers and everything else
+      ansible.builtin.set_fact:
+        _nvidia_driver_orphans: "{{ _all | select('search', 'nvidia') | list }}"
+        _nvidia_driver_other_orphans: "{{ _all | reject('search', 'nvidia') | list }}"
+      vars:
+        _all: >-
+          {{ nvidia_driver_autoremove_sim.stdout_lines
+             | select('match', '^Remv ')
+             | map('regex_replace', '^Remv ([^ ]+).*$', '\1')
+             | list }}
+
+    - name: Remove only the NVIDIA leftovers
+      ansible.builtin.apt:
+        name: "{{ _nvidia_driver_orphans }}"
+        state: absent
+        purge: false
+        autoremove: false
+      become: true
+      when: _nvidia_driver_orphans | length > 0
+
+    # 남겨둔 것은 알려만 준다. 드라이버 업그레이드가 조용히 지울 일이 아니다.
+    - name: Report unrelated orphans that were left alone
+      ansible.builtin.debug:
+        msg:
+          - "다음 패키지도 고아 상태지만 NVIDIA 와 무관하여 남겨두었다:"
+          - "{{ _nvidia_driver_other_orphans | join(', ') }}"
+          - "정리하려면 직접 `sudo apt autoremove` 를 실행할 것."
+      when: _nvidia_driver_other_orphans | length > 0
+
+# check 모드에서는 위의 apt 설치가 실제로 일어나지 않았으므로 설치본을 조회할 수 없다.
+# 여기서부터는 실제 실행일 때만 의미가 있다.
+- name: Report that check mode stops before install verification
+  ansible.builtin.debug:
+    msg: >-
+      check 모드입니다. 설치가 실제로 수행되지 않았으므로 설치본 버전 확인과
+      재부팅 판정은 건너뜁니다. 무엇이 바뀔지는 위 'Show which packages will be
+      replaced' 출력을 보세요.
+  when: ansible_check_mode
 
 - name: Query the installed driver package version
   ansible.builtin.command: "dpkg-query -W -f=${Version} {{ _nvidia_driver_package }}"
   register: nvidia_driver_installed_query
   changed_when: false
+  check_mode: false
   environment: "{{ _nvidia_driver_c_locale }}"
+  when: not ansible_check_mode
 
 - name: Record the installed driver version
   ansible.builtin.set_fact:
     # 595.84-0ubuntu0.22.04.1 -> 595.84
     nvidia_driver_installed_version: "{{ nvidia_driver_installed_query.stdout.split('-')[0] }}"
+  when: not ansible_check_mode
 
 # 커널 모듈은 재부팅해야 교체된다. 그때까지 nvidia-smi 는 예전 버전을 계속 보고한다.
 - name: Determine whether a reboot is required
   ansible.builtin.set_fact:
+    # 문자열 동등성 대신 버전 비교를 쓴다. 표기가 조금만 어긋나도 매번 재부팅하게 된다.
     nvidia_driver_reboot_required: >-
       {{ nvidia_driver_running_version | length == 0
-         or nvidia_driver_running_version != nvidia_driver_installed_version }}
+         or not (nvidia_driver_running_version is version(nvidia_driver_installed_version, '==')) }}
+  when: not ansible_check_mode
 
 - name: Reboot to activate the new driver
   ansible.builtin.reboot:
@@ -43,14 +94,39 @@
     msg: "Rebooting to activate NVIDIA driver {{ nvidia_driver_installed_version }}"
   become: true
   when:
+    - not ansible_check_mode
     - nvidia_driver_reboot | bool
     - nvidia_driver_reboot_required | bool
 
+# 재부팅까지 했다면 nvidia-smi 가 확정적인 판정을 준다. 여기서 확인하지 않으면
+# 모듈이 안 올라온 사고(= 이 role 이 막으려는 바로 그 사고)를 놓친다.
 - name: Verify the running driver after reboot
   ansible.builtin.command: nvidia-smi --query-gpu=driver_version --format=csv,noheader
   register: nvidia_driver_verify
   changed_when: false
+  failed_when: false
   when:
+    - not ansible_check_mode
+    - nvidia_driver_reboot | bool
+    - nvidia_driver_reboot_required | bool
+
+- name: Assert that the new driver is actually loaded
+  ansible.builtin.assert:
+    that:
+      - nvidia_driver_verify.rc == 0
+      - nvidia_driver_verify.stdout_lines | length > 0
+      - nvidia_driver_verify.stdout_lines[0] | trim
+        is version(nvidia_driver_installed_version, '==')
+    fail_msg: >-
+      재부팅했는데 실행 중인 드라이버가 설치본과 다릅니다.
+      설치 {{ nvidia_driver_installed_version }} /
+      실행 '{{ nvidia_driver_verify.stdout | default('(nvidia-smi 실패)', true) | trim }}'.
+      커널 모듈이 로드되지 않았을 가능성이 높습니다. Secure Boot 환경이라면
+      서명 문제일 수 있으니 `dmesg | grep -iE "nvidia|module verification"` 과
+      `modinfo nvidia | grep -E "^(version|signer)"` 을 확인하세요.
+    quiet: true
+  when:
+    - not ansible_check_mode
     - nvidia_driver_reboot | bool
     - nvidia_driver_reboot_required | bool
 
@@ -61,5 +137,6 @@
       - "실행 중 드라이버: {{ nvidia_driver_running_version | default('(none)', true) }}"
       - "새 커널 모듈은 재부팅해야 올라온다. `sudo reboot` 후 `nvidia-smi` 로 확인할 것."
   when:
+    - not ansible_check_mode
     - nvidia_driver_reboot_required | bool
     - not (nvidia_driver_reboot | bool)

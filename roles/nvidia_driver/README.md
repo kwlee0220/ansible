@@ -23,9 +23,10 @@ PPA(`ppa:graphics-drivers`)나 NVIDIA `.run` 설치 파일은 쓰지 않는다.
 2. **validate** — GPU 존재 확인, 요청한 브랜치가 저장소에 있는지, 후보 버전이 최소 요구치를
    넘는지 확인. 그리고 **설치 시뮬레이션(`apt-get install -s`)에 `nvidia-dkms` 가 섞이면 중단**한다
    (재부팅 후에야 화면이 안 나오는 것으로 알게 되는 사고를 막는다)
-3. **install** — 드라이버 + 사전 서명 커널 모듈 설치, 구 브랜치 잔여 패키지 정리,
-   재부팅 필요 여부 보고(또는 직접 재부팅)
-4. **prime** — (선택) `prime-select` 모드 변경
+3. **prime** — (선택) `prime-select` 모드 변경. 설치보다 **먼저** 한다 — 설정 파일만
+   쓰므로 새 드라이버가 필요 없고, install 이 재부팅하는 경우 그 한 번으로 둘 다 적용된다
+4. **install** — 드라이버 + 사전 서명 커널 모듈 설치, 구 브랜치 잔여 패키지 정리,
+   재부팅 필요 여부 보고(또는 직접 재부팅 후 실제 로드 여부 검증)
 
 ## 실행
 
@@ -54,7 +55,40 @@ ansible-playbook -i hosts_local playbooks/linux/upgrade_nvidia_driver.yml -K \
 | `nvidia_driver_min_version` | `""` | 요구 최소 버전. 비우면 검사 안 함 |
 | `nvidia_driver_reboot` | `false` | role 이 직접 재부팅할지 |
 | `nvidia_driver_prime_mode` | `""` | `nvidia` / `on-demand` / `intel`. 비우면 건드리지 않음 |
-| `nvidia_driver_autoremove` | `true` | 교체 후 구 브랜치 잔여 패키지 정리 |
+| `nvidia_driver_autoremove` | `true` | 교체 후 남은 **NVIDIA 패키지만** 정리 (아래 참조) |
+
+## 잔여 패키지 정리 범위
+
+`nvidia_driver_autoremove` 는 `apt autoremove` 를 그대로 부르지 않는다.
+전역 autoremove 는 드라이버와 무관한 고아 패키지까지 지우기 때문이다.
+(실측: 이 저장소를 쓰는 머신에서 `ros-humble-hpp-fcl`, `libfwupd2` 등이 함께 지워졌다.)
+
+대신 `apt-get -s autoremove` 로 후보를 뽑아 **이름에 nvidia 가 든 것만** 제거하고,
+나머지는 지우지 않고 목록으로 알려준다.
+
+```
+TASK [Report unrelated orphans that were left alone]
+  다음 패키지도 고아 상태지만 NVIDIA 와 무관하여 남겨두었다:
+  libfwupdplugin5, libfwupd2, libgcab-1.0-0, slirp4netns, ...
+  정리하려면 직접 `sudo apt autoremove` 를 실행할 것.
+```
+
+## 부분 실행과 dry-run
+
+단계별 태그(`validate` / `prime` / `install`)로 나눠 실행할 수 있다.
+`detect` 는 `always` 태그라 어느 경우에도 먼저 돈다 — 커널 flavour 를 여기서 정하기
+때문에 이것 없이는 모듈 패키지 이름을 만들 수 없다.
+
+```bash
+ansible-playbook -i hosts_local playbooks/linux/upgrade_nvidia_driver.yml -K --tags install
+```
+
+`--check` 로 dry-run 하면 조회·시뮬레이션은 실제로 수행하고 설치만 건너뛴다.
+설치가 일어나지 않았으므로 설치본 버전 확인과 재부팅 판정은 자동으로 생략된다.
+
+```bash
+ansible-playbook -i hosts_local playbooks/linux/upgrade_nvidia_driver.yml -K --check
+```
 
 ## 커널 flavour 자동 판별
 
