@@ -283,8 +283,7 @@ $ tcpdump -nn -r lo.pcap | awk '{print $5}' | sort | uniq -c | sort -rn | head -
 
 ### 6.3 대응 — 실제 IP 만 announce 하게 한다
 
-각 머신이 자기 인터페이스만 announce 하도록 화이트리스트를 건다.
-**SHM 은 그대로 유지된다** — 두 transport descriptor 를 함께 등록하면 된다.
+각 머신이 자기 인터페이스만 announce 하도록 화이트리스트를 건다. **SHM 은 그대로 유지된다** — 두 transport descriptor 를 함께 등록하면 된다.
 
 role 변수로 켠다. 머신마다 주소를 적을 필요 없이 기본 인터페이스를 자동으로 쓴다.
 
@@ -293,9 +292,7 @@ ansible-playbook -i hosts_local playbooks/rdfp/install_isaac_sim.yml -K \
   -e isaac_sim_fastdds_whitelist_default_iface=true
 ```
 
-주소를 직접 지정하려면 `isaac_sim_fastdds_interface_whitelist` 에 목록으로 준다.
-어느 쪽이든 프로파일 배치가 자동으로 켜지므로 `isaac_sim_install_fastdds_profile`
-을 따로 줄 필요는 없다.
+주소를 직접 지정하려면 `isaac_sim_fastdds_interface_whitelist` 에 목록으로 준다. 어느 쪽이든 프로파일 배치가 자동으로 켜지므로 `isaac_sim_install_fastdds_profile` 을 따로 줄 필요는 없다.
 
 [templates/fastdds.xml.j2](templates/fastdds.xml.j2) 가 만드는 결과:
 
@@ -325,9 +322,7 @@ ansible-playbook -i hosts_local playbooks/rdfp/install_isaac_sim.yml -K \
 </participant>
 ```
 
-`useBuiltinTransports=false` 는 기본 전송을 전부 걷어내므로, SHM 을 쓰려면
-위처럼 SHM descriptor 를 **명시적으로** 등록해야 한다. 이것을 빠뜨리면
-화이트리스트는 걸리지만 SHM 이 사라져 같은 호스트 전달까지 UDP 로 떨어진다.
+`useBuiltinTransports=false` 는 기본 전송을 전부 걷어내므로, SHM 을 쓰려면 위처럼 SHM descriptor 를 **명시적으로** 등록해야 한다. 이것을 빠뜨리면 화이트리스트는 걸리지만 SHM 이 사라져 같은 호스트 전달까지 UDP 로 떨어진다.
 
 **실측** — 로컬·원격 구독자를 동시에 붙이고 46,080,000 B 를 보냈을 때
 A 의 `lo` 송신량:
@@ -408,7 +403,7 @@ Isaac Sim 과 통신할 **모든** 노드가 아래를 동일하게 가져가야
 | 항목 | role 변수 | 기본값 |
 | --- | --- | --- |
 | `RMW_IMPLEMENTATION` | `isaac_sim_rmw_implementation` | `rmw_fastrtps_cpp` |
-| `ROS_DOMAIN_ID` | `isaac_sim_ros_domain_id` | `0` |
+| `ROS_DOMAIN_ID` | `isaac_sim_ros_domain_id` | `31` |
 | SHM 프로파일 | `isaac_sim_install_fastdds_profile` | `true` |
 
 래퍼([templates/isaac-sim-ros2.sh.j2](templates/isaac-sim-ros2.sh.j2))는 이 값을 **자기 프로세스에만** 건다. 다른 터미널에서는 직접 맞춰야 한다.
@@ -423,11 +418,9 @@ ros2 topic list
 
 ### 8.2 프로파일은 Fast DDS 일 때만 적용된다
 
-UDP 전용 프로파일(`~/.ros/fastdds.xml`)은 **Fast DDS 전용**이다. CycloneDDS 는
-`FASTRTPS_DEFAULT_PROFILES_FILE` 을 읽지 않는다.
+UDP 전용 프로파일(`~/.ros/fastdds.xml`)은 **Fast DDS 전용**이다. CycloneDDS 는 `FASTRTPS_DEFAULT_PROFILES_FILE` 을 읽지 않는다.
 
-예전에는 role 이 RMW 와 무관하게 프로파일을 배치하고 래퍼가 export 해서, Cyclone 으로
-바꾸면 설정이 **조용히 무시**됐다. 지금은 두 조건을 모두 만족할 때만 동작한다.
+예전에는 role 이 RMW 와 무관하게 프로파일을 배치하고 래퍼가 export 해서, Cyclone 으로 바꾸면 설정이 **조용히 무시**됐다. 지금은 두 조건을 모두 만족할 때만 동작한다.
 
 ```yaml
 # vars/main.yml
@@ -436,16 +429,11 @@ _isaac_sim_fastdds_profile_active: >-
   {{ (isaac_sim_install_fastdds_profile | bool) and (_isaac_sim_uses_fastdds | bool) }}
 ```
 
-[tasks/ros2_bridge.yml](tasks/ros2_bridge.yml) 의 배치 태스크와
-[래퍼 템플릿](templates/isaac-sim-ros2.sh.j2) 의 export 가 함께 이 값을 본다.
-`rmw_fastrtps_dynamic_cpp` 도 Fast DDS 로 인식한다.
+[tasks/ros2_bridge.yml](tasks/ros2_bridge.yml) 의 배치 태스크와 [래퍼 템플릿](templates/isaac-sim-ros2.sh.j2) 의 export 가 함께 이 값을 본다. `rmw_fastrtps_dynamic_cpp` 도 Fast DDS 로 인식한다.
 
-`isaac_sim_install_fastdds_profile=true` 인데 RMW 가 Fast DDS 가 아니면
-[tasks/validate.yml](tasks/validate.yml) 이 경고를 띄운다 — 무시되는 설정을
-켜 놓고 적용됐다고 착각하는 일을 막기 위해서다.
+`isaac_sim_install_fastdds_profile=true` 인데 RMW 가 Fast DDS 가 아니면 [tasks/validate.yml](tasks/validate.yml) 이 경고를 띄운다 — 무시되는 설정을 켜 놓고 적용됐다고 착각하는 일을 막기 위해서다.
 
-**CycloneDDS 에서 같은 목적(컨테이너 간 discovery)을 달성하려면 `CYCLONEDDS_URI` 로
-따로 설정해야 한다.** role 은 Cyclone 용 프로파일을 제공하지 않는다.
+**CycloneDDS 에서 같은 목적(컨테이너 간 discovery)을 달성하려면 `CYCLONEDDS_URI` 로 따로 설정해야 한다.** role 은 Cyclone 용 프로파일을 제공하지 않는다.
 
 ### 8.3 Isaac Sim 내장 ROS 2 를 쓸 때
 
@@ -491,8 +479,7 @@ Isaac Sim 은 시뮬레이션 토픽을 대량으로 발행한다. 실 로봇 �
 | 노드가 **같은 호스트의 다른 컨테이너** | `isaac_sim_install_fastdds_profile=true` + `isaac_sim_fastdds_disable_shm=true`. 컨테이너의 `/dev/shm` 크기·IPC 네임스페이스 제약을 피한다 (SHM 포기) |
 | 스택이 이미 Cyclone | 전부 Cyclone 으로 통일. 프로파일은 자동으로 비활성이므로([8.2](#82-프로파일은-fast-dds-일-때만-적용된다)) `CYCLONEDDS_URI` 를 직접 준비해야 한다 |
 
-"다른 머신"과 "다른 컨테이너"를 한 줄로 묶으면 안 된다. 머신이 다르면 SHM 은 애초에
-시도조차 되지 않으므로 켜 둬도 손해가 없다. 프로파일이 필요한 것은 컨테이너 쪽이다.
+"다른 머신"과 "다른 컨테이너"를 한 줄로 묶으면 안 된다. 머신이 다르면 SHM 은 애초에 시도조차 되지 않으므로 켜 둬도 손해가 없다. 프로파일이 필요한 것은 컨테이너 쪽이다.
 
 **카메라 레이트 기준** (1280×720 rgb8, 1 Gbps, [7장](#7-크로스머신-처리량--1280720-카메라-기준)):
 
@@ -552,15 +539,11 @@ after=$(cat /sys/class/net/lo/statistics/tx_bytes)
 echo "loopback tx delta: $((after-before)) bytes"
 ```
 
-CycloneDDS 가 실제로 SHM 을 잡았는지 트레이스로 확인하려면 `CYCLONEDDS_URI` 에
-`<Tracing><Verbosity>finest</Verbosity><OutputFile>...</OutputFile></Tracing>` 를
-넣고 `vnet iceoryx initialized` / `interface iceoryx` 줄을 찾는다.
-(`<Category>iceoryx</Category>` 는 이 빌드에서 유효한 카테고리가 아니다.)
+CycloneDDS 가 실제로 SHM 을 잡았는지 트레이스로 확인하려면 `CYCLONEDDS_URI` 에 `<Tracing><Verbosity>finest</Verbosity><OutputFile>...</OutputFile></Tracing>` 를 넣고 `vnet iceoryx initialized` / `interface iceoryx` 줄을 찾는다. (`<Category>iceoryx</Category>` 는 이 빌드에서 유효한 카테고리가 아니다.)
 
 ### 크로스머신(6장) 재현
 
-두 대가 같은 서브넷에 있어야 한다(RTPS discovery 가 멀티캐스트를 쓴다).
-양쪽 `ROS_DOMAIN_ID` 와 `RMW_IMPLEMENTATION` 을 맞추고, B 를 **유휴 상태**로 둔다.
+두 대가 같은 서브넷에 있어야 한다(RTPS discovery 가 멀티캐스트를 쓴다). 양쪽 `ROS_DOMAIN_ID` 와 `RMW_IMPLEMENTATION` 을 맞추고, B 를 **유휴 상태**로 둔다.
 
 ```bash
 # B(원격): 구독자를 띄우고 NIC 수신 카운터를 기록
@@ -581,9 +564,7 @@ ssh <user>@<B_IP> '
   echo "B rx delta: $((a-$(cat /tmp/rx_before)))"; cat /tmp/remote.out'
 ```
 
-A 의 `lo` 에 페이로드만큼이 흐른다면 6.2 의 `127.0.0.1` 로케이터 현상이다.
-목적지를 확인하려면 `sudo tcpdump -i lo -nn -q udp -w lo.pcap` 로 잡아
-목적지 주소별로 세어 본다.
+A 의 `lo` 에 페이로드만큼이 흐른다면 6.2 의 `127.0.0.1` 로케이터 현상이다. 목적지를 확인하려면 `sudo tcpdump -i lo -nn -q udp -w lo.pcap` 로 잡아 목적지 주소별로 세어 본다.
 
 ### 처리량 벤치(7장) 재현
 
@@ -651,9 +632,7 @@ python3 bpub.py 400 40 best_effort          # 400장, 40 fps, BEST_EFFORT
 ssh <user>@<B_IP> 'cat /tmp/b.out'
 ```
 
-`RMW_IMPLEMENTATION` 을 `rmw_cyclonedds_cpp` 로 바꿔 같은 조합을 반복한다.
-**퍼블리셔의 `actual_fps` 가 목표에 못 미치면 미들웨어가 백프레셔를 건 것**이고,
-구독자의 `MISSING seqs` 가 `[0]` 뿐이면 시작 아티팩트지 지속 손실이 아니다.
+`RMW_IMPLEMENTATION` 을 `rmw_cyclonedds_cpp` 로 바꿔 같은 조합을 반복한다. **퍼블리셔의 `actual_fps` 가 목표에 못 미치면 미들웨어가 백프레셔를 건 것**이고, 구독자의 `MISSING seqs` 가 `[0]` 뿐이면 시작 아티팩트지 지속 손실이 아니다.
 
 ---
 

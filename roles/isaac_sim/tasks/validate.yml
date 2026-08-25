@@ -94,6 +94,27 @@
           isaac_sim_use_internal_ros2=true 로 실행하세요.
         quiet: true
 
+    # RMW 이름이 틀리면 12GiB 를 받고 설치까지 끝난 뒤에야 노드가 안 뜨는 것으로
+    # 알게 된다. 흔한 오타가 'rmw_fastdds_cpp' 인데, Fast DDS 의 RMW 패키지명은
+    # 제품명이 바뀐 뒤에도 'rmw_fastrtps_cpp' 그대로다.
+    - name: Check that the requested RMW implementation is installed
+      ansible.builtin.stat:
+        path: "/opt/ros/{{ isaac_sim_ros_distro }}/lib/lib{{ isaac_sim_rmw_implementation }}.so"
+      register: isaac_sim_rmw_lib
+
+    - name: Assert that the RMW implementation exists
+      ansible.builtin.assert:
+        that:
+          - isaac_sim_rmw_lib.stat.exists
+        fail_msg: >-
+          RMW '{{ isaac_sim_rmw_implementation }}' 를 찾을 수 없습니다
+          (lib{{ isaac_sim_rmw_implementation }}.so).
+          Fast DDS 는 'rmw_fastrtps_cpp', CycloneDDS 는 'rmw_cyclonedds_cpp' 입니다
+          ('rmw_fastdds_cpp' 라는 이름은 없습니다).
+          해당 패키지가 설치돼 있는지도 확인하세요
+          (ros-{{ isaac_sim_ros_distro }}-{{ isaac_sim_rmw_implementation | replace('_', '-') }}).
+        quiet: true
+
 - name: Verify free disk space
   when: isaac_sim_disk_check | bool
   block:
