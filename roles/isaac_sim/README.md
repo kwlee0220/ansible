@@ -19,7 +19,7 @@ Ubuntu 22.04(jammy)에 NVIDIA Isaac Sim standalone 배포판을 설치하고,
 
 ROS 2 자체는 설치하지 않는다. `ros2` role 이 담당한다.
 
-## 실행
+## 설치
 
 ```bash
 # ROS 2 Humble 설치 (아직 안 했다면)
@@ -29,14 +29,108 @@ ansible-playbook -i hosts_local playbooks/rdfp/install_rdfp_infra.yml -K
 ansible-playbook -i hosts_local playbooks/rdfp/install_isaac_sim.yml -K
 ```
 
-설치가 끝나면:
+## 대상 컴퓨터에서 Isaac Sim 실행하기
+
+설치는 Ansible 이 하지만 **실행은 대상 컴퓨터의 데스크톱 세션에서** 해야 한다.
+Vulkan/X11 GUI 애플리케이션이라 SSH 로는 뜨지 않는다.
+물리 콘솔이나 원격 데스크톱([xrdp](../xrdp/) role) 세션에서 실행할 것.
+
+### 실행 경로
+
+| 방법 | 명령 | 비고 |
+| --- | --- | --- |
+| **실행 래퍼** | `~/.local/bin/isaac-sim-ros2.sh` | ROS 2 환경을 잡고 GUI 실행. **기본** |
+| 데스크톱 항목 | 앱 메뉴 → `Isaac Sim (<version>)` | 같은 래퍼를 호출한다 |
+| 맨몸 실행 | `~/isaacsim/isaac-sim.sh` | ROS 2 브리지 없이 시뮬레이터만 |
+
+`~/.local/bin` 이 PATH 에 있으면 파일 이름만 쳐도 된다.
+래퍼에 준 인자는 그대로 `isaac-sim.sh` 로 전달된다.
 
 ```bash
-~/.local/bin/isaac-sim-ros2.sh              # ROS 2 환경을 잡고 GUI 실행
-~/.local/bin/isaac-sim-ros2.sh --no-window  # headless
+isaac-sim-ros2.sh              # GUI
+isaac-sim-ros2.sh --no-window  # headless
 ```
 
-첫 실행은 셰이더 캐시를 굽느라 5~10분 걸린다.
+**첫 실행은 셰이더 캐시를 굽느라 5~10분 걸린다.** 창이 한참 안 뜨는 것이 정상이다.
+
+### 래퍼가 잡아주는 환경
+
+`.bashrc` 를 건드리지 않는 대신 래퍼 프로세스 안에서만 아래를 설정한다
+(이유는 [ROS 2 연동에서 중요한 점](#ros-2-연동에서-중요한-점) 참조).
+
+```bash
+source /opt/ros/humble/setup.bash
+source ~/isaacsim_ros_ws/humble_ws/install/local_setup.bash   # 빌드돼 있으면
+export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+export ROS_DOMAIN_ID=0
+export FASTRTPS_DEFAULT_PROFILES_FILE=~/.ros/fastdds.xml
+```
+
+그래서 **래퍼로 띄워야 ROS 2 브리지가 붙는다.** `isaac-sim.sh` 를 직접 실행하면
+시뮬레이터는 뜨지만 토픽이 나가지 않는다.
+
+### 다른 터미널에서 ROS 2 로 붙기
+
+래퍼는 Isaac Sim **자기 프로세스에만** 환경을 건다.
+토픽을 보려는 터미널에서는 같은 값을 직접 맞춰야 한다.
+
+```bash
+source /opt/ros/humble/setup.bash
+source ~/isaacsim_ros_ws/humble_ws/install/local_setup.bash
+export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+export ROS_DOMAIN_ID=0
+export FASTRTPS_DEFAULT_PROFILES_FILE=~/.ros/fastdds.xml
+
+ros2 topic list
+```
+
+RMW 나 `ROS_DOMAIN_ID` 가 어긋나면 **에러 없이 토픽이 그냥 안 보인다.**
+`ros2` role 이 `rmw-cyclonedds-cpp` 도 설치하므로 터미널 기본값이 다를 수 있다.
+
+브리지 확장(`isaacsim.ros2.bridge`)은 따로 켤 필요 없다 — 아래 [ROS 2 연동에서 중요한 점](#ros-2-연동에서-중요한-점) 참조.
+
+### 실행 전 점검
+
+NVIDIA 가 배포판에 넣어둔 자체 검사기가 드라이버 / Vulkan / GPU 를 한 번에 확인해 준다.
+
+```bash
+~/isaacsim/isaac-sim.compatibility_check.sh
+```
+
+### 안 뜰 때
+
+| 증상 | 원인 | 대처 |
+| --- | --- | --- |
+| 창이 안 뜨고 조용히 종료 | 하이브리드 GPU 에서 `prime-select` 가 `on-demand` | 아래 참조 |
+| `Too many open files` | `nofile` 상향이 아직 세션에 반영 안 됨 | 재로그인 (pam_limits 는 로그인 세션에만 적용된다) |
+| Vulkan 초기화 실패 | 드라이버가 `isaac_sim_required_driver_version` 미달 | [nvidia_driver](../nvidia_driver/) role 로 올린 뒤 재부팅 |
+| 시뮬레이터는 뜨는데 토픽이 없음 | 맨몸 `isaac-sim.sh` 로 실행했거나 RMW 불일치 | 래퍼 사용 / 위의 환경 맞추기 |
+
+`prime-select query` 가 `on-demand` 면 Omniverse Kit 이 NVIDIA GPU 를 못 잡고
+종료되는 경우가 있다. 그때만 우회하려면:
+
+```bash
+__NV_PRIME_RENDER_OFFLOAD=1 __VK_LAYER_NV_optimus=NVIDIA_only \
+  ~/.local/bin/isaac-sim-ros2.sh
+```
+
+아예 고정하는 편이 확실하다.
+
+```bash
+sudo prime-select nvidia && sudo reboot
+```
+
+### 실제로 깔린 버전 확인
+
+`install.yml` 은 `~/isaacsim/isaac-sim.sh` 가 이미 있으면 다운로드를 통째로 건너뛴다.
+손으로 받아둔 예전 버전이 그 자리에 있으면 `isaac_sim_version` 을 올려도
+**새 버전을 받지 않는다.** 래퍼와 데스크톱 항목에는 새 버전 번호가 찍히므로 헷갈리기 쉽다.
+
+```bash
+cat ~/isaacsim/VERSION
+```
+
+버전을 바꾸려면 `~/isaacsim` 을 비우고 다시 돌린다.
 
 ## ROS 2 연동에서 중요한 점
 
