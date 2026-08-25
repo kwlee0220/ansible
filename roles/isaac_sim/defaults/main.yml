@@ -91,6 +91,30 @@ isaac_sim_ros_domain_id: 0
 isaac_sim_install_fastdds_profile: false
 isaac_sim_fastdds_profile_path: "{{ isaac_sim_user_home }}/.ros/fastdds.xml"
 
+# 프로파일 안에서 공유메모리 전송을 뺄지. 위의 "컨테이너" 상황이 여기에 해당한다.
+# false 로 두면 SHM 을 유지한 채 아래 화이트리스트만 적용할 수 있다.
+isaac_sim_fastdds_disable_shm: false
+
+# ---------------------------------------------------------------------------
+# 인터페이스 화이트리스트 — 크로스머신 구성에서 켠다
+# ---------------------------------------------------------------------------
+# Fast DDS 는 participant 를 announce 할 때 로케이터 목록에 127.0.0.1 을 함께 넣는다.
+# RTPS 라이터는 매칭된 리더가 announce 한 유니캐스트 로케이터 **전부**로 보내므로,
+# 원격 상대는 같은 샘플을 우리 실제 IP 로 한 번, **자기 자신의 127.0.0.1 로 또 한 번**
+# 보낸다. 후자는 아무도 듣지 않는 포트에 도착해 버려진다 — 전달량 대비 100% 오버헤드다.
+# (실측: 46 MB 전달에 46 MB 낭비. dds-middleware.md 6.2 절)
+#
+# 여기에 실제 IP 를 넣으면 그 주소만 announce 하므로 낭비가 사라진다.
+# SHM 은 그대로 유지되므로 같은 호스트 피어끼리는 계속 공유메모리를 쓴다 (6.3 절에서 실측).
+#
+# 주의: 주소를 고정하는 설정이라 IP 가 바뀌면(DHCP 등) DDS 통신이 끊긴다.
+# 그래서 기본은 꺼둔다. 노드가 다른 머신에 있을 때만 켠다.
+isaac_sim_fastdds_interface_whitelist: []
+
+# true 면 타깃의 기본 IPv4 주소(ansible_default_ipv4.address)를 화이트리스트에
+# 자동으로 추가한다. 머신마다 주소를 따로 적지 않아도 되므로 보통 이쪽을 쓴다.
+isaac_sim_fastdds_whitelist_default_iface: false
+
 # 브리지가 쓰는 선택 메시지 패키지 ("ros-<distro>-" 접두어는 자동으로 붙는다)
 #   vision-msgs    : Detection2DArray / Detection3DArray 퍼블리셔
 #   ackermann-msgs : AckermannDriveStamped 구독자

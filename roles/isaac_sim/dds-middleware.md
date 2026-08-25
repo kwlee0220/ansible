@@ -283,30 +283,63 @@ $ tcpdump -nn -r lo.pcap | awk '{print $5}' | sort | uniq -c | sort -rn | head -
 
 ### 6.3 대응 — 실제 IP 만 announce 하게 한다
 
-각 머신에서 자기 인터페이스만 화이트리스트에 넣는다. (B 쪽 예시)
+각 머신이 자기 인터페이스만 announce 하도록 화이트리스트를 건다.
+**SHM 은 그대로 유지된다** — 두 transport descriptor 를 함께 등록하면 된다.
 
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
-  <transport_descriptors>
-    <transport_descriptor>
-      <transport_id>UdpNic</transport_id>
-      <type>UDPv4</type>
-      <interfaceWhiteList><address>192.168.0.2</address></interfaceWhiteList>
-    </transport_descriptor>
-  </transport_descriptors>
-  <participant profile_name="nic_only" is_default_profile="true">
-    <rtps>
-      <userTransports><transport_id>UdpNic</transport_id></userTransports>
-      <useBuiltinTransports>false</useBuiltinTransports>
-    </rtps>
-  </participant>
-</profiles>
+role 변수로 켠다. 머신마다 주소를 적을 필요 없이 기본 인터페이스를 자동으로 쓴다.
+
+```bash
+ansible-playbook -i hosts_local playbooks/rdfp/install_isaac_sim.yml -K \
+  -e isaac_sim_fastdds_whitelist_default_iface=true
 ```
 
-이것을 적용한 것이 케이스 5 다. A 의 `lo` 송신이 51,703,044 → 44,372 B 로 떨어졌고 양쪽 수신은 그대로였다.
+주소를 직접 지정하려면 `isaac_sim_fastdds_interface_whitelist` 에 목록으로 준다.
+어느 쪽이든 프로파일 배치가 자동으로 켜지므로 `isaac_sim_install_fastdds_profile`
+을 따로 줄 필요는 없다.
 
-> **주의.** 위 예시는 `useBuiltinTransports=false` 라 그 머신에서 **SHM 도 같이 빠진다.** 케이스 5 의 B 는 로컬 피어가 없는 원격 전용 노드라 문제가 없었다. 한 머신에서 SHM 과 화이트리스트를 **둘 다** 원하면 SHM transport descriptor (`<type>SHM</type>`)를 명시적으로 함께 등록해 `userTransports` 에 넣어야 한다. 이 조합은 검증하지 않았다.
+[templates/fastdds.xml.j2](templates/fastdds.xml.j2) 가 만드는 결과:
+
+```xml
+<transport_descriptors>
+    <transport_descriptor>
+        <transport_id>ShmTransport</transport_id>
+        <type>SHM</type>
+    </transport_descriptor>
+    <transport_descriptor>
+        <transport_id>UdpTransport</transport_id>
+        <type>UDPv4</type>
+        <interfaceWhiteList>
+            <address>192.168.0.134</address>
+        </interfaceWhiteList>
+    </transport_descriptor>
+</transport_descriptors>
+
+<participant profile_name="isaac_sim_transport" is_default_profile="true">
+    <rtps>
+        <userTransports>
+            <transport_id>ShmTransport</transport_id>
+            <transport_id>UdpTransport</transport_id>
+        </userTransports>
+        <useBuiltinTransports>false</useBuiltinTransports>
+    </rtps>
+</participant>
+```
+
+`useBuiltinTransports=false` 는 기본 전송을 전부 걷어내므로, SHM 을 쓰려면
+위처럼 SHM descriptor 를 **명시적으로** 등록해야 한다. 이것을 빠뜨리면
+화이트리스트는 걸리지만 SHM 이 사라져 같은 호스트 전달까지 UDP 로 떨어진다.
+
+**실측** — 로컬·원격 구독자를 동시에 붙이고 46,080,000 B 를 보냈을 때
+A 의 `lo` 송신량:
+
+| 구성 | A `lo` 송신 | `/dev/shm` fastrtps 세그먼트 | 로컬 수신 | 원격 수신 |
+| --- | ---: | ---: | --- | --- |
+| 프로파일 없음 | 49,451,608 | 5 | 50/50 | 50/50 |
+| 화이트리스트만 (SHM descriptor 누락) | 46,239,996 | **0** | 50/50 | 50/50 |
+| **SHM + 화이트리스트** | **29,304** | 5 | 50/50 | 50/50 |
+
+가운데 줄이 위에서 말한 함정이다. 낭비는 사라졌지만 SHM 도 같이 사라져
+같은 호스트 전달이 UDP 로 떨어졌다(세그먼트 0개). 맨 아래가 role 이 만드는 구성이다.
 
 ## 7. 크로스머신 처리량 — 1280×720 카메라 기준
 
@@ -454,8 +487,8 @@ Isaac Sim 은 시뮬레이션 토픽을 대량으로 발행한다. 실 로봇 �
 | 상황 | 설정 |
 | --- | --- |
 | Isaac Sim + ROS 2 노드가 **같은 호스트** | Fast DDS. 기본값 그대로 (프로파일 `false`) |
-| 노드가 **다른 머신** | Fast DDS. 기본값 그대로 — SHM 은 로컬끼리만 쓰이고 원격은 자동으로 UDP 다([6장](#6-shm-과-네트워크는-공존한다--크로스머신-실측)). 추가로 인터페이스 화이트리스트를 거는 편이 좋다([6.3](#63-대응--실제-ip-만-announce-하게-한다)) |
-| 노드가 **같은 호스트의 다른 컨테이너** | `isaac_sim_install_fastdds_profile=true`. 컨테이너의 `/dev/shm` 크기·IPC 네임스페이스 제약을 피한다 (SHM 포기) |
+| 노드가 **다른 머신** | Fast DDS + `isaac_sim_fastdds_whitelist_default_iface=true`. SHM 은 로컬끼리만 쓰이고 원격은 자동으로 UDP 다([6장](#6-shm-과-네트워크는-공존한다--크로스머신-실측)). 화이트리스트가 없으면 전달량만큼을 `127.0.0.1` 로 버린다([6.3](#63-대응--실제-ip-만-announce-하게-한다)) |
+| 노드가 **같은 호스트의 다른 컨테이너** | `isaac_sim_install_fastdds_profile=true` + `isaac_sim_fastdds_disable_shm=true`. 컨테이너의 `/dev/shm` 크기·IPC 네임스페이스 제약을 피한다 (SHM 포기) |
 | 스택이 이미 Cyclone | 전부 Cyclone 으로 통일. 프로파일은 자동으로 비활성이므로([8.2](#82-프로파일은-fast-dds-일-때만-적용된다)) `CYCLONEDDS_URI` 를 직접 준비해야 한다 |
 
 "다른 머신"과 "다른 컨테이너"를 한 줄로 묶으면 안 된다. 머신이 다르면 SHM 은 애초에

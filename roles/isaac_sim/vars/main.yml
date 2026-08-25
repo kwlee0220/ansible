@@ -40,8 +40,18 @@ _isaac_sim_runtime_packages:
 # UDP 전용 프로파일은 Fast DDS 일 때만 의미가 있다.
 _isaac_sim_uses_fastdds: "{{ isaac_sim_rmw_implementation is match('rmw_fastrtps') }}"
 
-# 프로파일을 실제로 배치·export 할지. 사용자 스위치와 RMW 종류를 모두 만족해야 한다.
+# 프로파일에 넣을 인터페이스 화이트리스트. 명시 목록 + (선택) 기본 인터페이스 주소.
+_isaac_sim_fastdds_whitelist: >-
+  {{ (isaac_sim_fastdds_interface_whitelist | default([]))
+     + ([ansible_default_ipv4.address] if (isaac_sim_fastdds_whitelist_default_iface | bool)
+         and (ansible_default_ipv4.address is defined) else []) }}
+
+# 프로파일을 실제로 배치·export 할지.
+# Fast DDS 계열이면서, 명시적으로 켰거나 화이트리스트를 요구한 경우에만 만든다.
+# (화이트리스트를 지정했다는 것은 프로파일이 필요하다는 뜻이므로 따로 켜지 않아도 된다.)
 _isaac_sim_fastdds_profile_active: >-
-  {{ (isaac_sim_install_fastdds_profile | bool) and (_isaac_sim_uses_fastdds | bool) }}
+  {{ (_isaac_sim_uses_fastdds | bool)
+     and ((isaac_sim_install_fastdds_profile | bool)
+          or (_isaac_sim_fastdds_whitelist | length > 0)) }}
 
 _isaac_sim_launcher_path: "{{ isaac_sim_launcher_dir }}/{{ isaac_sim_launcher_name }}"

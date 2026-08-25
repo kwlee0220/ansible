@@ -157,6 +157,10 @@ cat ~/isaacsim/VERSION
   Isaac Sim 과 노드가 **같은 호스트의 서로 다른 컨테이너**에 있을 때뿐이다.
   노드가 **다른 머신**에 있는 것은 켤 이유가 아니다 — SHM 을 켜 둬도 원격과는
   자동으로 UDP 를 쓴다. RMW 가 Fast DDS 가 아니면 이 프로파일은 적용되지 않는다.
+- **노드가 다른 머신에 있으면 `isaac_sim_fastdds_whitelist_default_iface=true` 를 줄 것.**
+  Fast DDS 는 `127.0.0.1` 도 로케이터로 announce 하고 원격 상대가 그리로도 데이터를
+  한 벌 더 보내, 전달량만큼을 그대로 버린다(실측 46 MB 전달에 46 MB 낭비).
+  실제 IP 만 announce 하게 하면 사라지며, 공유메모리는 그대로 유지된다.
 - **브리지 확장은 따로 설치하지 않는다.** `isaacsim.ros2.bridge` 는 패키지에
   포함돼 있고, ROS 2 환경이 잡힌 터미널에서 실행하면 자동으로 활성화된다.
 
@@ -170,7 +174,10 @@ cat ~/isaacsim/VERSION
 | `isaac_sim_ros_distro` | `humble` | 연동할 ROS 2 배포판 |
 | `isaac_sim_use_internal_ros2` | `false` | 시스템 ROS 2 대신 내장 ROS 2 라이브러리 사용 |
 | `isaac_sim_rmw_implementation` | `rmw_fastrtps_cpp` | 래퍼가 설정하는 RMW |
-| `isaac_sim_install_fastdds_profile` | `false` | UDP 전용 Fast DDS 프로파일 배치. 컨테이너 구성일 때만 `true` ([dds-middleware.md](dds-middleware.md)) |
+| `isaac_sim_install_fastdds_profile` | `false` | Fast DDS 전송 프로파일 배치 ([dds-middleware.md](dds-middleware.md)) |
+| `isaac_sim_fastdds_disable_shm` | `false` | 프로파일에서 공유메모리 전송 제거. 컨테이너 구성일 때만 |
+| `isaac_sim_fastdds_whitelist_default_iface` | `false` | 기본 IPv4 만 announce. **노드가 다른 머신에 있으면 켤 것** |
+| `isaac_sim_fastdds_interface_whitelist` | `[]` | announce 할 주소를 직접 지정 |
 | `isaac_sim_ros_domain_id` | `0` | 래퍼가 설정하는 도메인 ID |
 | `isaac_sim_build_ros_workspace` | `true` | `humble_ws` 빌드 여부 |
 | `isaac_sim_driver_check` | `true` | `nvidia-smi` 드라이버 버전 검사 |
