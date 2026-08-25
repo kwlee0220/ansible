@@ -40,11 +40,14 @@
 - name: Verify NVIDIA driver
   when: isaac_sim_driver_check | bool
   block:
+    # 읽기 전용 조회다. check 모드에서 건너뛰면 빈 결과가 나와
+    # "nvidia-smi 를 실행할 수 없습니다" 로 잘못 실패한다.
     - name: Query the installed NVIDIA driver version
       ansible.builtin.command: nvidia-smi --query-gpu=driver_version --format=csv,noheader
       register: isaac_sim_nvidia_smi
       changed_when: false
       failed_when: false
+      check_mode: false
 
     - name: Assert that an NVIDIA RTX GPU driver is available
       ansible.builtin.assert:
@@ -99,6 +102,7 @@
       ansible.builtin.command: "df -BG --output=avail {{ isaac_sim_user_home }}"
       register: isaac_sim_df
       changed_when: false
+      check_mode: false
 
     - name: Assert that there is enough free space
       ansible.builtin.assert:

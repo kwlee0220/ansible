@@ -30,6 +30,13 @@ ansible-playbook -i hosts_local playbooks/rdfp/install_rdfp_infra.yml -K
 ansible-playbook -i hosts_local playbooks/rdfp/install_isaac_sim.yml -K
 ```
 
+13GiB 를 받고 워크스페이스까지 빌드하므로, 먼저 `--check` 로 전제 조건만 확인해 볼 수 있다.
+드라이버·디스크·ROS 2 조회는 실제로 수행하고 설치·빌드는 건너뛴다.
+
+```bash
+ansible-playbook -i hosts_local playbooks/rdfp/install_isaac_sim.yml -K --check
+```
+
 ## 대상 컴퓨터에서 Isaac Sim 실행하기
 
 설치는 Ansible 이 하지만 **실행은 대상 컴퓨터의 데스크톱 세션에서** 해야 한다.

@@ -29,6 +29,15 @@
     HOME: "{{ isaac_sim_user_home }}"
   changed_when: false
 
+# check 모드에서는 위의 clone 이 실제로 일어나지 않아 워크스페이스 디렉터리가 없다.
+# chdir 검증은 check 모드에서도 수행되므로, 가드 없이 두면 여기서 죽는다.
+- name: Report that check mode stops before the workspace build
+  ansible.builtin.debug:
+    msg: >-
+      check 모드입니다. 워크스페이스가 클론되지 않았으므로 rosdep 의존성 해결과
+      colcon 빌드는 건너뜁니다.
+  when: ansible_check_mode
+
 # rosdep install 은 내부에서 apt 를 부른다. 일반 사용자로 돌리면 rosdep 이
 # 'sudo -H apt-get ...' 을 실행하면서 비밀번호 프롬프트에 걸려 멈추므로 root 로
 # 돌린다. 다만 캐시를 찾도록 HOME 은 대상 사용자 홈으로 맞춘다.
@@ -45,6 +54,7 @@
     HOME: "{{ isaac_sim_user_home }}"
   register: isaac_sim_rosdep
   changed_when: "'executing command' in isaac_sim_rosdep.stdout"
+  when: not ansible_check_mode
 
 - name: Build the workspace with colcon
   ansible.builtin.shell:
@@ -58,3 +68,4 @@
   become_user: "{{ isaac_sim_user }}"
   environment:
     HOME: "{{ isaac_sim_user_home }}"
+  when: not ansible_check_mode
