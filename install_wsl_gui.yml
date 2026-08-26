@@ -56,6 +56,53 @@
         update_cache: true
       become: true
 
+    # tilix 를 Wayland 로 띄우면(tilix role 의 alias 참조) fcitx5 한글 입력이 GTK 의
+    # DBus 프론트엔드를 타므로 세션 D-Bus 버스가 반드시 있어야 한다. X11 경로에서는
+    # XIM 으로 우회되어 버스 없이도 되던 탓에 이 문제가 오래 가려져 있었다.
+    #
+    # 버스는 dbus-user-session 이 systemd --user 의 dbus.socket 으로 만들어 준다.
+    # 그런데 이 패키지가 systemd --user 가 이미 뜬 뒤에 설치되면 (다른 playbook 이
+    # docker-ce 를 깔면서 딸려오는 식으로) 그 부팅 동안 소켓이 올라오지 않아
+    # /run/user/<uid>/bus 가 없는 채로 남는다. 그래서 설치만 하지 말고 현재 세션에서도
+    # 살려 준다. dconf load 태스크도 이 버스가 있어야 제대로 된 경로를 탄다.
+    - name: Install dbus-user-session
+      ansible.builtin.package:
+        name: dbus-user-session
+        state: present
+      become: true
+
+    # 아래 두 태스크는 systemd 가 있는 WSL 에서만 의미가 있다. /etc/wsl.conf 에
+    # systemd=true 가 없으면 systemd --user 자체가 없어서 세션 버스를 만들 방법이
+    # 없다. 그 경우는 마지막 태스크가 경고만 남긴다.
+    - name: Check whether the user D-Bus socket is running
+      ansible.builtin.command: systemctl --user is-active dbus.socket
+      environment:
+        XDG_RUNTIME_DIR: "/run/user/{{ ansible_user_uid }}"
+      register: dbus_socket_state
+      changed_when: false
+      failed_when: false
+      when: ansible_service_mgr == 'systemd'
+
+    - name: Start the user D-Bus socket in the current session
+      ansible.builtin.shell: |
+        systemctl --user daemon-reload
+        systemctl --user start dbus.socket
+      args:
+        executable: /bin/bash
+      environment:
+        XDG_RUNTIME_DIR: "/run/user/{{ ansible_user_uid }}"
+      when:
+        - ansible_service_mgr == 'systemd'
+        - dbus_socket_state.stdout | default('') != 'active'
+
+    - name: Warn when there is no systemd to provide the session D-Bus bus
+      ansible.builtin.debug:
+        msg: >-
+          systemd 가 없어 세션 D-Bus 버스를 만들 수 없습니다.
+          Wayland 로 띄운 tilix 에서 fcitx5 한글 입력이 동작하지 않습니다.
+          /etc/wsl.conf 에 [boot] systemd=true 를 넣고 wsl --shutdown 후 다시 실행하세요.
+      when: ansible_service_mgr != 'systemd'
+
   roles:
     - name: Install Tilix
       role: tilix
