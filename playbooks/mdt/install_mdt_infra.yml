@@ -77,4 +77,4 @@
         insertbefore: "#THIS MUST BE AT THE END OF THE FILE"
         marker: "# MDT: {mark}"
         block: |
-          [ -f {{ mdt_home_dir }}/mdt/.mdtrc ] && source {{ mdt_home_dir }}/mdt/.mdtrc
+          [ -f {{ mdt_home_dir }}/.mdtrc ] && source {{ mdt_home_dir }}/.mdtrc
