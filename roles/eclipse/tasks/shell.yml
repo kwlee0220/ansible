@@ -1,0 +1,15 @@
+---
+# eclipse_install_dir 에 버전이 박혀 있으므로 (.../eclipse/2026-06/eclipse)
+# eclipse_version 을 올리면 alias 도 새 경로를 가리켜야 한다. regexp 로 기존
+# 줄을 잡아 치환하는 이유가 이것이다. 매칭이 없을 때만 EOF 에 새로 붙는다.
+- name: Create alias for eclipse
+  ansible.builtin.lineinfile:
+    path: "{{ eclipse_bashrc_path }}"
+    regexp: "^alias eclipse="
+    line: "alias eclipse='{{ eclipse_install_dir }}/eclipse'"
+    state: present
+    insertafter: EOF
+  become: yes
+  become_user: "{{ eclipse_user }}"
+  environment:
+    HOME: "{{ eclipse_user_home }}"

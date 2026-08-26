@@ -11,3 +11,7 @@
 
 - name: Configure desktop entry (user-local)
   ansible.builtin.include_tasks: desktop.yml
+
+- name: Configure shell alias (user-local)
+  ansible.builtin.include_tasks: shell.yml
+  when: eclipse_configure_alias | bool

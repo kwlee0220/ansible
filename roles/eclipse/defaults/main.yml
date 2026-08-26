@@ -30,6 +30,10 @@ lombok_jar_url: "https://projectlombok.org/downloads/lombok.jar"
 lombok_jar_path: "{{ eclipse_install_dir }}/lombok.jar"
 eclipse_ini_path: "{{ eclipse_install_dir }}/eclipse.ini"
 
+# Shell alias (.bashrc 에 'eclipse' 명령 추가)
+eclipse_configure_alias: true
+eclipse_bashrc_path: "{{ eclipse_user_home }}/.bashrc"
+
 # Desktop entry (사용자 로컬)
 eclipse_desktop_dir: "{{ eclipse_user_home }}/.local/share/applications"
 eclipse_desktop_entry_path: "{{ eclipse_desktop_dir }}/eclipse.desktop"
