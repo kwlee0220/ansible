@@ -32,6 +32,24 @@
 - name: Install vim
   include_role: name=vim
 
+- name: Install fastfetch
+  #   fastfetch 는 Ubuntu 25.04(plucky) 부터 배포판 아카이브에 들어왔다.
+  #   22.04/24.04 에는 없으므로 공식 GitHub 릴리스의 .deb 를 받아 설치한다.
+  block:
+    - name: Install fastfetch from the distribution archive
+      package: name=fastfetch state=latest
+      become: true
+  rescue:
+    - name: Download the fastfetch .deb package
+      get_url:
+        url: "{{ fastfetch_deb_url }}"
+        dest: /tmp/fastfetch-linux-amd64.deb
+        mode: '0644'
+    - name: Install fastfetch from the downloaded .deb package
+      apt:
+        deb: /tmp/fastfetch-linux-amd64.deb
+      become: true
+
 - name: Install bat & create alias for bat
   block:
     - name: Install bat
@@ -104,7 +122,7 @@
       blockinfile:
         path: "{{ user_home_dir }}/.bashrc"
         prepend_newline: yes
-        postpend_newline: yes
+        append_newline: yes
         marker: "# AUTOJUMP: {mark}"
         block: |
           [[ -s /usr/share/autojump/autojump.sh ]] && source /usr/share/autojump/autojump.sh
