@@ -2,11 +2,20 @@
 # eclipse_install_dir 에 버전이 박혀 있으므로 (.../eclipse/2026-06/eclipse)
 # eclipse_version 을 올리면 alias 도 새 경로를 가리켜야 한다. regexp 로 기존
 # 줄을 잡아 치환하는 이유가 이것이다. 매칭이 없을 때만 EOF 에 새로 붙는다.
+#
+# 백그라운드 실행에 'nohup ... &' 대신 'setsid --fork' 를 쓴다. alias 는 뒤에
+# 붙는 인자를 전개 결과의 끝에 그대로 이어붙이므로, '&' 로 끝나는 alias 에
+# 인자를 주면 그 인자가 별개의 명령이 된다:
+#     eclipse -data ~/ws  ->  nohup ... & -data ~/ws  ->  '-data: command not found'
+# 리다이렉션은 simple command 안 어디에 있어도 되고 나머지 단어는 인자로
+# 남으므로, '&' 없는 setsid 형태는 'eclipse -data ~/ws' 가 정상 동작한다.
+# --fork 는 필수다. 이것이 없으면 호출한 쉘이 이미 프로세스 그룹 리더가
+# 아닐 때 setsid 가 fork 하지 않아 터미널이 그대로 묶인다.
 - name: Create alias for eclipse
   ansible.builtin.lineinfile:
     path: "{{ eclipse_bashrc_path }}"
     regexp: "^alias eclipse="
-    line: "alias eclipse='{{ eclipse_install_dir }}/eclipse'"
+    line: "alias eclipse='setsid --fork {{ eclipse_install_dir }}/eclipse >/dev/null 2>&1'"
     state: present
     insertafter: EOF
   become: yes
