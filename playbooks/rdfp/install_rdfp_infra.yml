@@ -8,7 +8,9 @@
 # 옮기면서 vars/mdt_vars.yml 의존을 걷어냈다. 그 파일에서 이 playbook 이 쓰던 값은
 # install_ros2 하나뿐이었고 나머지는 MDT 전용(postgres 계정, mdt_home_dir 등)이다.
 # ROS 2 설치가 이 playbook 의 목적 자체이므로 그 스위치도 두지 않는다.
-# ros2 role 이 필요로 하는 user_home_dir 은 role 자체 defaults 에 있다.
+# user_home_dir 은 이 playbook 이 직접 정의한다. role 의 defaults 는 그 role 안에서만
+# 보이므로 play 의 tasks: 에는 닿지 않으며, ros2 role 은 셸 설정을 하지 않게 되면서
+# user_home_dir 자체를 더는 쓰지 않는다 (roles/ros2/defaults/main.yml 참조).
 #
 # 설치할 ROS 2 배포판은 ros2 role 이 타깃 Ubuntu 릴리즈에서 유도한다
 # (jammy -> humble, noble -> jazzy). 강제하려면 -e ros2_distro=... 로 넘긴다.
@@ -19,6 +21,9 @@
 
 - name: Install ROS 2 infrastructure for rdfp
   hosts: all
+
+  vars:
+    user_home_dir: "{{ ansible_env.HOME }}"
 
   roles:
     - name: Install ROS2
@@ -32,7 +37,7 @@
 
     # - name: Install ROS 2 Panda
     #   role: ros_panda
-        
+
   tasks:
     - name: Configure RDFP in bashrc
       blockinfile:
