@@ -32,3 +32,14 @@
 
     # - name: Install ROS 2 Panda
     #   role: ros_panda
+        
+  tasks:
+    - name: Configure RDFP in bashrc
+      blockinfile:
+        path: "{{ user_home_dir }}/.bashrc"
+        prepend_newline: yes
+        append_newline: yes
+        insertbefore: "#THIS MUST BE AT THE END OF THE FILE"
+        marker: "# RDFP: {mark}"
+        block: |
+          [[ -s ~/development/.devrc ]] && source ~/development/.devrc

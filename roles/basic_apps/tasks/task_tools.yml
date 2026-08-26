@@ -14,45 +14,49 @@
       - cpufetch
       - net-tools
       - ffmpeg
-      - bat
-      - fd-find
       - jq
     state: latest
   become: true
 
-- name: Install fastfetch
-  #   fastfetch 는 Ubuntu 25.04(plucky) 부터 배포판 아카이브에 들어왔다.
-  #   22.04/24.04 에는 없으므로 공식 GitHub 릴리스의 .deb 를 받아 설치한다.
-  block:
-    - name: Install fastfetch from the distribution archive
-      package: name=fastfetch state=latest
-      become: true
-  rescue:
-    - name: Download the fastfetch .deb package
-      get_url:
-        url: "{{ fastfetch_deb_url }}"
-        dest: /tmp/fastfetch-linux-amd64.deb
-        mode: '0644'
-    - name: Install fastfetch from the downloaded .deb package
-      apt:
-        deb: /tmp/fastfetch-linux-amd64.deb
-      become: true
+- name: add '~/.local/bin' to PATH in .bashrc
+  lineinfile:
+    path: "{{ user_home_dir }}/.bashrc"
+    # 작은따옴표를 쓴다. YAML 큰따옴표 안에서 \$ 는 유효한 이스케이프가 아니라
+    # 파일 전체가 파싱되지 않는다("found unknown escape character").
+    # 작은따옴표 안에서는 역슬래시가 그대로 남아 정규식의 \$ (리터럴 $) 가 된다.
+    regexp: '^export PATH=.*\$HOME/\.local/bin'
+    line: 'export PATH=$PATH:$HOME/.local/bin'
+    state: present
+    insertafter: EOF
 
-- name: Install autojump & configure autojump
+- name: Install vim
+  include_role: name=vim
+
+- name: Install bat & create alias for bat
   block:
-    - name: Install autojump
-      package: name=autojump state=latest
+    - name: Install bat
+      package: name=bat state=latest
       become: true
-    - name: Configure autojump
+    - name: Create alias for bat
       lineinfile:
-          path: "{{ user_home_dir }}/.bashrc"
-          regexp: 'source /usr/share/autojump/autojump.sh'
-          line: "[[ -s /usr/share/autojump/autojump.sh ]] && source /usr/share/autojump/autojump.sh"
-          state: present
-    - name: Normalize .bashrc line endings
-      command: "dos2unix {{ user_home_dir }}/.bashrc"
-      register: dos2unix_result
-      changed_when: "'converting file' in dos2unix_result.stderr"
+        path: "{{ user_home_dir }}/.bashrc"
+        regexp: "^alias bat="
+        line: "alias bat='/usr/bin/batcat'"
+        state: present
+        insertafter: EOF
+
+- name: Install fd-find & create alias for fd-find
+  block:
+    - name: Install fd-find
+      package: name=fd-find state=latest
+      become: true
+    - name: Create alias for fdfind
+      lineinfile:
+        path: "{{ user_home_dir }}/.bashrc"
+        regexp: "^alias fd="
+        line: "alias fd='/bin/fdfind'"
+        state: present
+        insertafter: EOF
 
 - name: Install gdu application
   block:
@@ -65,20 +69,48 @@
         src: "/tmp/gdu_linux_amd64.tgz"
         dest: "/usr/local/bin/"
         remote_src: yes
+      become: true
     - name: Install extracted binary as 'gdu'
       copy:
         src: "/usr/local/bin/gdu_linux_amd64"
         dest: "/usr/local/bin/gdu"
         mode: '0755'
         remote_src: yes
+      become: true
+    - name: Create alias for gdu
+      lineinfile:
+        path: "{{ user_home_dir }}/.bashrc"
+        regexp: "^alias gdu="
+        line: "alias gdu='/usr/local/bin/gdu'"
+        state: present
+        insertafter: EOF
   rescue:
     - name: Warn that gdu installation was skipped
       debug:
-        msg: "gdu installation failed; continuing without it (non-fatal)."
-  become: true
+        msg: >-
+          gdu 설치를 건너뜁니다 (치명적 아님).
+          실패한 태스크: '{{ ansible_failed_task.name | default('unknown') }}' /
+          원인: {{ ansible_failed_result.msg | default('(메시지 없음)') }}
 
 - name: Install fzf application
   include_role: name=fzf
 
-- name: Install vim
-  include_role: name=vim
+- name: Install autojump & configure autojump
+  block:
+    - name: Install autojump
+      package: name=autojump state=latest
+      become: true
+    - name: Configure autojump
+      blockinfile:
+        path: "{{ user_home_dir }}/.bashrc"
+        prepend_newline: yes
+        postpend_newline: yes
+        marker: "# AUTOJUMP: {mark}"
+        block: |
+          [[ -s /usr/share/autojump/autojump.sh ]] && source /usr/share/autojump/autojump.sh
+          alias aj='autojump'
+    - name: Normalize .bashrc line endings
+      replace:
+        path: "{{ user_home_dir }}/.bashrc"
+        regexp: '\r\n'
+        replace: '\n'

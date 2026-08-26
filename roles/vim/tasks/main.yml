@@ -16,3 +16,11 @@
     src: files/vimrc
     dest: "{{ user_home_dir }}/.vimrc"
     mode: '0644'
+
+- name: Ensure .bashrc sources vim
+  ansible.builtin.lineinfile:
+    path: "{{ user_home_dir }}/.bashrc"
+    regexp: "^source ~/.vimrc"
+    line: "alias vi='vim'"
+    state: present
+    insertafter: EOF

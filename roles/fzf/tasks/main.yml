@@ -19,3 +19,10 @@
   args:
     executable: /bin/bash
     creates: "{{ user_home_dir }}/.fzf/bin/fzf"
+
+- name: Ensure .bashrc sources fzf
+  ansible.builtin.lineinfile:
+    path: "{{ user_home_dir }}/.bashrc"
+    line: '[ -f {{ user_home_dir }}/.fzf.bash ] && source {{ user_home_dir }}/.fzf.bash'
+    state: present
+    insertafter: EOF

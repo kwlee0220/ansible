@@ -3,11 +3,11 @@
   become: true
   apt: update_cache=yes
 
-- name: copy .bashrc
-  include_tasks: tasks/task_bashrc.yml
-
+# import_tasks(정적)를 쓴다. include_tasks(동적)면 두 가지를 잃는다.
+#   - 자식 태스크의 tags 가 --tags 로 도달하지 않는다 (예: --tags autojump 가 무반응)
+#   - --syntax-check 가 자식 파일을 파싱하지 않아 YAML 오류를 실행 시점에야 안다
 - name: install some terminal applications
-  include_tasks: tasks/task_tools.yml
+  import_tasks: tasks/task_tools.yml
 
 - name: generate SSH key
   include_role: name=generate_ssh_key
