@@ -118,3 +118,45 @@
           - pcmanfm
         state: present
       become: true
+
+    # gedit 는 snap 으로 설치한다. 22.04 저장소의 deb 는 41.0 에서 멈춰 있고
+    # snap 쪽은 48.x 를 따라간다.
+    #
+    # snap 은 snapd 가 systemd 아래에서 돌아야 동작하므로, /etc/wsl.conf 에
+    # systemd=true 가 없는 WSL 에서는 deb 로 떨어진다.
+    - name: Install snapd
+      ansible.builtin.package:
+        name: snapd
+        state: present
+      become: true
+      when: ansible_service_mgr == 'systemd'
+
+    - name: Ensure snapd is running
+      ansible.builtin.systemd:
+        name: snapd.socket
+        state: started
+        enabled: true
+      become: true
+      when: ansible_service_mgr == 'systemd'
+
+    # 갓 설치한 snapd 는 seeding 이 끝나기 전까지 "too early for operation,
+    # device not yet seeded" 로 설치를 거부한다. 그래서 씨딩을 기다린다.
+    - name: Wait for snapd to finish seeding
+      ansible.builtin.command: snap wait system seed.loaded
+      become: true
+      changed_when: false
+      when: ansible_service_mgr == 'systemd'
+
+    - name: Install gedit (snap)
+      community.general.snap:
+        name: gedit
+        state: present
+      become: true
+      when: ansible_service_mgr == 'systemd'
+
+    - name: Install gedit (deb, systemd 가 없어 snap 을 쓸 수 없을 때)
+      ansible.builtin.package:
+        name: gedit
+        state: present
+      become: true
+      when: ansible_service_mgr != 'systemd'
