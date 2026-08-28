@@ -30,6 +30,10 @@
   hosts: all
 
   vars:
+    # .bashrc 경로를 만들 때 쓴다. role 의 defaults 는 그 role 안에서만 보이므로
+    # play 의 tasks: 에는 닿지 않는다 (62cad2a 참조).
+    user_home_dir: "{{ ansible_env.HOME }}"
+
     # 한글 입력기(fcitx5)까지 설치할지 여부. WSLg 로 리눅스 GUI 앱을 쓰지 않으면
     # false 로 둘 수 있으나, locale 과 한글 폰트 설정도 이 role 이 함께 한다.
     install_hangul: true
@@ -118,6 +122,21 @@
           - pcmanfm
         state: present
       become: true
+
+    # tilix 와 마찬가지로 터미널을 붙잡지 않고 뜨게 한다. GDK_BACKEND=wayland 인
+    # 이유는 tilix role 의 셸 함수 주석 참조 (Xwayland 로 띄우면 마우스 포인터가
+    # 보이지 않고 창 크기도 바뀌지 않는다. GTK 앱 전반에 해당한다).
+    #
+    # tilix 처럼 alias 로 두지 않고 셸 함수로 두는 이유는 인자 때문이다. alias 는
+    # 뒤에 붙는 인자가 '&' 다음으로 밀려 별도 명령으로 실행되어 버린다.
+    #   alias pcmanfm="... &> /dev/null &" 일 때
+    #   $ pcmanfm /some/dir  ->  ... &> /dev/null & /some/dir   (rc=127)
+    # 파일 관리자는 'pcmanfm .' 처럼 경로를 받는 일이 흔하므로 "$@" 로 넘긴다.
+    - name: Add a pcmanfm shell function that backgrounds it and drops its output
+      ansible.builtin.lineinfile:
+        path: "{{ user_home_dir }}/.bashrc"
+        regexp: '^pcmanfm\(\)'
+        line: 'pcmanfm() { GDK_BACKEND=wayland /usr/bin/pcmanfm "$@" &> /dev/null & }'
 
     # gedit 는 snap 으로 설치한다. 22.04 저장소의 deb 는 41.0 에서 멈춰 있고
     # snap 쪽은 48.x 를 따라간다.

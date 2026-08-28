@@ -84,9 +84,25 @@
 # 한글 입력(fcitx5)은 Wayland 에서도 GTK_IM_MODULE=fcitx 로 잘 붙는다. 단 그 경로는
 # DBus 를 타므로 세션 버스가 있어야 한다 (X11 은 XIM 으로 우회되어 버스 없이도
 # 되던 탓에 문제가 가려진다). dbus-user-session 참조.
-- name: Add alias for WSL2
+#
+# alias 가 아니라 셸 함수인 이유는 인자 때문이다. alias 로 두면 뒤에 붙는 인자가
+# '&' 다음으로 밀려 별도 명령으로 실행되어 버린다.
+#   alias tilix="... &> /dev/null &" 일 때
+#   $ tilix -w /some/dir  ->  ... &> /dev/null & -w /some/dir   (rc=127)
+# tilix 는 -w/-e 같은 옵션을 받으므로 "$@" 로 넘긴다.
+#
+# 함수를 넣기 전에 예전 alias 줄을 지워야 한다. bash 는 alias 를 함수보다 먼저
+# 전개하므로 둘 다 남아 있으면 alias 가 함수를 가려 버린다.
+- name: Remove the old tilix alias superseded by the shell function
   lineinfile:
     path: "{{ user_home_dir }}/.bashrc"
     regexp: '^alias tilix='
-    line: 'alias tilix="GDK_BACKEND=wayland /usr/bin/tilix &> /dev/null &"'
+    state: absent
+  when: is_wsl | bool
+
+- name: Add a tilix shell function for WSL2
+  lineinfile:
+    path: "{{ user_home_dir }}/.bashrc"
+    regexp: '^tilix\(\)'
+    line: 'tilix() { GDK_BACKEND=wayland /usr/bin/tilix "$@" &> /dev/null & }'
   when: is_wsl | bool
