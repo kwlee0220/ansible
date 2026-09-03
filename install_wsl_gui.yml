@@ -138,11 +138,23 @@
         regexp: '^pcmanfm\(\)'
         line: 'pcmanfm() { GDK_BACKEND=wayland /usr/bin/pcmanfm "$@" &> /dev/null & }'
 
-    # gedit 는 snap 으로 설치한다. 22.04 저장소의 deb 는 41.0 에서 멈춰 있고
-    # snap 쪽은 48.x 를 따라간다.
+    # gedit 는 가능하면 snap 으로 설치한다. 22.04 저장소의 deb 는 41.0 에서 멈춰
+    # 있고 snap 쪽은 48.x 를 따라간다.
     #
-    # snap 은 snapd 가 systemd 아래에서 돌아야 동작하므로, /etc/wsl.conf 에
-    # systemd=true 가 없는 WSL 에서는 deb 로 떨어진다.
+    # 다만 snap 경로에는 조건이 둘 있고, 두 번째가 WSL 에서 자주 걸린다.
+    #
+    #  1) snapd 는 systemd 아래에서 돌아야 한다. /etc/wsl.conf 에 systemd=true
+    #     가 없는 WSL 에서는 snapd 자체를 띄울 수 없다.
+    #  2) gedit 는 strict confinement 스냅이고, 의존 스냅인 mesa-2404 도 그렇다.
+    #     WSL2 커널에는 AppArmor 가 없어서(/sys/module/apparmor/parameters/enabled
+    #     가 N) snapd 가 confinement 를 'partial' 로 잡고, 이때
+    #     'snap debug sandbox-features' 의 confinement-options 에서 strict 가
+    #     빠진다. 이 상태로 설치를 걸면 다운로드는 다 받은 뒤 hook 실행 단계에서
+    #       cannot preserve mount namespace of process N as mesa-2404.mnt:
+    #       Invalid argument
+    #     로 죽고 전체가 롤백된다. 실패까지 3분쯤 걸리므로 시도 자체를 막는다.
+    #
+    # 두 조건 중 하나라도 어긋나면 deb 로 떨어진다.
     - name: Install snapd
       ansible.builtin.package:
         name: snapd
@@ -166,16 +178,39 @@
       changed_when: false
       when: ansible_service_mgr == 'systemd'
 
+    # strict 스냅을 설치할 수 있는 시스템인지 미리 본다. 정상 시스템은 'strict',
+    # AppArmor 가 없는 WSL2 는 'partial' 을 뱉는다. snapd 가 없거나 명령이
+    # 실패해도 (rc != 0) stdout 이 비어 아래 조건이 거짓이 되므로 deb 로 간다.
+    - name: Check whether snapd supports strict confinement
+      ansible.builtin.command: snap debug confinement
+      register: snap_confinement
+      changed_when: false
+      failed_when: false
+      become: true
+      when: ansible_service_mgr == 'systemd'
+
+    - name: Select the gedit install method
+      ansible.builtin.set_fact:
+        gedit_use_snap: "{{ (snap_confinement.stdout | default('') | trim) == 'strict' }}"
+
+    - name: Report that gedit falls back to the distribution package
+      ansible.builtin.debug:
+        msg: >-
+          snap 이 strict confinement 를 지원하지 않아
+          (confinement={{ snap_confinement.stdout | default('n/a') | trim }})
+          gedit 를 저장소 deb 로 설치합니다. snap 쪽보다 버전이 낮습니다.
+      when: not (gedit_use_snap | bool)
+
     - name: Install gedit (snap)
       community.general.snap:
         name: gedit
         state: present
       become: true
-      when: ansible_service_mgr == 'systemd'
+      when: gedit_use_snap | bool
 
-    - name: Install gedit (deb, systemd 가 없어 snap 을 쓸 수 없을 때)
+    - name: Install gedit (deb, snap 을 쓸 수 없을 때)
       ansible.builtin.package:
         name: gedit
         state: present
       become: true
-      when: ansible_service_mgr != 'systemd'
+      when: not (gedit_use_snap | bool)
