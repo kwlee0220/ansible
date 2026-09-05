@@ -120,11 +120,18 @@ isaac_sim_fastdds_interface_whitelist: []
 isaac_sim_fastdds_whitelist_default_iface: false
 
 # 브리지가 쓰는 선택 메시지 패키지 ("ros-<distro>-" 접두어는 자동으로 붙는다)
-#   vision-msgs    : Detection2DArray / Detection3DArray 퍼블리셔
-#   ackermann-msgs : AckermannDriveStamped 구독자
+#   vision-msgs           : Detection2DArray / Detection3DArray 퍼블리셔
+#   ackermann-msgs        : AckermannDriveStamped 구독자
+#   simulation-interfaces : isaacsim.ros2.sim_control 확장이 여는 서비스의 타입.
+#       Isaac 은 이 서비스를 제공하지만, ROS 쪽에서 **부르려면** 타입이 로컬에
+#       있어야 한다. 없으면 /set_entity_state 로 물체를 다시 놓는 경로와
+#       /set_simulation_state 로 Play/Stop 을 거는 경로가 둘 다 막힌다.
+#       조용히 막히는 것이 문제다 — 스택은 정상 기동하고 노드가 ERROR 한 줄만
+#       남긴 채 서비스를 닫으므로, 에피소드를 시작하고 나서야 알게 된다.
 isaac_sim_ros_packages:
   - vision-msgs
   - ackermann-msgs
+  - simulation-interfaces
 
 # Isaac Sim 전용 메시지/예제가 든 ROS 2 워크스페이스를 받아서 빌드할지 여부.
 isaac_sim_build_ros_workspace: true

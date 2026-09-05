@@ -7,7 +7,7 @@ Ubuntu 22.04(jammy)에 NVIDIA Isaac Sim standalone 배포판을 설치하고, �
 1. **사전 검사** — Ubuntu 릴리즈, NVIDIA 드라이버 버전(`nvidia-smi`), ROS 2 설치 여부, 디스크 여유 공간(압축 파일만 약 13GiB)을 먼저 확인한다.
 2. **런타임 의존성** — Omniverse Kit 실행에 필요한 Vulkan/X11 라이브러리 설치, `nofile` 한계 상향.
 3. **Isaac Sim 설치** — standalone zip 을 받아 `~/isaacsim` 에 풀고 `post_install.sh` 를 실행한다. 이미 설치돼 있으면 통째로 건너뛴다.
-4. **ROS 2 브리지 환경** — `ros-humble-vision-msgs` / `ros-humble-ackermann-msgs` 설치. UDP 전용 Fast DDS 프로파일은 기본으로 배치하지 않는다 (`isaac_sim_install_fastdds_profile`, 아래 참조).
+4. **ROS 2 브리지 환경** — `ros-humble-vision-msgs` / `ros-humble-ackermann-msgs` / `ros-humble-simulation-interfaces` 설치. 마지막 것은 `isaacsim.ros2.sim_control` 확장이 여는 서비스(`/set_entity_state`, `/set_simulation_state`)를 ROS 쪽에서 **부르기 위한** 타입이다 — 없으면 물체 재배치와 Play/Stop 제어가 **조용히** 막힌다. UDP 전용 Fast DDS 프로파일은 기본으로 배치하지 않는다 (`isaac_sim_install_fastdds_profile`, 아래 참조).
 5. **ROS 2 워크스페이스** — `IsaacSim-ros_workspaces` 의 `humble_ws` 를 `rosdep` + `colcon` 으로 빌드한다.
 6. **실행 래퍼** — `~/.local/bin/isaac-sim-ros2.sh` 와 데스크톱 항목 생성.
 
