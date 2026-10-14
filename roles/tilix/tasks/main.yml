@@ -63,6 +63,19 @@
     value: "@as []"
     state: present
 
+# Wayland 로 띄운 tilix 는 헤더바의 창 버튼을 GTK 가 직접 그리고, 어떤 버튼을
+# 둘지는 GSettings 의 button-layout 을 따른다. 데스크톱 Ubuntu 는 ubuntu-settings
+# 가 ':minimize,maximize,close' 로 바꿔 두지만 WSL 에는 그 패키지가 없어서
+# upstream 기본값 'appmenu:close' 가 쓰이고, 그러면 닫기 버튼만 보인다.
+# 데스크톱에서는 사용자가 정한 값을 건드리지 않도록 WSL 에서만 넣는다.
+- name: Show minimize/maximize buttons in GTK header bars on WSL
+  become: false
+  dconf:
+    key: "/org/gnome/desktop/wm/preferences/button-layout"
+    value: "':minimize,maximize,close'"
+    state: present
+  when: is_wsl | bool
+
 # WSLg 에서는 X11(Xwayland) 이 아니라 Wayland 백엔드로 띄운다. Xwayland 로 띄우면
 # 세 가지가 한꺼번에 어긋난다:
 #
