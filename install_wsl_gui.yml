@@ -38,6 +38,9 @@
     # false 로 둘 수 있으나, locale 과 한글 폰트 설정도 이 role 이 함께 한다.
     install_hangul: true
 
+    # Windows 에 사용자 글꼴로 설치할 Ubuntu Mono 가 있는 곳 (fonts-ubuntu 패키지).
+    windows_font_dir: /usr/share/fonts/truetype/ubuntu
+
   pre_tasks:
     - name: Assert that the target is WSL
       ansible.builtin.assert:
@@ -214,3 +217,49 @@
         state: present
       become: true
       when: not (gedit_use_snap | bool)
+
+    # Ubuntu 배포판은 /usr/share/wsl/terminal-profile.json 으로 Windows Terminal
+    # 프로필을 등록하는데, 거기에 글꼴이 "Ubuntu Mono" 로 박혀 있다. Windows
+    # Terminal 은 Windows 프로그램이라 Windows 에 설치된 글꼴에서 찾고, 없으면
+    #   선택한 글꼴 "Ubuntu Mono" 없습니다. "Consolas" 선택되었습니다.
+    # 경고를 띄운다. 글꼴 파일은 WSL 의 fonts-ubuntu 에 이미 있으므로 그것을
+    # Windows 사용자 글꼴로 설치한다 (files/install_windows_fonts.ps1).
+    #
+    # powershell.exe 는 PATH 로 찾지 않고 절대 경로로 부른다. ansible 이 SSH 로
+    # 붙은 세션에는 WSL 이 넣어 주는 Windows 경로가 PATH 에 없어서
+    # "powershell.exe: not found" 가 난다. interop 자체는 SSH 세션에서도 된다.
+    - name: Install fonts-ubuntu
+      ansible.builtin.package:
+        name: fonts-ubuntu
+        state: present
+      become: true
+
+    - name: Resolve Windows paths for PowerShell and the Ubuntu font directory
+      ansible.builtin.shell: |
+        echo "$(wslpath -u 'C:\Windows')/System32/WindowsPowerShell/v1.0/powershell.exe"
+        wslpath -w {{ windows_font_dir }}
+      register: windows_font_paths
+      changed_when: false
+
+    # 스크립트에 변수를 앞에 붙여 -EncodedCommand(UTF-16LE base64)로 넘기면
+    # 타깃에 .ps1 을 복사할 필요도, 실행 정책을 건드릴 필요도 없다.
+    - name: Install Ubuntu Mono as a Windows user font for Windows Terminal
+      ansible.builtin.command:
+        argv:
+          - "{{ windows_font_paths.stdout_lines[0] }}"
+          - -NoProfile
+          - -NonInteractive
+          - -EncodedCommand
+          - >-
+            {{ ("$FontDir = '" ~ windows_font_paths.stdout_lines[1] ~ "'; "
+                ~ "$FontFiles = @('" ~ (windows_font_files | join("','")) ~ "'); "
+                ~ lookup('ansible.builtin.file', 'install_windows_fonts.ps1'))
+               | b64encode(encoding='utf-16-le') }}
+      vars:
+        windows_font_files:
+          - UbuntuMono-R.ttf
+          - UbuntuMono-B.ttf
+          - UbuntuMono-RI.ttf
+          - UbuntuMono-BI.ttf
+      register: windows_font_install
+      changed_when: windows_font_install.stdout_lines[-1] | default('') == 'changed'
