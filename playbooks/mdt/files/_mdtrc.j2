@@ -33,4 +33,4 @@ export MDT_CLIENT_HOME=$MDT_HOME/mdt-client
 # MDT Client 가 아직 배포되지 않은 상태에서도 새 셸이 에러를 뱉지 않도록 존재할 때만 읽는다.
 [ -f "$MDT_CLIENT_HOME/sbin/completion/mdt_completion" ] && \
     source "$MDT_CLIENT_HOME/sbin/completion/mdt_completion"
-export PATH=$PATH:$MDT_CLIENT_HOME/sbin
+export PATH=$PATH:$MDT_CLIENT_HOME/sbin:$MDT_HOME/sbin
